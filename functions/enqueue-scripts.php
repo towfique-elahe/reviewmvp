@@ -21,6 +21,7 @@ function reviewmvp_register_styles() {
     // Enqueue custom CSS files
     $styles = [
         'reviewmvp-root-style'          => 'assets/css/root.css',
+        'reviewmvp-course-search-style'          => 'assets/css/course-search.css',
     ];
 
     foreach ($styles as $handle => $path) {

@@ -1,35 +1,38 @@
 /* importing fonts */
-@import url("https://fonts.googleapis.com/css2?family=Alegreya:wght@400..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Noto+Sans+Georgian:wght@100..900&display=swap");
 
 :root {
   /* global colors */
-  --primary-color: #1647c5;
-  --secondary-color: #dce6ff;
-  --text-color: #585858;
-  --dark-text-color: #222222;
-  --accent-color: #fc7837;
-  --gray-background-color: #fdfdfd;
-  --whhite-background-color: #ffffff;
+  --primary-color: #044f31;
+  --secondary-color: #011813;
+  --text-color: #4e5255;
+  --dark-text-color: #000000;
+  --light-text-color: #ffffff;
+  --accent-color: #06ef91;
+  --button-text-color: #020120;
+  --gray-background-color: #f8f8f8;
+  --white-background-color: #ffffff;
+  --border-color: #e7e7e8;
 
   /* global fonts */
-  --primary-font-family: "Alegreya", serif;
-  --primary-font-size: 54px;
+  --primary-font-family: "Inter", sans-serif;
+  --primary-font-size: 48px;
   --primary-font-weight: 700;
 
-  --secondary-font-family: "Alegreya", serif;
+  --secondary-font-family: "Noto Sans Georgian", sans-serif;
   --secondary-font-size: 20px;
-  --secondary-font-weight: 700;
+  --secondary-font-weight: 600;
 
-  --text-font-family: "Montserrat", sans-serif;
-  --text-font-size: 14px;
-  --text-font-weight: 500;
+  --text-font-family: "Noto Sans Georgian", sans-serif;
+  --text-font-size: 16px;
+  --text-font-weight: 400;
 
-  --accent-font-family: "Montserrat", sans-serif;
-  --accent-font-size: 14px;
+  --accent-font-family: "Inter", sans-serif;
+  --accent-font-size: 16px;
   --accent-font-weight: 600;
 
   /* border */
-  --border: solid 1px #d9d9d9;
+  --border: solid 1px var(--border-color);
 
   /* box shadow */
   --box-shadow-light: 0 5px 15px rgba(0, 0, 0, 0.1);
@@ -38,19 +41,9 @@
 
 *::selection {
   background-color: var(--accent-color);
-  color: var(--whhite-background-color);
+  color: var(--light-text-color);
 }
 
-.row {
-  display: flex;
-  flex-direction: row;
-  flex: 1;
-  column-gap: 10px;
-}
-
-.col {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  row-gap: 10px;
+body {
+  margin: 0;
 }

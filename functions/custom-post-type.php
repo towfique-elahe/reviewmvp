@@ -1,5 +1,9 @@
 <?php
-
+/**
+ * Function File Name: Custom Post Type
+ * 
+ * The file for custom post type 'course' and additional meta fields.
+ */
 
 /**
  * Register Custom Post Type: Course

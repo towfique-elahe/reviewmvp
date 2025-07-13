@@ -1,0 +1,36 @@
+#searchCourse {
+  width: 100%;
+}
+
+#searchCourse .course-search-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 424px;
+  margin: 0 auto;
+}
+
+#searchCourse .course-search-input {
+  width: 100%;
+  padding: 13px 40px 13px 15px;
+  border: var(--border);
+  border-radius: 16px;
+  font-family: var(--text-font-family);
+  font-size: var(--text-font-size);
+  box-sizing: border-box;
+  outline: none;
+  transition: border 0.3s;
+}
+
+#searchCourse .course-search-input:focus {
+  border-color: var(--accent-color);
+}
+
+#searchCourse .search-icon {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: var(--dark-text-color);
+  pointer-events: none;
+}
