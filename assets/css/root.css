@@ -1,0 +1,56 @@
+/* importing fonts */
+@import url("https://fonts.googleapis.com/css2?family=Alegreya:wght@400..900&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+
+:root {
+  /* global colors */
+  --primary-color: #1647c5;
+  --secondary-color: #dce6ff;
+  --text-color: #585858;
+  --dark-text-color: #222222;
+  --accent-color: #fc7837;
+  --gray-background-color: #fdfdfd;
+  --whhite-background-color: #ffffff;
+
+  /* global fonts */
+  --primary-font-family: "Alegreya", serif;
+  --primary-font-size: 54px;
+  --primary-font-weight: 700;
+
+  --secondary-font-family: "Alegreya", serif;
+  --secondary-font-size: 20px;
+  --secondary-font-weight: 700;
+
+  --text-font-family: "Montserrat", sans-serif;
+  --text-font-size: 14px;
+  --text-font-weight: 500;
+
+  --accent-font-family: "Montserrat", sans-serif;
+  --accent-font-size: 14px;
+  --accent-font-weight: 600;
+
+  /* border */
+  --border: solid 1px #d9d9d9;
+
+  /* box shadow */
+  --box-shadow-light: 0 5px 15px rgba(0, 0, 0, 0.1);
+  --box-shadow-medium: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+*::selection {
+  background-color: var(--accent-color);
+  color: var(--whhite-background-color);
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  column-gap: 10px;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  row-gap: 10px;
+}
