@@ -1,0 +1,105 @@
+#featuredReviews {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 20px 0;
+}
+
+#featuredReviews .review-card {
+  width: 300px;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 20px;
+  background: white;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+  font-family: sans-serif;
+}
+
+#featuredReviews .review-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+#featuredReviews .rating {
+  background-color: #00c853;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+#featuredReviews .course-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 10px 0 5px;
+}
+
+#featuredReviews .instructor {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+#featuredReviews .review-stats {
+  font-size: 13px;
+  color: #555;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+#featuredReviews .reviewer {
+  font-size: 14px;
+  margin: 10px 0;
+}
+
+#featuredReviews .verified {
+  background-color: #00c853;
+  color: white;
+  padding: 2px 6px;
+  font-size: 12px;
+  border-radius: 10px;
+}
+
+#featuredReviews .pros-cons {
+  list-style: none;
+  padding-left: 0;
+  font-size: 14px;
+  margin: 10px 0;
+}
+
+#featuredReviews .pros-cons li {
+  margin: 5px 0;
+}
+
+#featuredReviews .worth {
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+#featuredReviews .worth .yes {
+  color: #00c853;
+  font-weight: bold;
+}
+
+#featuredReviews .view-reviews {
+  width: 100%;
+  margin-top: 15px;
+  padding: 10px;
+  background-color: white;
+  border: 1px solid #00c853;
+  color: #00c853;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+#featuredReviews .view-reviews:hover {
+  background-color: #00c853;
+  color: white;
+}
