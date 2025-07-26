@@ -181,3 +181,14 @@ function reviewmvp_widgets_init() {
     ) );
 }
 add_action( 'widgets_init', 'reviewmvp_widgets_init' );
+
+/**
+ * Icon Helper
+ */
+function get_theme_icon_url($icon_name) {
+    $icon_path = get_template_directory() . '/assets/media/' . $icon_name;
+    $icon_url  = get_template_directory_uri() . '/assets/media/' . $icon_name;
+    $fallback  = get_template_directory_uri() . '/assets/media/icon-fallback.svg';
+
+    return file_exists($icon_path) ? $icon_url : $fallback;
+}
