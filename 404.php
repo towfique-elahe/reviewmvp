@@ -3,7 +3,7 @@
  * Template Name: 404 Error Page
  * 
  * The template for displaying 404 pages (Not Found).
- * 
+ *
  * @package ReviewMVP
  */
 
@@ -12,29 +12,18 @@ get_header(); // Include header.php
 
 <main id="main-content" class="site-main">
     <div class="container">
-        <section class="error-404 not-found">
-            <h1 class="page-title"><?php _e('Oops! That page can’t be found.', 'reviewmvp'); ?></h1>
-            <div class="page-content">
-                <p><?php _e('It looks like nothing was found at this location. Maybe try a search or check out the links below.', 'reviewmvp'); ?>
+        <section id="pageNotFound" class="error-404 not-found">
+            <div class="container">
+                <img src="<?php echo esc_url(get_theme_media_url('404.svg')); ?>"
+                    alt="<?php esc_attr_e('404 Error - Page Not Found', 'reviewmvp'); ?>" class="featured-image">
+
+                <p class="message">
+                    <?php _e("It seems the page you're looking for doesn’t exist. Let’s get you back on track—click below to return to the home page.", 'reviewmvp'); ?>
                 </p>
 
-                <?php get_search_form(); ?>
-
-                <div class="recent-posts">
-                    <h2><?php _e('Recent Posts', 'reviewmvp'); ?></h2>
-                    <ul>
-                        <?php
-                        $recent_posts = wp_get_recent_posts(['numberposts' => 5]);
-                        foreach ($recent_posts as $post) :
-                            ?>
-                        <li>
-                            <a href="<?php echo get_permalink($post['ID']); ?>">
-                                <?php echo esc_html($post['post_title']); ?>
-                            </a>
-                        </li>
-                        <?php endforeach; ?>
-                    </ul>
-                </div>
+                <a href="<?php echo esc_url(home_url('/')); ?>" class="button">
+                    <?php _e('Return to Home', 'reviewmvp'); ?>
+                </a>
             </div>
         </section>
     </div>

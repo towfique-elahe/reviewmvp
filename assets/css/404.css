@@ -1,0 +1,59 @@
+#pageNotFound {
+  width: 100%;
+  height: 100vh;
+  background-image: url("/wp-content/themes/reviewmvp/assets/media/background.svg");
+  background-size: cover;
+  background-position: top center;
+  background-repeat: no-repeat;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  overflow: hidden;
+}
+#pageNotFound .container {
+  width: 100%;
+  max-width: 750px;
+  padding: 0 15px;
+}
+#pageNotFound .featured-image {
+  width: 100%;
+  max-width: 380px;
+}
+#pageNotFound .message {
+  margin-top: 22px;
+  margin-bottom: 59px;
+  color: var(--dark-text-color);
+  font-family: var(--text-font-family);
+  font-weight: 600;
+  font-size: 25px;
+}
+#pageNotFound .button {
+  text-decoration: none;
+  box-sizing: border-box;
+  background-color: #fce8f0;
+  color: #e94c89;
+  padding: 10px 15px;
+  border-radius: 10px;
+  font-family: var(--text-font-family);
+  font-weight: 600;
+  font-size: 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+}
+#pageNotFound .button:hover {
+  background-color: #e94c89;
+  color: var(--light-text-color);
+}
+@media screen and (max-width: 768px) {
+  #pageNotFound .featured-image {
+    max-width: 300px;
+  }
+  #pageNotFound .message {
+    font-size: 18px;
+  }
+  #pageNotFound .button {
+    font-size: 14px;
+  }
+}

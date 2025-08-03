@@ -23,6 +23,7 @@ function reviewmvp_register_styles() {
         'reviewmvp-root-style'                  => 'assets/css/root.css',
         'reviewmvp-course-search-style'         => 'assets/css/course-search.css',
         'reviewmvp-featured-reviews-style'      => 'assets/css/featured-reviews.css',
+        'reviewmvp-404-style'                   => 'assets/css/404.css',
     ];
 
     foreach ($styles as $handle => $path) {
