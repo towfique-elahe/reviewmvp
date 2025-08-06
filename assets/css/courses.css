@@ -1,19 +1,6 @@
-.bc-wrap {
-  --bc-bg: #f6fbf9;
-  --bc-white: #fff;
-  --bc-muted: #6b7280;
-  --bc-text: #111827;
-  --bc-green: #10b981;
-  --bc-green-200: #d1fae5;
-  --bc-border: #e5e7eb;
-  --bc-rose: #ef4444;
-  --bc-amber: #f59e0b;
-  font-family: Inter, system-ui, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-  color: var(--bc-text);
-}
 .bc-container {
   max-width: 1200px;
-  margin: 100px auto;
+  margin: 50px auto;
   padding: 0 15px;
 }
 .bc-grid {
@@ -25,44 +12,68 @@
   .bc-grid {
     grid-template-columns: 1fr;
   }
-  .bc-sidebar {
+  .bc-filter-container {
     order: 2;
   }
   .bc-main {
     order: 1;
   }
 }
-.bc-sidebar {
-  background: linear-gradient(180deg, #eefaf6, #f7fafc);
-  border-radius: 12px;
-  padding: 10px 12px;
+.bc-heading {
+  color: var(--secondary-color);
+  font-family: var(--primary-font-family);
+  font-weight: 700;
+  font-size: 35px;
+  margin: 0;
+  margin-bottom: 71px;
+}
+.bc-sidebar-heading {
+  color: var(--secondary-color);
+  font-family: var(--primary-font-family);
+  font-weight: 600;
+  font-size: 16px;
+  margin: 0;
+  margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  gap: 17px;
+}
+.bc-sidebar-heading ion-icon {
+  font-size: 20px;
+}
+.bc-filter-container {
+  background: var(--white-background-color);
+  border: var(--border);
+  border-radius: 16px;
+  padding: 33px 32px;
   position: sticky;
-  top: 12px;
+  top: 20px;
   align-self: start;
-  border: 1px solid var(--bc-border);
-}
-.bc-fgroup {
-  border-bottom: 1px solid var(--bc-border);
-  padding: 10px 0;
-}
-.bc-fgroup:last-child {
-  border-bottom: none;
 }
 .bc-fhead {
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
+  color: var(--secondary-color);
+  font-family: var(--primary-font-family);
   font-weight: 600;
+  font-size: 14px;
+  border-bottom: var(--border);
+  padding-bottom: 12px;
+  margin-bottom: 15px;
 }
 .bc-fbody {
-  margin-top: 8px;
+  margin-bottom: 20px;
 }
 .bc-check {
   display: flex;
-  gap: 8px;
   align-items: center;
+  gap: 8px;
   margin: 6px 0;
+  color: var(--dark-text-color);
+  font-family: var(--text-font-family);
+  font-weight: 400;
   font-size: 14px;
 }
 .bc-check input {
@@ -70,66 +81,86 @@
   height: 16px;
 }
 .bc-muted {
-  color: var(--bc-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
 }
 .bc-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 20px;
+  margin-top: -14px;
 }
 .bc-sort {
-  font-size: 14px;
-  border: 1px solid var(--bc-border);
-  background: var(--bc-white);
-  border-radius: 8px;
-  padding: 8px 10px;
+  color: var(--dark-text-color);
+  font-family: var(--primary-font-family);
+  font-weight: 600;
+  font-size: 16px;
+  text-transform: capitalize;
+  outline: none;
+  border: var(--border);
+  border-color: var(--text-color);
+  background-color: transparent;
+  border-radius: 6px;
+  padding: 10px;
 }
 .bc-btn {
-  border: 1px solid var(--bc-border);
-  background: #fff;
-  padding: 8px 10px;
-  border-radius: 8px;
-  font-size: 14px;
+  color: var(--dark-text-color);
+  border: var(--border) !important;
+  background: #fff !important;
+  padding: 8px 10px !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
   cursor: pointer;
+}
+.bc-btn:hover {
+  color: var(--dark-text-color) !important;
 }
 .bc-btn[disabled] {
   opacity: 0.5;
   cursor: not-allowed;
 }
 .bc-card {
-  background: var(--bc-white);
-  border: 1px solid var(--bc-border);
+  background: var(--white-background-color);
+  border: var(--border);
   border-radius: 14px;
   padding: 16px;
   margin-bottom: 14px;
 }
-.bc-row {
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
-}
-.bc-badge {
-  margin-left: auto;
-  font-size: 12px;
-  background: #f3f4f6;
-  border: 1px solid var(--bc-border);
-  padding: 4px 8px;
-  border-radius: 999px;
-  white-space: nowrap;
-}
 .bc-title {
   font-weight: 700;
   margin: 4px 0 2px;
+}
+.bc-rating {
+  font-family: var(--text-font-family);
+  font-weight: 700;
+  font-size: 16px;
 }
 .bc-stars {
   display: inline-flex;
   gap: 2px;
   align-items: center;
 }
+.bc-starsbox {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
 .bc-star {
-  font-size: 14px;
-  color: #f59e0b;
+  font-size: 15px;
+  background-color: #dcdce6;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 6px;
+  border-radius: 3px;
+}
+.bc-star.active {
+  background-color: var(--accent-color);
+  color: var(--secondary-color);
 }
 .bc-chip {
   display: inline-block;

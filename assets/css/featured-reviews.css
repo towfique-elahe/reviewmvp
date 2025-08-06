@@ -105,6 +105,10 @@
   border: var(--border);
 }
 
+#featuredReviews .review-stats .stat img {
+  border-radius: 0;
+}
+
 /* Reviewer info */
 #featuredReviews .reviewer {
   display: flex;

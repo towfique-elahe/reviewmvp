@@ -66,6 +66,8 @@
         recommend: rec,
         worthYes: worth,
         ribbonTone: tone,
+        description:
+          "This course teaches the fundamentals of IoT networks and protocols, including the key technologies used in modern IoT systems.",
       };
     });
 
@@ -74,19 +76,41 @@
     // --- Helpers ---
     const $$ = (sel, parent = sidebar) =>
       Array.from(parent.querySelectorAll(sel));
-    function ratingStarsHTML(r) {
-      return `<span class="bc-stars" aria-label="${r} out of 5">
-        ${"★"
-          .repeat(5)
-          .split("")
-          .map(() => `<span class="bc-star">★</span>`)
-          .join("")}
-      </span><span style="font-weight:700;margin-left:6px">${r.toFixed(
-        1
-      )}</span>
-      <span class="bc-chip">${Math.max(
-        ...courses.map((c) => c.reviews)
-      )} reviews</span>`;
+    function ratingToneClass(r) {
+      // pick a tone class for icon color + background
+      if (r >= 4.5) return "tone-great"; // excellent
+      if (r >= 4.0) return "tone-good"; // good
+      if (r >= 3.0) return "tone-okay"; // meh
+      return "tone-poor"; // bad
+    }
+
+    function ratingIconsHTML(r) {
+      // build 5 icons: full / half / outline based on r (e.g., 3.5 => ★★★½☆)
+      let html = "";
+      for (let i = 1; i <= 5; i++) {
+        if (r >= i) {
+          html += `<span class="bc-star active"><ion-icon name="star" aria-hidden="true"></ion-icon></span>`;
+        } else if (r >= i - 0.5) {
+          html += `<span class="bc-star active"><ion-icon name="star-half" aria-hidden="true"></ion-icon></span>`;
+        } else {
+          html += `<span class="bc-star"><ion-icon name="star" aria-hidden="true"></ion-icon></span>`;
+        }
+      }
+      return html;
+    }
+
+    function ratingStarsHTML(r, provider) {
+      const tone = ratingToneClass(r);
+      return `
+    <span class="bc-rating">${r.toFixed(1)}</span>
+    <span class="bc-stars ${tone}" aria-label="${r.toFixed(1)} out of 5">
+      <span class="bc-starsbox">${ratingIconsHTML(r)}</span>
+    </span>
+    <span class="bc-chip">${Math.max(
+      ...courses.map((c) => c.reviews)
+    )} reviews</span>
+    <span class="bc-provider">${provider}</span>
+  `;
     }
     const formatDuration = (h) =>
       h < 1
@@ -220,34 +244,31 @@
           : c.ribbonTone === "amber"
           ? "amber"
           : "";
+
+      const themeDirectory = "/wp-content/themes/reviewmvp";
+      const iconPath = `${themeDirectory}/assets/media/`;
+
       return `<article class="bc-card" data-id="${c.id}">
-        <div class="bc-row">
-          <div>
-            <div class="bc-starsline">${ratingStarsHTML(c.rating)}</div>
-            <div class="bc-title">IoT Networks and Protocols</div>
-            <div class="bc-muted" style="font-size:13px">By ${c.author}</div>
-            <div class="bc-meta">
-              <span>${formatDuration(c.durationHours)}</span>
-              <span class="bc-dot"></span><span>${c.level}</span>
-              <span class="bc-dot"></span>
-              <span style="border:1px solid var(--bc-border);padding:3px 8px;border-radius:999px;background:#f8fafc;font-size:12px">${
-                c.provider
-              }</span>
-            </div>
-            <div class="bc-kpis">
-              <span class="bc-kpi">Students Outcome:</span>
-              <span class="bc-kpi">Learned skill (7%)</span>
-              <span class="bc-kpi">Built project (8%)</span>
-              <span class="bc-kpi">No impact (1%)</span>
-            </div>
-            <div class="bc-worth"><span class="bc-muted">Worth the money?</span> <strong>${yesPct}% say YES</strong></div>
-            <span class="bc-ribbon ${tone}">${recPct}% of students recommend this course</span>
-          </div>
-          <span class="bc-badge">${
-            c.isFree ? "Free" : "$" + c.price.toFixed(2)
-          }</span>
+      <div>
+        <div class="bc-starsline">${ratingStarsHTML(c.rating, c.provider)}</div>
+        <div class="bc-title">IoT Networks and Protocols</div>
+        <div class="bc-muted" style="font-size:13px">By ${c.author}</div>
+        <!-- Course Description -->
+        <div class="bc-description">${c.description}</div>
+        <div class="bc-meta">
+          <span><img src="${iconPath}icon-duration.svg" alt="Duration Icon"> ${formatDuration(c.durationHours)}</span>
+          <span><img src="${iconPath}icon-level.svg" alt="Level Icon"> ${c.level}</span>
         </div>
-      </article>`;
+        <div class="bc-kpis">
+          <span class="bc-kpi-label"><img src="${iconPath}icon-outcome.svg" alt="Outcome Icon"> Students Outcome:</span>
+          <span class="bc-kpi"><img src="${iconPath}icon-improved-skill.svg" alt="Learned Skill Icon"> Learned skill (7%)</span>
+          <span class="bc-kpi"><img src="${iconPath}icon-built-project.svg" alt="Built Project Icon"> Built project (8%)</span>
+          <span class="bc-kpi"><img src="${iconPath}icon-no-impact.svg" alt="No Impact Icon"> No impact (1%)</span>
+        </div>
+        <div class="bc-worth"><span class="bc-muted"><img src="${iconPath}icon-worth.svg" alt="Worth Icon"> Worth the money?</span> <strong>${yesPct}% say YES</strong></div>
+        <span class="bc-ribbon ${tone}">${recPct}% of students recommend this course</span>
+      </div>
+  </article>`;
     }
 
     // --- Render ---
