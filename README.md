@@ -4,7 +4,7 @@
 - Author: Towfique Elahe
 - Author URI: https://towfique-elahe.framer.website/
 - Description: A custom WordPress theme for course review system, compatible with Elementor and WooCommerce.
-- Version: 1.0.3
+- Version: 1.0.4
 - License: GNU General Public License v3 or later
 - License URI: http://www.gnu.org/licenses/gpl-3.0.html
 - Text Domain: review-mvp
@@ -12,11 +12,18 @@
 
 ## Version History
 
-### V1.0.0
+## V1.0.4
 
-- Added custom post type course.
-- Added course management in wp dashboard.
-- Added single course page template.
+- Updated: Course search bar.
+- Added: Courses list view (Initial).
+
+## V1.0.3
+
+- 404 page desing completed.
+
+## V1.0.2
+
+- Added new function file 'featured-reviews.php', added featured reviews card (desing only) via shortcode.
 
 ## V1.0.1
 
@@ -25,10 +32,8 @@
 - Added css file for course search.
 - Updated root css file to include theme global colors, fonts etc
 
-## V1.0.2
+### V1.0.0
 
-- Added new function file 'featured-reviews.php', added featured reviews card (desing only) via shortcode.
-
-## V1.0.3
-
-- 404 page desing completed.
+- Added custom post type course.
+- Added course management in wp dashboard.
+- Added single course page template.
