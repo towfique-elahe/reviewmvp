@@ -102,14 +102,20 @@
     function ratingStarsHTML(r, provider) {
       const tone = ratingToneClass(r);
       return `
-    <span class="bc-rating">${r.toFixed(1)}</span>
-    <span class="bc-stars ${tone}" aria-label="${r.toFixed(1)} out of 5">
-      <span class="bc-starsbox">${ratingIconsHTML(r)}</span>
-    </span>
-    <span class="bc-chip">${Math.max(
-      ...courses.map((c) => c.reviews)
-    )} reviews</span>
-    <span class="bc-provider">${provider}</span>
+      <div class="bc-rating-container">
+        <div class="col">
+          <span class="bc-rating">${r.toFixed(1)}</span>
+          <span class="bc-stars ${tone}" aria-label="${r.toFixed(1)} out of 5">
+            <span class="bc-starsbox">${ratingIconsHTML(r)}</span>
+          </span>
+          <span class="bc-chip">${Math.max(
+            ...courses.map((c) => c.reviews)
+          )} reviews</span>
+        </div>
+        <div class="col">
+          <span class="bc-provider">${provider}</span>
+        </div>
+      </div>
   `;
     }
     const formatDuration = (h) =>
@@ -216,7 +222,7 @@
       start = Math.max(1, end - 6);
       let html = `<button class="bc-pagebtn" data-page="${
         state.page - 1
-      }" ${prevDis}>Prev</button>`;
+      }" ${prevDis}><ion-icon name="arrow-back-outline"></ion-icon> Previous</button>`;
       if (start > 1) {
         html += `<button class="bc-pagebtn" data-page="1">1</button><span class="bc-ellipsis">…</span>`;
       }
@@ -230,7 +236,7 @@
       }
       html += `<button class="bc-pagebtn" data-page="${
         state.page + 1
-      }" ${nextDis}>Next</button>`;
+      }" ${nextDis}>Next <ion-icon name="arrow-forward-outline"></ion-icon></button>`;
       pagEl.innerHTML = html;
     }
 
@@ -249,15 +255,15 @@
       const iconPath = `${themeDirectory}/assets/media/`;
 
       return `<article class="bc-card" data-id="${c.id}">
-      <div>
         <div class="bc-starsline">${ratingStarsHTML(c.rating, c.provider)}</div>
-        <div class="bc-title">IoT Networks and Protocols</div>
-        <div class="bc-muted" style="font-size:13px">By ${c.author}</div>
-        <!-- Course Description -->
-        <div class="bc-description">${c.description}</div>
-        <div class="bc-meta">
-          <span><img src="${iconPath}icon-duration.svg" alt="Duration Icon"> ${formatDuration(c.durationHours)}</span>
-          <span><img src="${iconPath}icon-level.svg" alt="Level Icon"> ${c.level}</span>
+        <div class="bc-info">
+            <div class="bc-title">IoT Networks and Protocols</div>
+            <div class="bc-author" style="font-size:13px">By ${c.author}</div>
+            <div class="bc-description">${c.description}</div>
+        </div>
+        <div class="bc-metas">
+          <span class="bc-meta"><img src="${iconPath}icon-duration.svg" alt="Duration Icon"> ${formatDuration(c.durationHours)}</span>
+          <span class="bc-meta"><img src="${iconPath}icon-level.svg" alt="Level Icon"> ${c.level}</span>
         </div>
         <div class="bc-kpis">
           <span class="bc-kpi-label"><img src="${iconPath}icon-outcome.svg" alt="Outcome Icon"> Students Outcome:</span>
@@ -265,10 +271,14 @@
           <span class="bc-kpi"><img src="${iconPath}icon-built-project.svg" alt="Built Project Icon"> Built project (8%)</span>
           <span class="bc-kpi"><img src="${iconPath}icon-no-impact.svg" alt="No Impact Icon"> No impact (1%)</span>
         </div>
-        <div class="bc-worth"><span class="bc-muted"><img src="${iconPath}icon-worth.svg" alt="Worth Icon"> Worth the money?</span> <strong>${yesPct}% say YES</strong></div>
-        <span class="bc-ribbon ${tone}">${recPct}% of students recommend this course</span>
-      </div>
-  </article>`;
+        <div class="bc-bottom-container">
+            <div class="bc-worth">
+                <img src="${iconPath}icon-worth.svg" alt="Worth Icon">
+                Worth the money? <strong>${yesPct}% say YES</strong>
+            </div>
+            <span class="bc-ribbon ${tone}">${recPct}% of students recommend this course</span>
+        </div>
+      </article>`;
     }
 
     // --- Render ---
