@@ -1,0 +1,143 @@
+.single-course-wrapper {
+  max-width: 1080px;
+  margin: auto;
+  font-family: "Segoe UI", sans-serif;
+  padding: 20px;
+  color: #111;
+}
+
+.course-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.course-title {
+  flex: 1.5;
+}
+
+.tag {
+  background: #ffdce0;
+  padding: 5px 10px;
+  font-size: 12px;
+  border-radius: 5px;
+}
+
+.rating span {
+  color: #555;
+}
+
+.outcomes span {
+  background: #eee;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  margin-right: 5px;
+  display: inline-block;
+  margin-top: 5px;
+}
+
+.write-review-btn {
+  background: #00c37d;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  margin-top: 15px;
+  cursor: pointer;
+}
+
+.course-info-card {
+  width: 300px;
+  background: #fafafa;
+  border: 1px solid #eee;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.course-pricing ul {
+  padding-left: 20px;
+}
+
+.visit-button {
+  background: #00c37d;
+  display: inline-block;
+  padding: 10px;
+  margin-bottom: 15px;
+  text-decoration: none;
+  color: white;
+  border-radius: 4px;
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 2px solid #eee;
+  margin-top: 40px;
+}
+
+.tab-button {
+  padding: 10px 20px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-weight: bold;
+  border-bottom: 3px solid transparent;
+}
+
+.tab-button.active {
+  border-bottom: 3px solid #00c37d;
+  color: #00c37d;
+}
+
+.tab-content {
+  display: none;
+  margin-top: 20px;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.review {
+  background: #f9f9f9;
+  padding: 20px;
+  margin: 20px 0;
+  border-left: 4px solid #00c37d;
+  border-radius: 5px;
+}
+
+.review-head {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.review-head .avatar {
+  background: #ccc;
+  width: 40px;
+  height: 40px;
+  display: inline-block;
+  text-align: center;
+  line-height: 40px;
+  border-radius: 50%;
+  font-weight: bold;
+}
+
+.badge {
+  background: #f0ad4e;
+  padding: 2px 6px;
+  font-size: 11px;
+  border-radius: 4px;
+  margin-left: 8px;
+}
+
+.see-all-reviews {
+  background: #ffeef0;
+  color: #d33;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 20px;
+  margin-top: 20px;
+  cursor: pointer;
+}

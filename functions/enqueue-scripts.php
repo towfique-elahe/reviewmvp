@@ -25,6 +25,7 @@ function reviewmvp_register_styles() {
         'reviewmvp-featured-reviews-style'      => 'assets/css/featured-reviews.css',
         'reviewmvp-404-style'                   => 'assets/css/404.css',
         'reviewmvp-courses-style'               => 'assets/css/courses.css',
+        'reviewmvp-single-course-style'         => 'assets/css/single-course.css',
     ];
 
     foreach ($styles as $handle => $path) {
@@ -56,8 +57,9 @@ function reviewmvp_register_scripts() {
 
     // Enqueue custom JavaScript files
     $scripts = [
-        'reviewmvp-course-search' => 'assets/js/course-search.js',
-        'reviewmvp-courses' => 'assets/js/courses.js',
+        'reviewmvp-course-search'       => 'assets/js/course-search.js',
+        'reviewmvp-courses'             => 'assets/js/courses.js',
+        'reviewmvp-single-course'       => 'assets/js/single-course.js',
     ];
 
     foreach ($scripts as $handle => $path) {
