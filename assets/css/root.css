@@ -40,7 +40,7 @@
 
 *::selection {
   background-color: var(--accent-color);
-  color: var(--light-text-color);
+  color: var(--button-text-color);
 }
 
 body {
