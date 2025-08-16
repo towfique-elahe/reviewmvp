@@ -87,60 +87,148 @@ add_action('add_meta_boxes', 'reviewmvp_add_course_meta_box');
  * Render the meta box content.
  */
 function reviewmvp_render_course_meta_box($post) {
-    // Define fields and default values
-    $fields = [
-        'status'            => ['type' => 'select', 'options' => ['Draft', 'Active', 'Closed']],
-        'instructor'        => ['type' => 'text'],
-        'overview'          => ['type' => 'textarea'],
-        'about_instructor'  => ['type' => 'textarea'],
-        'price'             => ['type' => 'text'],
-        'duration'          => ['type' => 'text'],
-        'level'             => ['type' => 'select', 'options' => ['Beginner', 'Intermediate', 'Expert']],
-        'certificate'       => ['type' => 'checkbox'],
-        'refundable'        => ['type' => 'checkbox'],
-        'language'          => ['type' => 'select', 'options' => ['English', 'Spanish', 'French']],
-        'course_url'        => ['type' => 'text'],
-    ];
-
     wp_nonce_field('reviewmvp_save_course_meta_box', 'reviewmvp_course_meta_box_nonce');
 
-    foreach ($fields as $field => $config) {
-        $id = 'course_' . $field;
-        $meta = get_post_meta($post->ID, '_' . $id, true);
+    // Get meta
+    $meta = [
+        'course_provider'       => get_post_meta($post->ID, '_course_provider', true),
+        'course_price'       => get_post_meta($post->ID, '_course_price', true),
+        'course_duration'    => get_post_meta($post->ID, '_course_duration', true),
+        'course_certificate' => get_post_meta($post->ID, '_course_certificate', true),
+        'course_refundable'  => get_post_meta($post->ID, '_course_refundable', true),
+        'course_link'        => get_post_meta($post->ID, '_course_link', true),
+        'course_level'       => get_post_meta($post->ID, '_course_level', true),
+        'course_language'    => (array) get_post_meta($post->ID, '_course_language', true),
+        'course_instructor'  => get_post_meta($post->ID, '_course_instructor', true),
+    ];
 
-        echo '<p><label for="' . esc_attr($id) . '"><strong>' . ucwords(str_replace('_', ' ', $field)) . '</strong></label><br>';
-
-        switch ($config['type']) {
-            case 'textarea':
-                echo '<textarea id="' . esc_attr($id) . '" name="' . esc_attr($id) . '" rows="4" style="width:100%;">' . esc_textarea($meta) . '</textarea>';
-                break;
-
-            case 'select':
-                echo '<select id="' . esc_attr($id) . '" name="' . esc_attr($id) . '" style="width:100%;">';
-                foreach ($config['options'] as $option) {
-                    echo '<option value="' . esc_attr($option) . '" ' . selected($meta, $option, false) . '>' . esc_html($option) . '</option>';
-                }
-                echo '</select>';
-                break;
-
-            case 'checkbox':
-                echo '<input type="checkbox" id="' . esc_attr($id) . '" name="' . esc_attr($id) . '" value="1" ' . checked($meta, '1', false) . ' />';
-                break;
-
-            default:
-                echo '<input type="text" id="' . esc_attr($id) . '" name="' . esc_attr($id) . '" value="' . esc_attr($meta) . '" style="width:100%;" />';
-                break;
-        }
-
-        echo '</p>';
+    if (!is_array($meta['course_instructor'])) {
+        $meta['course_instructor'] = [
+            'name' => '',
+            'position' => '',
+            'details' => '',
+            'facebook' => '',
+            'instagram' => '',
+            'linkedin' => '',
+            'twitter' => '',
+            'youtube' => '',
+        ];
     }
+
+    ?>
+<p>
+    <label><strong>Provider</strong></label><br>
+    <input type="text" name="course_provider" value="<?php echo esc_attr($meta['course_provider']); ?>"
+        style="width:100%;">
+</p>
+
+<p>
+    <label><strong>Course Price ($)</strong></label><br>
+    <input type="number" step="0.01" name="course_price" value="<?php echo esc_attr($meta['course_price']); ?>"
+        style="width:100%;">
+</p>
+
+<p>
+    <label><strong>Course Duration (hours)</strong></label><br>
+    <input type="number" name="course_duration" value="<?php echo esc_attr($meta['course_duration']); ?>"
+        style="width:100%;">
+</p>
+
+<p>
+    <label><strong>Certificate</strong></label><br>
+    <select name="course_certificate" style="width:100%;">
+        <option value="Yes" <?php selected($meta['course_certificate'], 'Yes'); ?>>Yes</option>
+        <option value="No" <?php selected($meta['course_certificate'], 'No'); ?>>No</option>
+    </select>
+</p>
+
+<p>
+    <label><strong>Refundable</strong></label><br>
+    <select name="course_refundable" style="width:100%;">
+        <option value="Yes" <?php selected($meta['course_refundable'], 'Yes'); ?>>Yes</option>
+        <option value="No" <?php selected($meta['course_refundable'], 'No'); ?>>No</option>
+    </select>
+</p>
+
+<p>
+    <label><strong>Course Link</strong></label><br>
+    <input type="url" name="course_link" value="<?php echo esc_attr($meta['course_link']); ?>" style="width:100%;">
+</p>
+
+<p>
+    <label><strong>Level</strong></label><br>
+    <select name="course_level" style="width:100%;">
+        <option value="beginner" <?php selected($meta['course_level'], 'beginner'); ?>>Beginner</option>
+        <option value="intermediate" <?php selected($meta['course_level'], 'intermediate'); ?>>Intermediate</option>
+        <option value="advance" <?php selected($meta['course_level'], 'advance'); ?>>Advance</option>
+    </select>
+</p>
+
+<p>
+    <label><strong>Language(s)</strong></label><br>
+    <select name="course_language[]" multiple style="width:100%; height: 80px;">
+        <?php foreach (['English','French','Spanish','German','Hindi'] as $lang): ?>
+        <option value="<?php echo esc_attr($lang); ?>"
+            <?php echo in_array($lang, $meta['course_language']) ? 'selected' : ''; ?>>
+            <?php echo esc_html($lang); ?>
+        </option>
+        <?php endforeach; ?>
+    </select>
+    <small>Hold Ctrl (Windows) / Command (Mac) to select multiple.</small>
+</p>
+
+<hr>
+<h3>Instructor Details</h3>
+
+<p>
+    <label><strong>Name</strong></label><br>
+    <input type="text" name="course_instructor[name]"
+        value="<?php echo esc_attr($meta['course_instructor']['name']); ?>" style="width:100%;">
+</p>
+<p>
+    <label><strong>Position</strong></label><br>
+    <input type="text" name="course_instructor[position]"
+        value="<?php echo esc_attr($meta['course_instructor']['position']); ?>" style="width:100%;">
+</p>
+<p>
+    <label><strong>Details</strong></label><br>
+    <textarea name="course_instructor[details]" rows="4"
+        style="width:100%;"><?php echo esc_textarea($meta['course_instructor']['details']); ?></textarea>
+</p>
+
+<hr>
+<h4>Social Links</h4>
+<p><label><strong>Facebook</strong></label><br>
+    <input type="url" name="course_instructor[facebook]"
+        value="<?php echo esc_attr($meta['course_instructor']['facebook'] ?? ''); ?>" style="width:100%;">
+</p>
+<p><label><strong>Instagram</strong></label><br>
+    <input type="url" name="course_instructor[instagram]"
+        value="<?php echo esc_attr($meta['course_instructor']['instagram'] ?? ''); ?>" style="width:100%;">
+</p>
+<p><label><strong>LinkedIn</strong></label><br>
+    <input type="url" name="course_instructor[linkedin]"
+        value="<?php echo esc_attr($meta['course_instructor']['linkedin'] ?? ''); ?>" style="width:100%;">
+</p>
+<p><label><strong>Twitter / X</strong></label><br>
+    <input type="url" name="course_instructor[twitter]"
+        value="<?php echo esc_attr($meta['course_instructor']['twitter'] ?? ''); ?>" style="width:100%;">
+</p>
+<p><label><strong>YouTube</strong></label><br>
+    <input type="url" name="course_instructor[youtube]"
+        value="<?php echo esc_attr($meta['course_instructor']['youtube'] ?? ''); ?>" style="width:100%;">
+</p>
+
+<hr>
+<p><em>Course Description uses the post content (main editor).</em></p>
+<?php
 }
 
 /**
  * Save course meta box fields.
  */
 function reviewmvp_save_course_meta_box($post_id) {
-    if (!isset($_POST['reviewmvp_course_meta_box_nonce']) || 
+    if (!isset($_POST['reviewmvp_course_meta_box_nonce']) ||
         !wp_verify_nonce($_POST['reviewmvp_course_meta_box_nonce'], 'reviewmvp_save_course_meta_box')) {
         return;
     }
@@ -148,34 +236,47 @@ function reviewmvp_save_course_meta_box($post_id) {
     if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
     if (!current_user_can('edit_post', $post_id)) return;
 
-    $fields = [
-        'status',
-        'instructor',
-        'overview',
-        'about_instructor',
-        'price',
-        'duration',
-        'level',
-        'certificate',
-        'refundable',
-        'language',
-        'course_url',
-    ];
+    // Basic text fields
+    $fields = ['course_provider','course_price','course_duration','course_certificate','course_refundable','course_link','course_level'];
 
     foreach ($fields as $field) {
-        $key = '_course_' . $field;
-
-        if (in_array($field, ['certificate', 'refundable'])) {
-            update_post_meta($post_id, $key, isset($_POST['course_' . $field]) ? '1' : '0');
-        } elseif (in_array($field, ['overview', 'about_instructor'])) {
-            update_post_meta($post_id, $key, sanitize_textarea_field($_POST['course_' . $field]));
-        } elseif ($field === 'course_url') {
-            update_post_meta($post_id, $key, esc_url_raw($_POST['course_' . $field]));
-        } else {
-            update_post_meta($post_id, $key, sanitize_text_field($_POST['course_' . $field]));
+        if (isset($_POST[$field])) {
+            $value = $_POST[$field];
+            if ($field === 'course_price' || $field === 'course_duration') {
+                $value = intval($value);
+            } elseif ($field === 'course_link') {
+                $value = esc_url_raw($value);
+            } else {
+                $value = sanitize_text_field($value);
+            }
+            update_post_meta($post_id, '_' . $field, $value);
         }
     }
+
+    // Languages (multi)
+    if (isset($_POST['course_language'])) {
+        $langs = array_map('sanitize_text_field', (array)$_POST['course_language']);
+        update_post_meta($post_id, '_course_language', $langs);
+    } else {
+        delete_post_meta($post_id, '_course_language');
+    }
+
+    // Instructor (array)
+    if (isset($_POST['course_instructor']) && is_array($_POST['course_instructor'])) {
+        $instructor = [
+            'name'     => sanitize_text_field($_POST['course_instructor']['name'] ?? ''),
+            'position' => sanitize_text_field($_POST['course_instructor']['position'] ?? ''),
+            'details'  => sanitize_textarea_field($_POST['course_instructor']['details'] ?? ''),
+            'facebook' => esc_url_raw($_POST['course_instructor']['facebook'] ?? ''),
+            'instagram'=> esc_url_raw($_POST['course_instructor']['instagram'] ?? ''),
+            'linkedin' => esc_url_raw($_POST['course_instructor']['linkedin'] ?? ''),
+            'twitter'  => esc_url_raw($_POST['course_instructor']['twitter'] ?? ''),
+            'youtube'  => esc_url_raw($_POST['course_instructor']['youtube'] ?? ''),
+        ];
+        update_post_meta($post_id, '_course_instructor', $instructor);
+    }
 }
+add_action('save_post_course', 'reviewmvp_save_course_meta_box');
 
 /**
  * Add "Course base" field to Permalinks settings page.
@@ -198,3 +299,25 @@ function reviewmvp_course_permalink_field_html() {
     echo '<input type="text" name="course_permalink_base" value="' . esc_attr($value) . '" class="regular-text" />';
     echo '<p class="description">' . __('Custom base for Course URLs (e.g., course → yoursite.com/course/course-title).', 'reviewmvp') . '</p>';
 }
+
+/**
+ * Add custom meta fields to REST API for 'course'
+ */
+function reviewmvp_register_course_rest_fields() {
+    $fields = [
+        'course_provider'  => '_course_provider',
+        'course_duration'  => '_course_duration',
+        'course_level'     => '_course_level',
+        'course_instructor'=> '_course_instructor',
+    ];
+
+    foreach ($fields as $key => $meta_key) {
+        register_rest_field('course', $key, [
+            'get_callback' => function($object) use ($meta_key) {
+                return get_post_meta($object['id'], $meta_key, true);
+            },
+            'schema' => null,
+        ]);
+    }
+}
+add_action('rest_api_init', 'reviewmvp_register_course_rest_fields');

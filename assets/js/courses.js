@@ -1,11 +1,10 @@
-// courses.js  — no PHP required
+// courses.js — fetch real CPT data, mix with demo fields
 (function () {
   // init every block on the page
   document.querySelectorAll(".bc-wrap").forEach(function (root) {
     if (!root) return;
 
     // ---- Elements (scoped) ----
-    // Select by id suffix so it works with whatever UID PHP prints
     const resultsEl =
       root.querySelector('[id$="_results"]') ||
       root.querySelector('[data-role="results"]');
@@ -20,72 +19,20 @@
 
     if (!resultsEl || !sortEl || !pagEl || !sidebar) return;
 
-    // --- Demo data (24 items) ---
-    let seed = 42;
-    function rnd() {
-      seed = (seed * 1664525 + 1013904223) % 4294967296;
-      return seed / 4294967296;
-    }
-    const cats = [
-      "UI/UX",
-      "Dropshipping",
-      "Software development",
-      "Data analytics",
-    ];
-    const lvls = ["Beginner", "Intermediate", "Advanced"];
-    const outsAll = [
-      "Improved skills",
-      "Built project",
-      "Career boost",
-      "Gained confidence",
-      "Earned income",
-      "No impact",
-    ];
-    const courses = Array.from({ length: 24 }, (_, i) => {
-      const isFree = rnd() < 0.2;
-      const price = isFree ? 0 : Math.round((rnd() * 49 + 5) * 100) / 100;
-      const dur = Math.round((rnd() * 20 + 0.5) * 2) / 2;
-      const outcomes = outsAll.filter(() => rnd() > 0.55);
-      const rating = Math.round((3 + rnd() * 2) * 10) / 10;
-      const rec = Math.round((0.3 + rnd() * 0.65) * 100) / 100;
-      const worth = Math.round((0.1 + rnd() * 0.85) * 100) / 100;
-      const tone = rec < 0.45 ? "red" : rec < 0.6 ? "amber" : "green";
-      return {
-        id: i + 1,
-        title: "IoT Networks and Protocols",
-        author: "Jose Portilla",
-        provider: "Udemy",
-        category: cats[i % cats.length],
-        level: lvls[i % lvls.length],
-        rating,
-        reviews: 50 + Math.floor(rnd() * 400),
-        durationHours: dur,
-        price,
-        isFree,
-        outcomes: outcomes.length ? outcomes : ["Learned skill"],
-        recommend: rec,
-        worthYes: worth,
-        ribbonTone: tone,
-        description:
-          "This course teaches the fundamentals of IoT networks and protocols, including the key technologies used in modern IoT systems.",
-      };
-    });
-
+    let courses = []; // will fill via API
     const state = { page: 1, perPage: 8, sort: "relevance", pages: 1 };
 
     // --- Helpers ---
     const $$ = (sel, parent = sidebar) =>
       Array.from(parent.querySelectorAll(sel));
     function ratingToneClass(r) {
-      // pick a tone class for icon color + background
-      if (r >= 4.5) return "tone-great"; // excellent
-      if (r >= 4.0) return "tone-good"; // good
-      if (r >= 3.0) return "tone-okay"; // meh
-      return "tone-poor"; // bad
+      if (r >= 4.5) return "tone-great";
+      if (r >= 4.0) return "tone-good";
+      if (r >= 3.0) return "tone-okay";
+      return "tone-poor";
     }
 
     function ratingIconsHTML(r) {
-      // build 5 icons: full / half / outline based on r (e.g., 3.5 => ★★★½☆)
       let html = "";
       for (let i = 1; i <= 5; i++) {
         if (r >= i) {
@@ -102,26 +49,27 @@
     function ratingStarsHTML(r, provider) {
       const tone = ratingToneClass(r);
       return `
-      <div class="bc-rating-container">
-        <div class="col">
-          <span class="bc-rating">${r.toFixed(1)}</span>
-          <span class="bc-stars ${tone}" aria-label="${r.toFixed(1)} out of 5">
-            <span class="bc-starsbox">${ratingIconsHTML(r)}</span>
-          </span>
-          <span class="bc-chip">${Math.max(
-            ...courses.map((c) => c.reviews)
-          )} reviews</span>
-        </div>
-        <div class="col">
-          <span class="bc-provider">${provider}</span>
-        </div>
-      </div>
-  `;
+        <div class="bc-rating-container">
+          <div class="col">
+            <span class="bc-rating">${r.toFixed(1)}</span>
+            <span class="bc-stars ${tone}" aria-label="${r.toFixed(1)} out of 5">
+              <span class="bc-starsbox">${ratingIconsHTML(r)}</span>
+            </span>
+            <span class="bc-chip">${Math.max(
+              ...courses.map((c) => c.reviews)
+            )} reviews</span>
+          </div>
+          <div class="col">
+            <span class="bc-provider">${provider || ""}</span>
+          </div>
+        </div>`;
     }
+
     const formatDuration = (h) =>
       h < 1
         ? `${Math.round(h * 60)} mins`
         : `${h % 1 === 0 ? h : h.toFixed(1)} hours`;
+
     function inDurationBucket(h, b) {
       switch (b) {
         case "0-1":
@@ -257,8 +205,10 @@
       return `<article class="bc-card" data-id="${c.id}">
         <div class="bc-starsline">${ratingStarsHTML(c.rating, c.provider)}</div>
         <div class="bc-info">
-            <div class="bc-title">IoT Networks and Protocols</div>
-            <div class="bc-author" style="font-size:13px">By ${c.author}</div>
+            <div class="bc-title">${c.title}</div>
+            <div class="bc-author" style="font-size:13px">By ${
+              c.instructor
+            }</div>
             <div class="bc-description">${c.description}</div>
         </div>
         <div class="bc-metas">
@@ -326,7 +276,6 @@
         render();
       }
     });
-    // accordion
     root.querySelectorAll(".bc-fhead").forEach((h) => {
       h.addEventListener("click", () => {
         const b = h.parentElement.querySelector(".bc-fbody");
@@ -334,6 +283,61 @@
       });
     });
 
-    render();
+    // map stored level slug to display label
+    const levelLabels = {
+      beginner: "Beginner",
+      intermediate: "Intermediate",
+      advance: "Advance",
+    };
+
+    // --- Fetch real data ---
+    async function fetchCourses() {
+      try {
+        const res = await fetch("/wp-json/wp/v2/course?per_page=50");
+        const data = await res.json();
+        // map stored level slug to display label
+        const levelLabels = {
+          beginner: "Beginner",
+          intermediate: "Intermediate",
+          advance: "Advance",
+        };
+        courses = data.map((c) => {
+          // Demo extras:
+          const rating = Math.round((3 + Math.random() * 2) * 10) / 10;
+          const reviews = 50 + Math.floor(Math.random() * 400);
+          const rec = 0.6 + Math.random() * 0.3;
+          const worth = 0.4 + Math.random() * 0.5;
+          const tone = rec < 0.45 ? "red" : rec < 0.6 ? "amber" : "green";
+          const rawLevel = c.course_level || "";
+          const level = levelLabels[rawLevel] || rawLevel; // fallback if unknown
+
+          return {
+            id: c.id,
+            title: c.title.rendered,
+            description: c.excerpt?.rendered || "",
+            provider: c.course_provider || "",
+            instructor: c.course_instructor?.name || "",
+            durationHours: parseFloat(c.course_duration) || 0,
+            level: level,
+            // demo fields
+            rating,
+            reviews,
+            isFree: Math.random() < 0.2,
+            price: Math.round((Math.random() * 49 + 5) * 100) / 100,
+            outcomes: ["Improved skills"],
+            recommend: rec,
+            worthYes: worth,
+            ribbonTone: tone,
+          };
+        });
+        render();
+      } catch (err) {
+        console.error("Error fetching courses:", err);
+        resultsEl.innerHTML =
+          '<div class="bc-muted">Unable to load courses.</div>';
+      }
+    }
+
+    fetchCourses();
   });
 })();

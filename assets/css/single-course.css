@@ -1,5 +1,14 @@
 /* ------------ global styles starts ------------ */
 
+/* background styles */
+.bg {
+  position: absolute;
+  width: 100%;
+  top: 0;
+  left: 0;
+  z-index: -1;
+}
+
 /* star styles */
 .r-star {
   background-color: #dcdce6;
@@ -258,6 +267,12 @@
   font-family: var(--text-font-family) !important;
   font-weight: 700;
   font-size: 16px;
+  text-decoration: none;
+  transition: ease 0.3s;
+}
+.all-reviews-btn:hover {
+  background-color: #e94c89 !important;
+  color: #ffffff !important;
 }
 
 /* hidden reviews */
@@ -270,6 +285,14 @@
 /* ------------ single course details page starts ------------ */
 
 /* course info/details section */
+#scDetails.course-info {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  margin-top: 100px;
+  margin-bottom: 50px;
+  padding: 20px 15px;
+}
 #scDetails .course-info-container {
   display: flex;
   justify-content: space-between;
@@ -427,6 +450,7 @@
   font-family: var(--primary-font-family);
   font-weight: 600;
   font-size: 16px;
+  text-decoration: none;
   transition: ease 0.3s;
 }
 #scDetails .course-info-container .cd-link:hover {
@@ -475,6 +499,7 @@
   font-family: var(--primary-font-family) !important;
   font-weight: 600 !important;
   font-size: 16px !important;
+  text-decoration: none !important;
   padding: 0 !important;
   padding-bottom: 13px !important;
   background-color: transparent !important;
@@ -564,39 +589,39 @@
 }
 
 /* course instructor section */
-#scDetails .course-intructor-container .section-heading {
+#scDetails .course-instructor-container .section-heading {
   margin-top: 100px;
 }
-#scDetails .course-intructor-container .instructor-name {
+#scDetails .course-instructor-container .instructor-name {
   color: var(--dark-text-color);
   font-family: var(--text-font-family);
   font-weight: 700;
   font-size: 14px;
   margin: 0;
 }
-#scDetails .course-intructor-container .instructor-position {
+#scDetails .course-instructor-container .instructor-position {
   font-style: italic;
 }
-#scDetails .course-intructor-container .instructor-position,
-#scDetails .course-intructor-container .instructor-details {
+#scDetails .course-instructor-container .instructor-position,
+#scDetails .course-instructor-container .instructor-details {
   color: var(--dark-text-color);
   font-family: var(--text-font-family);
   font-weight: 400;
   font-size: 14px;
   margin: 0;
 }
-#scDetails .course-intructor-container .instructor-profiles {
+#scDetails .course-instructor-container .instructor-profiles {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-top: 20px;
 }
-#scDetails .course-intructor-container .instructor-profile {
+#scDetails .course-instructor-container .instructor-profile {
   font-size: 24px;
   color: var(--secondary-color);
   transition: ease 0.3s;
 }
-#scDetails .course-intructor-container .instructor-profile:hover {
+#scDetails .course-instructor-container .instructor-profile:hover {
   color: var(--primary-color);
 }
 
@@ -635,6 +660,12 @@
   font-family: var(--text-font-family) !important;
   font-weight: 700;
   font-size: 16px;
+  text-decoration: none;
+  transition: ease 0.3s;
+}
+#scDetails .all-reviews-container .load-more-btn:hover {
+  background-color: #e94c89 !important;
+  color: #ffffff !important;
 }
 
 /* ------------ single course details page ends ------------ */
