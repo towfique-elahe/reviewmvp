@@ -321,3 +321,202 @@ function reviewmvp_register_course_rest_fields() {
     }
 }
 add_action('rest_api_init', 'reviewmvp_register_course_rest_fields');
+
+/**
+ * Register Custom Post Type: Review (as a submenu under Courses)
+ */
+function reviewmvp_register_review_post_type() {
+    $labels = array(
+        'name'               => _x('Reviews', 'Post Type General Name', 'reviewmvp'),
+        'singular_name'      => _x('Review', 'Post Type Singular Name', 'reviewmvp'),
+        'menu_name'          => __('Reviews', 'reviewmvp'),
+        'name_admin_bar'     => __('Review', 'reviewmvp'),
+        'add_new_item'       => __('Add New Review', 'reviewmvp'),
+        'edit_item'          => __('Edit Review', 'reviewmvp'),
+        'new_item'           => __('New Review', 'reviewmvp'),
+        'view_item'          => __('View Review', 'reviewmvp'),
+        'all_items'          => __('All Reviews', 'reviewmvp'),
+        'search_items'       => __('Search Reviews', 'reviewmvp'),
+        'not_found'          => __('No reviews found', 'reviewmvp'),
+        'not_found_in_trash' => __('No reviews found in Trash', 'reviewmvp'),
+    );
+
+    $args = array(
+        'labels'             => $labels,
+        'public'             => false, // Reviews don’t need to appear on frontend automatically
+        'show_ui'            => true,
+        'show_in_menu'       => 'edit.php?post_type=course', // 👈 attaches to Courses menu
+        'supports'           => array('title', 'editor', 'author'),
+        'capability_type'    => 'post',
+        'has_archive'        => false,
+    );
+
+    register_post_type('course_review', $args);
+}
+add_action('init', 'reviewmvp_register_review_post_type');
+
+/**
+ * Add Review Meta Box
+ */
+function reviewmvp_add_review_meta_box() {
+    add_meta_box(
+        'review_details_meta_box',
+        __('Review Details', 'reviewmvp'),
+        'reviewmvp_render_review_meta_box',
+        'course_review',
+        'normal',
+        'high'
+    );
+}
+add_action('add_meta_boxes', 'reviewmvp_add_review_meta_box');
+
+function reviewmvp_render_review_meta_box($post) {
+    wp_nonce_field('reviewmvp_save_review_meta', 'reviewmvp_review_meta_nonce');
+
+    $meta = [
+        'status'             => (array) get_post_meta($post->ID, '_review_status', true),
+        'review_date'        => get_post_meta($post->ID, '_review_date', true),
+        'reviewer'           => get_post_meta($post->ID, '_reviewer', true),
+        'course_id'          => get_post_meta($post->ID, '_review_course', true),
+        'rating'             => get_post_meta($post->ID, '_review_rating', true),
+        'message'            => get_post_meta($post->ID, '_review_message', true),
+        'good'               => get_post_meta($post->ID, '_review_good', true),
+        'bad'                => get_post_meta($post->ID, '_review_bad', true),
+        'outcome'            => get_post_meta($post->ID, '_review_outcome', true),
+        'quality'            => get_post_meta($post->ID, '_review_quality', true),
+        'support'            => get_post_meta($post->ID, '_review_support', true),
+        'worth'              => get_post_meta($post->ID, '_review_worth', true),
+        'recommend'          => get_post_meta($post->ID, '_review_recommend', true),
+        'refund'             => get_post_meta($post->ID, '_review_refund', true),
+        'proof'              => get_post_meta($post->ID, '_review_proof', true),
+    ];
+
+    // Status checkboxes
+    $statuses = ['active','verified','verified_purchase','rising_voice','top_voice'];
+    echo '<p><strong>Status:</strong><br>';
+    foreach ($statuses as $status) {
+        echo '<label><input type="checkbox" name="review_status[]" value="'.$status.'" '.checked(in_array($status, $meta['status']), true, false).'> '.ucwords(str_replace('_',' ', $status)).'</label><br>';
+    }
+    echo '</p>';
+
+    // Review Date
+    echo '<p><label><strong>Review Date</strong></label><br>';
+    echo '<input type="date" name="review_date" value="'.esc_attr($meta['review_date']).'" style="width:200px;"></p>';
+
+    // Reviewer (select WP user)
+    $users = get_users(['role__not_in'=>['Administrator']]);
+    echo '<p><label><strong>Reviewer</strong></label><br>';
+    echo '<select name="reviewer" style="width:100%;">';
+    echo '<option value="">— Select User —</option>';
+    foreach ($users as $user) {
+        echo '<option value="'.$user->ID.'" '.selected($meta['reviewer'], $user->ID, false).'>'.esc_html($user->display_name).'</option>';
+    }
+    echo '</select></p>';
+
+    // Course
+    $courses = get_posts(['post_type'=>'course','numberposts'=>-1]);
+    echo '<p><label><strong>Which Course</strong></label><br>';
+    echo '<select name="review_course" style="width:100%;">';
+    echo '<option value="">— Select Course —</option>';
+    foreach ($courses as $course) {
+        echo '<option value="'.$course->ID.'" '.selected($meta['course_id'], $course->ID, false).'>'.esc_html($course->post_title).'</option>';
+    }
+    echo '</select></p>';
+
+    // Rating (stars)
+    echo '<p><label><strong>Rating</strong></label><br>';
+    for ($i=1;$i<=5;$i++) {
+        echo '<label><input type="radio" name="review_rating" value="'.$i.'" '.checked($meta['rating'],$i,false).'> '.$i.'★</label> ';
+    }
+    echo '</p>';
+
+    // Textareas
+    $fields = [
+        'message'   => 'Review Message',
+        'good'      => 'What was good?',
+        'bad'       => 'What was bad?',
+        'quality'   => 'Content Quality',
+        'support'   => 'Instructor & Support',
+        'worth'     => 'Worth Money?',
+        'recommend' => 'Recommend this course?',
+        'refund'    => 'Refund Experience',
+    ];
+    foreach ($fields as $key=>$label) {
+        echo '<p><label><strong>'.$label.'</strong></label><br>';
+        echo '<textarea name="review_'.$key.'" rows="3" style="width:100%;">'.esc_textarea($meta[$key]).'</textarea></p>';
+    }
+
+    // Course Outcome select
+    $outcomes = [
+        'Learned Skill',
+        'Built Project',
+        'Career Boost',
+        'Earned Income',
+        'No Impact',
+        'Gained Confidence'
+    ];
+    echo '<p><label><strong>Course Outcome</strong></label><br>';
+    echo '<select name="review_outcome" style="width:100%;">';
+    foreach ($outcomes as $out) {
+        echo '<option value="'.$out.'" '.selected($meta['outcome'], $out, false).'>'.$out.'</option>';
+    }
+    echo '</select></p>';
+
+    // Proof of enrollment (image upload)
+    echo '<p><label><strong>Proof of Enrollment</strong></label><br>';
+    echo '<input type="text" name="review_proof" value="'.esc_attr($meta['proof']).'" style="width:80%;"> ';
+    echo '<button class="button upload_review_proof">Upload</button></p>';
+
+    // JS uploader
+    ?>
+<script>
+jQuery(document).ready(function($) {
+    $('.upload_review_proof').on('click', function(e) {
+        e.preventDefault();
+        var button = $(this);
+        var input = button.prev('input');
+        var frame = wp.media({
+            title: 'Select Image',
+            multiple: false,
+            library: {
+                type: 'image'
+            }
+        });
+        frame.on('select', function() {
+            var attachment = frame.state().get('selection').first().toJSON();
+            input.val(attachment.url);
+        });
+        frame.open();
+    });
+});
+</script>
+<?php
+}
+
+function reviewmvp_save_review_meta($post_id) {
+    if (!isset($_POST['reviewmvp_review_meta_nonce']) ||
+        !wp_verify_nonce($_POST['reviewmvp_review_meta_nonce'], 'reviewmvp_save_review_meta')) return;
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
+    if (!current_user_can('edit_post', $post_id)) return;
+
+    $fields = [
+        'review_date','reviewer','review_course','review_rating','review_message',
+        'review_good','review_bad','review_outcome','review_quality','review_support',
+        'review_worth','review_recommend','review_refund','review_proof'
+    ];
+    foreach ($fields as $field) {
+        if (isset($_POST[$field])) {
+            $val = is_array($_POST[$field]) ? array_map('sanitize_text_field', $_POST[$field]) : sanitize_text_field($_POST[$field]);
+            update_post_meta($post_id, '_'.$field, $val);
+        }
+    }
+
+    // Status (multiple checkboxes)
+    if (isset($_POST['review_status'])) {
+        $statuses = array_map('sanitize_text_field', (array)$_POST['review_status']);
+        update_post_meta($post_id, '_review_status', $statuses);
+    } else {
+        delete_post_meta($post_id, '_review_status');
+    }
+}
+add_action('save_post_course_review', 'reviewmvp_save_review_meta');
