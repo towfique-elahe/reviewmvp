@@ -5,6 +5,9 @@
 
 get_header(); 
 
+global $post; 
+$course_id = $post->ID;
+
 // Helper function to display media files from theme
 function getMedia($fileName) {
     $themeDirectory = get_template_directory_uri() . "/assets/media/";
@@ -26,54 +29,182 @@ function get_rating_stars($rating) {
     return $stars;
 }
 
-global $post; 
-$course_id = $post->ID;
+// Helper function to get rating data
+function reviewmvp_get_course_rating_data($course_id) {
+    global $wpdb;
 
-// -------- DEMO DATA (replace with real course data later) ---------
-    // Generate demo data for the course
-    $seed = 42; // Initialize seed for randomization
-    function rnd() {
-        global $seed;
-        $seed = ($seed * 1664525 + 1013904223) % 4294967296;
-        return $seed / 4294967296;
+    $query = $wpdb->prepare("
+        SELECT pm.meta_value
+        FROM {$wpdb->postmeta} pm
+        INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+        WHERE pm.meta_key = %s
+          AND p.post_type = %s
+          AND p.post_status = 'publish'
+          AND EXISTS (
+              SELECT 1 FROM {$wpdb->postmeta} pm2
+              WHERE pm2.post_id = p.ID
+              AND pm2.meta_key = %s
+              AND pm2.meta_value = %d
+          )
+    ", '_review_rating', 'course_review', '_review_course', $course_id);
+
+    $ratings = $wpdb->get_col($query);
+
+    if (empty($ratings)) {
+        return [
+            'average'   => 0,
+            'count'     => 0,
+            'breakdown' => [5=>0,4=>0,3=>0,2=>0,1=>0],
+        ];
     }
-    $title = get_the_title();
-    $rating = round(3 + rnd() * 2, 1); // Random rating between 3 and 5
-    $reviews_count = 10 + floor(rnd() * 200); // Random reviews count between 10 and 200
-    $price = get_post_meta( get_the_ID(), '_course_price', true );
-    $duration = get_post_meta( get_the_ID(), '_course_duration', true );
-    $certificate = get_post_meta( get_the_ID(), '_course_certificate', true );
-    $refundable = get_post_meta( get_the_ID(), '_course_refundable', true );
-    $link = get_post_meta( get_the_ID(), '_course_link', true );
-    $level = get_post_meta(get_the_ID(), '_course_level', true);
-    $level_label = [
-        'beginner'     => 'Beginner',
-        'intermediate' => 'Intermediate',
-        'advance'      => 'Advance',
-    ];
-    $languages = (array) get_post_meta( get_the_ID(), '_course_language', true );
-    $instructor  = get_post_meta( get_the_ID(), '_course_instructor', true );
-    $outcomes = [
-        "Improved skill (40%)" => "icon-improved-skill.svg",
-        "Built project (30%)" => "icon-built-project.svg",
-        "No impact (10%)" => "icon-no-impact.svg",
-        "Career boost" => "icon-career.svg",
-        "Earned income" => "icon-income.svg",
-        "Gained confidence" => "icon-confidence.svg"
-    ];
-    // Rating Breakdown Data
-    $rating_breakdown = [
-        5 => 80, // 80% of reviews are 5 stars
-        4 => 45, // 45% of reviews are 4 stars
-        3 => 60, // 60% of reviews are 3 stars
-        2 => 20, // 20% of reviews are 2 stars
-        1 => 15  // 15% of reviews are 1 star
-    ];
-    // Course description
-    $course_description = apply_filters( 'the_content', get_the_content() );
 
-// Reviews
-$args = [
+    $ratings = array_map('intval', $ratings);
+    $count   = count($ratings);
+    $average = round(array_sum($ratings) / $count, 1);
+
+    // Count each star
+    $counts = array_count_values($ratings);
+
+    // Initialize breakdown (percentages)
+    $breakdown = [];
+    for ($i = 5; $i >= 1; $i--) {
+        $starCount = $counts[$i] ?? 0;
+        $breakdown[$i] = $count > 0 ? round(($starCount / $count) * 100) : 0;
+    }
+
+    return [
+        'average'   => $average,
+        'count'     => $count,
+        'breakdown' => $breakdown,
+    ];
+}
+
+// Helper function to get overall outcomes data
+function reviewmvp_get_course_outcomes($course_id) {
+    global $wpdb;
+
+    // fetch all outcomes for reviews of this course
+    $query = $wpdb->prepare("
+        SELECT pm.meta_value
+        FROM {$wpdb->postmeta} pm
+        INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+        WHERE pm.meta_key = %s
+          AND p.post_type = %s
+          AND p.post_status = 'publish'
+          AND EXISTS (
+              SELECT 1 FROM {$wpdb->postmeta} pm2
+              WHERE pm2.post_id = p.ID
+              AND pm2.meta_key = %s
+              AND pm2.meta_value = %d
+          )
+    ", '_review_outcome', 'course_review', '_review_course', $course_id);
+
+    $rawOutcomes = $wpdb->get_col($query);
+
+    if (empty($rawOutcomes)) {
+        return [];
+    }
+
+    // Flatten arrays (stored as serialized arrays in DB)
+    $outcomes = [];
+    foreach ($rawOutcomes as $val) {
+        $arr = maybe_unserialize($val);
+        if (is_array($arr)) {
+            foreach ($arr as $item) {
+                $outcomes[] = $item;
+            }
+        } else {
+            $outcomes[] = $arr;
+        }
+    }
+
+    if (empty($outcomes)) {
+        return [];
+    }
+
+    $counts = array_count_values($outcomes);
+    $total  = array_sum($counts);
+
+    // map to icons
+    $icons = [
+        "Improved skill"    => "icon-improved-skill.svg",
+        "Built Project"     => "icon-built-project.svg",
+        "No Impact"         => "icon-no-impact.svg",
+        "Career Boost"      => "icon-career.svg",
+        "Earned Income"     => "icon-income.svg",
+        "Gained Confidence" => "icon-confidence.svg",
+    ];
+
+    $overall = [];
+    foreach ($counts as $label => $count) {
+        $percent = $total > 0 ? round(($count / $total) * 100) : 0;
+        $key = sprintf("%s (%d%%)", $label, $percent);
+        $overall[$key] = $icons[$label] ?? 'icon-default.svg';
+    }
+
+    return $overall;
+}
+
+// Status badges
+$statusBadges = [
+    "verified"          => ["text" => "", "icon" => "icon-verified-badge.svg"],
+    "verified_purchase" => ["text" => "Verified Purchase", "icon" => "icon-verified-purchase.svg"],
+    "rising_voice"      => ["text" => "Rising Voice", "icon" => "icon-rising-voice-badge.svg"],
+    "top_voice"         => ["text" => "Top Voice", "icon" => "icon-top-voice-badge.svg"]
+];
+
+// Outcome badges
+$outcomeBadges = [
+    "Earned Income" => "icon-income.svg",
+    "Career Boost" => "icon-career.svg",
+    "Built Project" => "icon-built-project.svg",
+    "Improved Skill" => "icon-improved-skill.svg",
+    "Gained Confidence" => "icon-confidence.svg",
+    "No Impact" => "icon-no-impact.svg"
+];
+
+// Course data
+$title = get_the_title();
+$price = get_post_meta( get_the_ID(), '_course_price', true );
+$duration = get_post_meta( get_the_ID(), '_course_duration', true );
+$certificate = get_post_meta( get_the_ID(), '_course_certificate', true );
+$refundable = get_post_meta( get_the_ID(), '_course_refundable', true );
+$link = get_post_meta( get_the_ID(), '_course_link', true );
+$level = get_post_meta(get_the_ID(), '_course_level', true);
+$level_label = [
+    'beginner'     => 'Beginner',
+    'intermediate' => 'Intermediate',
+    'advance'      => 'Advance'
+];
+$languages = (array) get_post_meta( get_the_ID(), '_course_language', true );
+$instructor  = get_post_meta( get_the_ID(), '_course_instructor', true );
+$course_description = apply_filters( 'the_content', get_the_content() );
+
+// Course overall stats
+$stats = reviewmvp_get_course_rating_data($course_id);
+$overallRating = $stats['average'];
+$reviews_count = $stats['count'];
+$rating_breakdown = $stats['breakdown'];
+$overallOutcomes = reviewmvp_get_course_outcomes($course_id);
+
+// Reviews data (recent 3)
+$reviewArgs = [
+    'post_type'      => 'course_review',
+    'posts_per_page' => 3,
+    'post_status'    => 'publish',
+    'meta_query'     => [
+        [
+            'key'   => '_review_course',
+            'value' => $course_id,
+        ]
+    ],
+    'orderby'        => 'date',
+    'order'          => 'DESC',
+];
+$reviews = get_posts($reviewArgs);
+
+// All reviews data (from recent)
+$allReviewArgs = [
     'post_type'      => 'course_review',
     'posts_per_page' => -1,
     'post_status'    => 'publish',
@@ -82,288 +213,12 @@ $args = [
             'key'   => '_review_course',
             'value' => $course_id,
         ]
-    ]
+    ],
+    'orderby'        => 'date',
+    'order'          => 'DESC',
 ];
+$allReviews = get_posts($allReviewArgs);
 
-$reviews = get_posts($args);
-
-    // Reviews (extended sample data)
-    $allReviews = [
-        [
-            "avatar" => "LM",
-            "name" => "Lisa M",
-            "role" => "Software developer",
-            "date" => "Mar 3, 2025",
-            "review" => "I liked the course but could be better. Some sections felt rushed.",
-            "pro" => "The instructor's explanations were clear, and I learned some new skills.",
-            "con" => "Some sections felt rushed and could have used more practical examples.",
-            "content_quality" => "Good, but not enough real-world application examples.",
-            "instructor_support_exp" => "The instructor was very responsive to questions and provided helpful feedback.",
-            "worth_it" => "Yes, it's a good course for beginners, but I expected more in-depth content for intermediate learners.",
-            "rating" => 4,
-            "recommend" => "Yes",
-            "refund" => "Didn’t issue refund",
-            "proof" => "sample-certificate.png",
-            "outcomes" => [
-                "Earned income" => "icon-income.svg",
-                "Gained confidence" => "icon-confidence.svg"
-            ],
-            "badges" => [
-                "verified" => ["text" => "", "icon" => "icon-verified-badge.svg"],
-                "rising-voice" => ["text" => "Rising Voice", "icon" => "icon-rising-voice-badge.svg"]
-            ]
-        ],
-        [
-            "avatar" => "JH",
-            "name" => "John H",
-            "role" => "Web Designer",
-            "date" => "Feb 28, 2025",
-            "review" => "Great course! The content was really useful and the instructor was great.",
-            "pro" => "Well-structured lessons with practical insights into design systems.",
-            "con" => "A bit too basic for someone with prior experience in Figma.",
-            "content_quality" => "The content was excellent, with high-quality visuals and well-organized materials.",
-            "instructor_support_exp" => "The instructor was knowledgeable and provided good feedback throughout the course.",
-            "worth_it" => "Absolutely! The course is worth the money if you're a beginner or intermediate designer.",
-            "rating" => 5,
-            "recommend" => "Yes",
-            "refund" => "Refund issued",
-            "proof" => "sample-certificate.png",
-            "outcomes" => [
-                "Earned income" => "icon-income.svg",
-                "Gained confidence" => "icon-confidence.svg"
-            ],
-            "badges" => [
-                "verified" => ["text" => "", "icon" => "icon-verified-badge.svg"],
-                "verified-purchase" => ["text" => "Verified Purchase", "icon" => "icon-verified-purchase.svg"],
-                "top-voice" => ["text" => "Top Voice", "icon" => "icon-top-voice-badge.svg"]
-            ]
-        ],
-        [
-            "avatar" => "RK",
-            "name" => "Ravi K",
-            "role" => "UX/UI Designer",
-            "date" => "Feb 25, 2025",
-            "review" => "Good course but expected more practical examples.",
-            "pro" => "The course gave a solid overview of Figma's features and tools.",
-            "con" => "Lacked more hands-on projects and real-world examples. The pace was a bit slow.",
-            "content_quality" => "Decent, but the course could benefit from more real-world application.",
-            "instructor_support_exp" => "The instructor was approachable but could improve on offering personalized feedback.",
-            "worth_it" => "No, I expected more practical, hands-on examples and case studies to make it worth the money.",
-            "rating" => 3,
-            "recommend" => "No",
-            "refund" => "No refund",
-            "proof" => "",
-            "outcomes" => [
-                "Earned income" => "icon-income.svg",
-                "Gained confidence" => "icon-confidence.svg"
-            ],
-            "badges" => []
-        ],
-        [
-            "avatar" => "AC",
-            "name" => "Anna C",
-            "role" => "Product Manager",
-            "date" => "Mar 5, 2025",
-            "review" => "Loved the course content, especially the prototyping module!",
-            "pro" => "Very practical exercises and clear explanations.",
-            "con" => "Some videos had low audio quality.",
-            "content_quality" => "Strong and easy to follow, but minor technical issues.",
-            "instructor_support_exp" => "Quick responses on the forum.",
-            "worth_it" => "Yes, totally worth the investment.",
-            "rating" => 5,
-            "recommend" => "Yes",
-            "refund" => "No refund",
-            "proof" => "sample-certificate.png",
-            "outcomes" => [
-                "Improved skill (40%)" => "icon-improved-skill.svg",
-                "Gained confidence" => "icon-confidence.svg"
-            ],
-            "badges" => [
-                "verified" => ["text" => "", "icon" => "icon-verified-badge.svg"]
-            ]
-        ],
-        [
-            "avatar" => "TB",
-            "name" => "Tom B",
-            "role" => "Freelance Designer",
-            "date" => "Mar 6, 2025",
-            "review" => "Good course, but not much new for experienced designers.",
-            "pro" => "Great for beginners and intermediate learners.",
-            "con" => "Could use more advanced tips and tricks.",
-            "content_quality" => "Well-made, clear, but not deep enough.",
-            "instructor_support_exp" => "Helpful but limited availability.",
-            "worth_it" => "Maybe, depending on your skill level.",
-            "rating" => 4,
-            "recommend" => "Yes",
-            "refund" => "No refund",
-            "proof" => "",
-            "outcomes" => [
-                "Built project (30%)" => "icon-built-project.svg"
-            ],
-            "badges" => []
-        ],
-        [
-            "avatar" => "SK",
-            "name" => "Sara K",
-            "role" => "Junior UX Designer",
-            "date" => "Mar 8, 2025",
-            "review" => "This course gave me the confidence to apply for my first UX/UI role!",
-            "pro" => "Motivating and easy to understand.",
-            "con" => "Could use more real-world case studies.",
-            "content_quality" => "Engaging and practical.",
-            "instructor_support_exp" => "Very encouraging feedback.",
-            "worth_it" => "Yes, helped me land interviews.",
-            "rating" => 5,
-            "recommend" => "Yes",
-            "refund" => "No refund",
-            "proof" => "sample-certificate.png",
-            "outcomes" => [
-                "Career boost" => "icon-career.svg",
-                "Earned income" => "icon-income.svg"
-            ],
-            "badges" => [
-                "verified" => ["text" => "", "icon" => "icon-verified-badge.svg"],
-                "top-voice" => ["text" => "Top Voice", "icon" => "icon-top-voice-badge.svg"]
-            ]
-        ],
-        [
-            "avatar" => "LM",
-            "name" => "Lisa M",
-            "role" => "Software developer",
-            "date" => "Mar 3, 2025",
-            "review" => "I liked the course but could be better. Some sections felt rushed.",
-            "pro" => "The instructor's explanations were clear, and I learned some new skills.",
-            "con" => "Some sections felt rushed and could have used more practical examples.",
-            "content_quality" => "Good, but not enough real-world application examples.",
-            "instructor_support_exp" => "The instructor was very responsive to questions and provided helpful feedback.",
-            "worth_it" => "Yes, it's a good course for beginners, but I expected more in-depth content for intermediate learners.",
-            "rating" => 4,
-            "recommend" => "Yes",
-            "refund" => "Didn’t issue refund",
-            "proof" => "sample-certificate.png",
-            "outcomes" => [
-                "Earned income" => "icon-income.svg",
-                "Gained confidence" => "icon-confidence.svg"
-            ],
-            "badges" => [
-                "verified" => ["text" => "", "icon" => "icon-verified-badge.svg"],
-                "rising-voice" => ["text" => "Rising Voice", "icon" => "icon-rising-voice-badge.svg"]
-            ]
-        ],
-        [
-            "avatar" => "JH",
-            "name" => "John H",
-            "role" => "Web Designer",
-            "date" => "Feb 28, 2025",
-            "review" => "Great course! The content was really useful and the instructor was great.",
-            "pro" => "Well-structured lessons with practical insights into design systems.",
-            "con" => "A bit too basic for someone with prior experience in Figma.",
-            "content_quality" => "The content was excellent, with high-quality visuals and well-organized materials.",
-            "instructor_support_exp" => "The instructor was knowledgeable and provided good feedback throughout the course.",
-            "worth_it" => "Absolutely! The course is worth the money if you're a beginner or intermediate designer.",
-            "rating" => 5,
-            "recommend" => "Yes",
-            "refund" => "Refund issued",
-            "proof" => "sample-certificate.png",
-            "outcomes" => [
-                "Earned income" => "icon-income.svg",
-                "Gained confidence" => "icon-confidence.svg"
-            ],
-            "badges" => [
-                "verified" => ["text" => "", "icon" => "icon-verified-badge.svg"],
-                "verified-purchase" => ["text" => "Verified Purchase", "icon" => "icon-verified-purchase.svg"],
-                "top-voice" => ["text" => "Top Voice", "icon" => "icon-top-voice-badge.svg"]
-            ]
-        ],
-        [
-            "avatar" => "RK",
-            "name" => "Ravi K",
-            "role" => "UX/UI Designer",
-            "date" => "Feb 25, 2025",
-            "review" => "Good course but expected more practical examples.",
-            "pro" => "The course gave a solid overview of Figma's features and tools.",
-            "con" => "Lacked more hands-on projects and real-world examples. The pace was a bit slow.",
-            "content_quality" => "Decent, but the course could benefit from more real-world application.",
-            "instructor_support_exp" => "The instructor was approachable but could improve on offering personalized feedback.",
-            "worth_it" => "No, I expected more practical, hands-on examples and case studies to make it worth the money.",
-            "rating" => 3,
-            "recommend" => "No",
-            "refund" => "No refund",
-            "proof" => "",
-            "outcomes" => [
-                "Earned income" => "icon-income.svg",
-                "Gained confidence" => "icon-confidence.svg"
-            ],
-            "badges" => []
-        ],
-        [
-            "avatar" => "AC",
-            "name" => "Anna C",
-            "role" => "Product Manager",
-            "date" => "Mar 5, 2025",
-            "review" => "Loved the course content, especially the prototyping module!",
-            "pro" => "Very practical exercises and clear explanations.",
-            "con" => "Some videos had low audio quality.",
-            "content_quality" => "Strong and easy to follow, but minor technical issues.",
-            "instructor_support_exp" => "Quick responses on the forum.",
-            "worth_it" => "Yes, totally worth the investment.",
-            "rating" => 5,
-            "recommend" => "Yes",
-            "refund" => "No refund",
-            "proof" => "sample-certificate.png",
-            "outcomes" => [
-                "Improved skill (40%)" => "icon-improved-skill.svg",
-                "Gained confidence" => "icon-confidence.svg"
-            ],
-            "badges" => [
-                "verified" => ["text" => "", "icon" => "icon-verified-badge.svg"]
-            ]
-        ],
-        [
-            "avatar" => "TB",
-            "name" => "Tom B",
-            "role" => "Freelance Designer",
-            "date" => "Mar 6, 2025",
-            "review" => "Good course, but not much new for experienced designers.",
-            "pro" => "Great for beginners and intermediate learners.",
-            "con" => "Could use more advanced tips and tricks.",
-            "content_quality" => "Well-made, clear, but not deep enough.",
-            "instructor_support_exp" => "Helpful but limited availability.",
-            "worth_it" => "Maybe, depending on your skill level.",
-            "rating" => 4,
-            "recommend" => "Yes",
-            "refund" => "No refund",
-            "proof" => "",
-            "outcomes" => [
-                "Built project (30%)" => "icon-built-project.svg"
-            ],
-            "badges" => []
-        ],
-        [
-            "avatar" => "SK",
-            "name" => "Sara K",
-            "role" => "Junior UX Designer",
-            "date" => "Mar 8, 2025",
-            "review" => "This course gave me the confidence to apply for my first UX/UI role!",
-            "pro" => "Motivating and easy to understand.",
-            "con" => "Could use more real-world case studies.",
-            "content_quality" => "Engaging and practical.",
-            "instructor_support_exp" => "Very encouraging feedback.",
-            "worth_it" => "Yes, helped me land interviews.",
-            "rating" => 5,
-            "recommend" => "Yes",
-            "refund" => "No refund",
-            "proof" => "sample-certificate.png",
-            "outcomes" => [
-                "Career boost" => "icon-career.svg",
-                "Earned income" => "icon-income.svg"
-            ],
-            "badges" => [
-                "verified" => ["text" => "", "icon" => "icon-verified-badge.svg"],
-                "top-voice" => ["text" => "Top Voice", "icon" => "icon-top-voice-badge.svg"]
-            ]
-        ]
-    ];
 ?>
 
 <?php
@@ -389,10 +244,10 @@ while ( have_posts() ) : the_post();
                         </em></p>
                     <div class="rating">
                         <span class="r-stars">
-                            <?php echo get_rating_stars($rating); ?>
+                            <?php echo get_rating_stars($overallRating); ?>
                         </span>
                         <span class="r-text">
-                            <?php echo $rating; ?>
+                            <?php echo $overallRating; ?>
                             <span class="r-text-muted">
                                 (
                                 <?php echo $reviews_count; ?> reviews)
@@ -406,7 +261,7 @@ while ( have_posts() ) : the_post();
                             </p>
                         </div>
                         <div class="col">
-                            <?php foreach ($outcomes as $outcomeText => $iconName): ?>
+                            <?php foreach ($overallOutcomes as $outcomeText => $iconName): ?>
                             <span class="outcome">
                                 <img src="<?= getMedia($iconName) ?>" alt="<?= esc_attr($outcomeText) ?> Icon"
                                     class="outcome-icon">
@@ -455,10 +310,10 @@ while ( have_posts() ) : the_post();
                 <div class="course-rating-overall">
                     <div class="col">
                         <h2 class="cro-rating">
-                            <?php echo $rating; ?>
+                            <?php echo $overallRating; ?>
                         </h2>
                         <div class="cro-stars">
-                            <?php echo get_rating_stars($rating); ?>
+                            <?php echo get_rating_stars($overallRating); ?>
                         </div>
                         <p class="cro-review-count">
                             <?php echo $reviews_count; ?> reviews
@@ -539,34 +394,49 @@ while ( have_posts() ) : the_post();
 
             <div class="reviews">
                 <?php 
-        if ($reviews) :
-            foreach ($reviews as $review_post): 
-                $review_id   = $review_post->ID;
+                if ($reviews) :
+                    foreach ($reviews as $review_post): 
+                        $review_id   = $review_post->ID;
 
-                // Reviewer info
-                $reviewer_id = get_post_meta($review_id, '_reviewer', true);
-                $user        = $reviewer_id ? get_userdata($reviewer_id) : null;
-                $reviewer    = $user ? $user->display_name : 'Anonymous';
+                        // Reviewer info
+                        $reviewer_id = get_post_meta($review_id, '_reviewer', true);
+                        $user        = $reviewer_id ? get_userdata($reviewer_id) : null;
+                        $reviewer    = $user ? $user->display_name : 'Anonymous';
+                        $colors = ['#FFB3BA','#FFDFBA','#FFFFBA','#BAFFC9','#BAE1FF','#E0BBE4','#FFCCE5','#D5E8D4','#FEE1E8','#F6EAC2','#C2F0F7','#D4E6F1','#F9E79F','#ABEBC6','#F5CBA7','#E8DAEF','#FADBD8','#D6EAF8','#FCF3CF','#D1F2EB'];
+                        if ($user) {
+                            $hash = crc32($user->ID);
+                            $bg = $colors[$hash % count($colors)];
+                        } else {
+                            $bg = '#ccc';
+                        }
 
-                // Meta fields
-                $date        = get_post_meta($review_id, '_review_date', true);
-                $rating      = get_post_meta($review_id, '_review_rating', true);
-                $message     = get_post_meta($review_id, '_review_message', true);
-                $good        = get_post_meta($review_id, '_review_good', true);
-                $bad         = get_post_meta($review_id, '_review_bad', true);
-                $outcome     = get_post_meta($review_id, '_review_outcome', true);
-                $quality     = get_post_meta($review_id, '_review_quality', true);
-                $support     = get_post_meta($review_id, '_review_support', true);
-                $worth       = get_post_meta($review_id, '_review_worth', true);
-                $recommend   = get_post_meta($review_id, '_review_recommend', true);
-                $refund      = get_post_meta($review_id, '_review_refund', true);
-                $proof       = get_post_meta($review_id, '_review_proof', true);
-                $statuses    = (array) get_post_meta($review_id, '_review_status', true);
-        ?>
+                        // Meta fields
+                        $date_raw = get_post_meta($review_id, '_review_date', true);
+                        if ($date_raw) {
+                            $timestamp = strtotime($date_raw);
+                            $date = date_i18n(get_option('date_format'), $timestamp);
+                        } else {
+                            $date = '';
+                        }
+                        $rating      = get_post_meta($review_id, '_review_rating', true);
+                        $message     = get_post_meta($review_id, '_review_message', true);
+                        $good        = get_post_meta($review_id, '_review_good', true);
+                        $bad         = get_post_meta($review_id, '_review_bad', true);
+                        $outcomes    = (array) get_post_meta($review_id, '_review_outcome', true);
+                        $review['outcomes'] = array_intersect_key($outcomeBadges, array_flip($outcomes));
+                        $quality     = get_post_meta($review_id, '_review_quality', true);
+                        $support     = get_post_meta($review_id, '_review_support', true);
+                        $worth       = get_post_meta($review_id, '_review_worth', true);
+                        $recommend   = get_post_meta($review_id, '_review_recommend', true);
+                        $refund      = get_post_meta($review_id, '_review_refund', true);
+                        $proof       = get_post_meta($review_id, '_review_proof', true);
+                        $statuses = (array) get_post_meta($review_id, '_review_status', true);
+                        $review['badges'] = array_intersect_key($statusBadges, array_flip($statuses));
+                ?>
                 <div class="review">
                     <div class="review-head">
                         <div class="col">
-                            <div class="avatar">
+                            <div class="avatar" style="background-color: <?php echo esc_attr($bg); ?>;">
                                 <?php echo $user ? esc_html(substr($user->display_name,0,2)) : "U"; ?>
                             </div>
                         </div>
@@ -575,13 +445,19 @@ while ( have_posts() ) : the_post();
                                 <span class="reviewer-name">
                                     <?php echo esc_html($reviewer); ?>
                                 </span>
-                                <?php if ($statuses): ?>
-                                <?php foreach ($statuses as $status): ?>
-                                <span class="reviewer-badge <?php echo esc_attr($status); ?>">
-                                    <?php echo esc_html(ucwords(str_replace('_',' ', $status))); ?>
+                                <?php
+                                if (!empty($review['badges'])):
+                                    foreach ($review['badges'] as $badge_key => $badge):
+                                        ?>
+                                <span class="reviewer-badge <?php echo esc_attr($badge_key); ?>">
+                                    <img src="<?= getMedia($badge['icon']) ?>"
+                                        alt="<?= esc_attr($badge['text']) ?> Icon" class="badge-icon">
+                                    <?php echo esc_html($badge['text']); ?>
                                 </span>
-                                <?php endforeach; ?>
-                                <?php endif; ?>
+                                <?php
+                                    endforeach;
+                                endif;
+                                ?>
                             </div>
                             <p class="review-date">
                                 <?php echo esc_html($date); ?>
@@ -619,10 +495,18 @@ while ( have_posts() ) : the_post();
                         </div>
 
                         <div class="review-item-list">
-                            <?php if ($outcome): ?>
+                            <?php if (!empty($review['outcomes'])): ?>
                             <p class="review-item">
                                 <span class="review-label">My Results from this Course</span>
-                                <span class="review-item-value"><?php echo esc_html($outcome); ?></span>
+                                <span class="review-item-value">
+                                    <?php foreach ($review['outcomes'] as $outcomeText => $iconName): ?>
+                                    <span class="outcome">
+                                        <img src="<?= getMedia($iconName) ?>" alt="<?= esc_attr($outcomeText) ?> Icon"
+                                            class="outcome-icon">
+                                        <?php echo esc_html($outcomeText); ?>
+                                    </span>
+                                    <?php endforeach; ?>
+                                </span>
                             </p>
                             <?php endif; ?>
 
@@ -735,10 +619,10 @@ while ( have_posts() ) : the_post();
                 <div class="course-rating-overall">
                     <div class="col">
                         <h2 class="cro-rating">
-                            <?php echo $rating; ?>
+                            <?php echo $overallRating; ?>
                         </h2>
                         <div class="cro-stars">
-                            <?php echo get_rating_stars($rating); ?>
+                            <?php echo get_rating_stars($overallRating); ?>
                         </div>
                         <p class="cro-review-count">
                             <?php echo $reviews_count; ?> reviews
@@ -761,69 +645,110 @@ while ( have_posts() ) : the_post();
                 <!-- all reviews -->
                 <div class="reviews" id="all-reviews-list">
                     <?php 
+                    if ($allReviews) :
                     $reviewIndex = 0;
-                    foreach ($allReviews as $review): 
+                    foreach ($allReviews as $review_post): 
+                        $review_id   = $review_post->ID;
                         $hiddenClass = $reviewIndex >= 3 ? 'hidden-review' : '';
-                    ?>
+
+                        // Reviewer info
+                        $reviewer_id = get_post_meta($review_id, '_reviewer', true);
+                        $user        = $reviewer_id ? get_userdata($reviewer_id) : null;
+                        $reviewer    = $user ? $user->display_name : 'Anonymous';
+                        $colors = ['#FFB3BA','#FFDFBA','#FFFFBA','#BAFFC9','#BAE1FF','#E0BBE4','#FFCCE5','#D5E8D4','#FEE1E8','#F6EAC2','#C2F0F7','#D4E6F1','#F9E79F','#ABEBC6','#F5CBA7','#E8DAEF','#FADBD8','#D6EAF8','#FCF3CF','#D1F2EB'];
+                        if ($user) {
+                            $hash = crc32($user->ID);
+                            $bg = $colors[$hash % count($colors)];
+                        } else {
+                            $bg = '#ccc';
+                        }
+
+                        // Meta fields
+                        $date_raw = get_post_meta($review_id, '_review_date', true);
+                        if ($date_raw) {
+                            $timestamp = strtotime($date_raw);
+                            $date = date_i18n(get_option('date_format'), $timestamp);
+                        } else {
+                            $date = '';
+                        }
+                        $rating      = get_post_meta($review_id, '_review_rating', true);
+                        $message     = get_post_meta($review_id, '_review_message', true);
+                        $good        = get_post_meta($review_id, '_review_good', true);
+                        $bad         = get_post_meta($review_id, '_review_bad', true);
+                        $outcomes    = (array) get_post_meta($review_id, '_review_outcome', true);
+                        $review['outcomes'] = array_intersect_key($outcomeBadges, array_flip($outcomes));
+                        $quality     = get_post_meta($review_id, '_review_quality', true);
+                        $support     = get_post_meta($review_id, '_review_support', true);
+                        $worth       = get_post_meta($review_id, '_review_worth', true);
+                        $recommend   = get_post_meta($review_id, '_review_recommend', true);
+                        $refund      = get_post_meta($review_id, '_review_refund', true);
+                        $proof       = get_post_meta($review_id, '_review_proof', true);
+                        $statuses = (array) get_post_meta($review_id, '_review_status', true);
+                        $review['badges'] = array_intersect_key($statusBadges, array_flip($statuses));
+                ?>
                     <div class="review <?= $hiddenClass ?>">
                         <div class="review-head">
                             <div class="col">
-                                <div class="avatar">
-                                    <?php echo esc_html($review['avatar']); ?>
+                                <div class="avatar" style="background-color: <?php echo esc_attr($bg); ?>;">
+                                    <?php echo $user ? esc_html(substr($user->display_name,0,2)) : "U"; ?>
                                 </div>
                             </div>
                             <div class="col">
                                 <div class="reviewer">
                                     <span class="reviewer-name">
-                                        <?php echo esc_html($review['name']); ?>
+                                        <?php echo esc_html($reviewer); ?>
                                     </span>
-                                    <?php 
-                            if (!empty($review['badges'])):
-                                foreach ($review['badges'] as $badge_key => $badge):
-                            ?>
+                                    <?php
+                                if (!empty($review['badges'])):
+                                    foreach ($review['badges'] as $badge_key => $badge):
+                                        ?>
                                     <span class="reviewer-badge <?php echo esc_attr($badge_key); ?>">
                                         <img src="<?= getMedia($badge['icon']) ?>"
                                             alt="<?= esc_attr($badge['text']) ?> Icon" class="badge-icon">
                                         <?php echo esc_html($badge['text']); ?>
                                     </span>
-                                    <?php 
-                                endforeach;
-                            endif;
-                            ?>
+                                    <?php
+                                    endforeach;
+                                endif;
+                                ?>
                                 </div>
                                 <p class="review-date">
-                                    <?php echo esc_html($review['date']); ?>
+                                    <?php echo esc_html($date); ?>
                                 </p>
                             </div>
                         </div>
                         <div class="review-rating">
-                            <?php echo get_rating_stars($review['rating']); ?>
+                            <?php echo get_rating_stars((int)$rating); ?>
                         </div>
                         <div class="review-content">
-                            <p class="review-message">
-                                <?php echo esc_html($review['review']); ?>
-                            </p>
+                            <?php if ($message): ?>
+                            <p class="review-message"><?php echo esc_html($message); ?></p>
+                            <?php endif; ?>
+
                             <div class="pro-con">
+                                <?php if ($good): ?>
                                 <div class="pc-col pro">
                                     <p class="pc-label">
                                         <img src="<?= getMedia('icon-positive.svg') ?>" alt="Positive Icon">
                                         <span class="review-label">What was good?</span>
                                     </p>
-                                    <p class="pc-review">
-                                        <?php echo esc_html($review['pro']); ?>
-                                    </p>
+                                    <p class="pc-review"><?php echo esc_html($good); ?></p>
                                 </div>
+                                <?php endif; ?>
+
+                                <?php if ($bad): ?>
                                 <div class="pc-col con">
                                     <p class="pc-label">
                                         <img src="<?= getMedia('icon-negative.svg') ?>" alt="Negative Icon">
                                         <span class="review-label">What was bad?</span>
                                     </p>
-                                    <p class="pc-review">
-                                        <?php echo esc_html($review['con']); ?>
-                                    </p>
+                                    <p class="pc-review"><?php echo esc_html($bad); ?></p>
                                 </div>
+                                <?php endif; ?>
                             </div>
+
                             <div class="review-item-list">
+                                <?php if (!empty($review['outcomes'])): ?>
                                 <p class="review-item">
                                     <span class="review-label">My Results from this Course</span>
                                     <span class="review-item-value">
@@ -836,49 +761,55 @@ while ( have_posts() ) : the_post();
                                         <?php endforeach; ?>
                                     </span>
                                 </p>
+                                <?php endif; ?>
+
+                                <?php if ($quality): ?>
                                 <p class="review-item">
                                     <span class="review-label">Content quality:</span>
-                                    <span class="review-item-value">
-                                        <?php echo esc_html($review['content_quality']); ?>
-                                    </span>
+                                    <span class="review-item-value"><?php echo esc_html($quality); ?></span>
                                 </p>
+                                <?php endif; ?>
+
+                                <?php if ($support): ?>
                                 <p class="review-item">
                                     <span class="review-label">Instructor & Support Experience:</span>
-                                    <span class="review-item-value">
-                                        <?php echo esc_html($review['instructor_support_exp']); ?>
-                                    </span>
+                                    <span class="review-item-value"><?php echo esc_html($support); ?></span>
                                 </p>
+                                <?php endif; ?>
+
+                                <?php if ($worth): ?>
                                 <p class="review-item">
                                     <span class="review-label">Was it worth the money?</span>
-                                    <span class="review-item-value">
-                                        <?php echo esc_html($review['worth_it']); ?>
-                                    </span>
+                                    <span class="review-item-value"><?php echo esc_html($worth); ?></span>
                                 </p>
+                                <?php endif; ?>
+
+                                <?php if ($recommend): ?>
                                 <p class="review-item">
                                     <span class="review-label">Would I recommend this course to others?</span>
-                                    <span class="review-item-value">
-                                        <?php echo esc_html($review['recommend']); ?>
-                                    </span>
+                                    <span class="review-item-value"><?php echo esc_html($recommend); ?></span>
                                 </p>
+                                <?php endif; ?>
+
+                                <?php if ($refund): ?>
                                 <p class="review-item">
                                     <span class="review-label">Refund Experience:</span>
-                                    <span class="review-item-value">
-                                        <?php echo esc_html($review['refund']); ?>
-                                    </span>
+                                    <span class="review-item-value"><?php echo esc_html($refund); ?></span>
                                 </p>
-                                <?php
-                            if (!empty($review['proof'])) {
-                        ?>
-                                <img src="<?= getMedia($review['proof']) ?>" alt="Proof of enrollment" class="proof">
-                                <?php
-                        }
-                        ?>
+                                <?php endif; ?>
+
+                                <?php if ($proof): ?>
+                                <img src="<?php echo esc_url($proof); ?>" alt="Proof of enrollment" class="proof">
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
                     <?php 
                         $reviewIndex++;
-                    endforeach; 
+            endforeach;
+        else:
+            echo "<p>No reviews yet for this course.</p>";
+        endif;
                 ?>
                     <div class="btn-container">
                         <a href="#" class="load-more-btn">Load more</a>

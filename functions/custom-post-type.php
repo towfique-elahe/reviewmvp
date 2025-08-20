@@ -446,21 +446,24 @@ function reviewmvp_render_review_meta_box($post) {
         echo '<textarea name="review_'.$key.'" rows="3" style="width:100%;">'.esc_textarea($meta[$key]).'</textarea></p>';
     }
 
-    // Course Outcome select
+    // Course Outcomes (multi-select)
     $outcomes = [
-        'Learned Skill',
-        'Built Project',
-        'Career Boost',
         'Earned Income',
-        'No Impact',
-        'Gained Confidence'
+        'Career Boost',
+        'Built Project',
+        'Improved skill',
+        'Gained Confidence',
+        'No Impact'
     ];
-    echo '<p><label><strong>Course Outcome</strong></label><br>';
-    echo '<select name="review_outcome" style="width:100%;">';
+
+    $current_outcomes = (array) $meta['outcome']; // ensure it's always array
+
+    echo '<p><label><strong>Course Outcomes</strong></label><br>';
+    echo '<select name="review_outcome[]" multiple style="width:100%; height:120px;">';
     foreach ($outcomes as $out) {
-        echo '<option value="'.$out.'" '.selected($meta['outcome'], $out, false).'>'.$out.'</option>';
+        echo '<option value="'.$out.'" '.selected(in_array($out, $current_outcomes), true, false).'>'.$out.'</option>';
     }
-    echo '</select></p>';
+    echo '</select><br><small>Hold Ctrl (Windows) or Cmd (Mac) to select multiple</small></p>';
 
     // Proof of enrollment (image upload)
     echo '<p><label><strong>Proof of Enrollment</strong></label><br>';
@@ -501,7 +504,7 @@ function reviewmvp_save_review_meta($post_id) {
 
     $fields = [
         'review_date','reviewer','review_course','review_rating','review_message',
-        'review_good','review_bad','review_outcome','review_quality','review_support',
+        'review_good','review_bad','review_quality','review_support',
         'review_worth','review_recommend','review_refund','review_proof'
     ];
     foreach ($fields as $field) {
@@ -517,6 +520,14 @@ function reviewmvp_save_review_meta($post_id) {
         update_post_meta($post_id, '_review_status', $statuses);
     } else {
         delete_post_meta($post_id, '_review_status');
+    }
+
+    // Course Outcomes (multiple select)
+    if (isset($_POST['review_outcome'])) {
+        $outcomes = array_map('sanitize_text_field', (array) $_POST['review_outcome']);
+        update_post_meta($post_id, '_review_outcome', $outcomes);
+    } else {
+        delete_post_meta($post_id, '_review_outcome');
     }
 }
 add_action('save_post_course_review', 'reviewmvp_save_review_meta');

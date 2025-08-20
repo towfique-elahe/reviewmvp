@@ -165,15 +165,15 @@
   background-color: transparent;
   padding: 0;
 }
-.reviewer-badge.verified-purchase {
+.reviewer-badge.verified_purchase {
   background-color: #11b981;
   color: #ffffff;
 }
-.reviewer-badge.rising-voice {
+.reviewer-badge.rising_voice {
   background-color: #ffe0b2;
   color: #421300;
 }
-.reviewer-badge.top-voice {
+.reviewer-badge.top_voice {
   background-color: #d2d3fe;
   color: #282773;
 }
