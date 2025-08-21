@@ -26,11 +26,16 @@ function reviewmvp_register_styles() {
         'reviewmvp-404-style'                   => 'assets/css/404.css',
         'reviewmvp-courses-style'               => 'assets/css/courses.css',
         'reviewmvp-single-course-style'         => 'assets/css/single-course.css',
+        'reviewmvp-add-course-style'            => 'assets/css/add-course.css',
+        'reviewmvp-add-review-style'            => 'assets/css/add-review.css'
     ];
 
     foreach ($styles as $handle => $path) {
         wp_enqueue_style($handle, get_template_directory_uri() . '/' . $path, [], $version);
     }
+
+    // Enqueue Select2 CSS
+    wp_enqueue_style('select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css', [], null);
 
     // Enqueue Elementor styles if Elementor is active
     if (did_action('elementor/loaded')) {
@@ -65,5 +70,19 @@ function reviewmvp_register_scripts() {
     foreach ($scripts as $handle => $path) {
         wp_enqueue_script($handle, get_template_directory_uri() . '/' . $path, [], $version, true);
     }
+
+    // Enqueue Select2 JS
+    wp_enqueue_script('select2', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js', ['jquery'], null, true);
+
+    // Init Select2 on review course field
+    wp_add_inline_script('select2', "
+        jQuery(document).ready(function($) {
+            $('#review_course').select2({
+                placeholder: 'Search for a course...',
+                allowClear: true,
+                width: '100%'
+            });
+        });
+    ");
 }
 add_action('wp_enqueue_scripts', 'reviewmvp_register_scripts');

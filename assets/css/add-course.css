@@ -1,0 +1,54 @@
+#reviewmvpAddCourseForm {
+  width: 100%;
+  max-width: 890px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 38px;
+}
+#reviewmvpAddCourseForm .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+#reviewmvpAddCourseForm .form-group label {
+  color: var(--secondary-color);
+  font-family: var(--text-font-family);
+  font-weight: 400;
+  font-size: 16px;
+}
+#reviewmvpAddCourseForm .form-group input {
+  color: var(--dark-text-color);
+  font-family: var(--text-font-family);
+  font-weight: 400;
+  font-size: 16px;
+  padding: 20px 15px;
+  border: var(--border);
+  border-radius: 16px;
+  outline: none;
+  background-color: transparent;
+  transition: ease 0.3s;
+}
+#reviewmvpAddCourseForm .form-group input:focus {
+  background-color: var(--white-background-color);
+  border-color: var(--accent-color);
+}
+#reviewmvpAddCourseForm .button-group {
+  display: flex;
+  gap: 14px;
+}
+#reviewmvpAddCourseForm .button-group button {
+  width: 100%;
+  padding: 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--secondary-color);
+  font-family: var(--primary-font-family);
+  font-weight: 600;
+  font-size: 16px;
+  transition: ease 0.3s;
+}
+#reviewmvpAddCourseForm .button-group button:hover {
+  background-color: var(--primary-color);
+  color: var(--light-text-color);
+}
