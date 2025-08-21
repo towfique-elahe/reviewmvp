@@ -127,7 +127,7 @@ function reviewmvp_get_course_outcomes($course_id) {
 
     // map to icons
     $icons = [
-        "Improved skill"    => "icon-improved-skill.svg",
+        "Improved Skill"    => "icon-improved-skill.svg",
         "Built Project"     => "icon-built-project.svg",
         "No Impact"         => "icon-no-impact.svg",
         "Career Boost"      => "icon-career.svg",

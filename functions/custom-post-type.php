@@ -301,28 +301,6 @@ function reviewmvp_course_permalink_field_html() {
 }
 
 /**
- * Add custom meta fields to REST API for 'course'
- */
-function reviewmvp_register_course_rest_fields() {
-    $fields = [
-        'course_provider'  => '_course_provider',
-        'course_duration'  => '_course_duration',
-        'course_level'     => '_course_level',
-        'course_instructor'=> '_course_instructor',
-    ];
-
-    foreach ($fields as $key => $meta_key) {
-        register_rest_field('course', $key, [
-            'get_callback' => function($object) use ($meta_key) {
-                return get_post_meta($object['id'], $meta_key, true);
-            },
-            'schema' => null,
-        ]);
-    }
-}
-add_action('rest_api_init', 'reviewmvp_register_course_rest_fields');
-
-/**
  * Register Custom Post Type: Review (as a submenu under Courses)
  */
 function reviewmvp_register_review_post_type() {
@@ -451,7 +429,7 @@ function reviewmvp_render_review_meta_box($post) {
         'Earned Income',
         'Career Boost',
         'Built Project',
-        'Improved skill',
+        'Improved Skill',
         'Gained Confidence',
         'No Impact'
     ];

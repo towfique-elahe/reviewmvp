@@ -188,6 +188,23 @@
       pagEl.innerHTML = html;
     }
 
+    function outcomesHTML(outcomes) {
+      if (!outcomes || Object.keys(outcomes).length === 0) {
+        return '<span class="bc-kpi bc-muted">No outcomes data yet</span>';
+      }
+
+      const themeDirectory = "/wp-content/themes/reviewmvp";
+      const iconPath = `${themeDirectory}/assets/media/`;
+
+      return Object.entries(outcomes)
+        .map(([label, icon]) => {
+          return `<span class="bc-kpi">
+        <img src="${iconPath}${icon}" alt="${label}"> ${label}
+      </span>`;
+        })
+        .join("");
+    }
+
     // --- Card ---
     function cardHTML(c) {
       const yesPct = Math.round(c.worthYes * 100),
@@ -205,7 +222,7 @@
       return `<article class="bc-card" data-id="${c.id}">
         <div class="bc-starsline">${ratingStarsHTML(c.rating, c.provider)}</div>
         <div class="bc-info">
-            <div class="bc-title">${c.title}</div>
+            <a href="${c.link}" class="bc-title">${c.title}</a>
             <div class="bc-author" style="font-size:13px">By ${
               c.instructor
             }</div>
@@ -216,10 +233,10 @@
           <span class="bc-meta"><img src="${iconPath}icon-level.svg" alt="Level Icon"> ${c.level}</span>
         </div>
         <div class="bc-kpis">
-          <span class="bc-kpi-label"><img src="${iconPath}icon-outcome.svg" alt="Outcome Icon"> Students Outcome:</span>
-          <span class="bc-kpi"><img src="${iconPath}icon-improved-skill.svg" alt="Learned Skill Icon"> Learned skill (7%)</span>
-          <span class="bc-kpi"><img src="${iconPath}icon-built-project.svg" alt="Built Project Icon"> Built project (8%)</span>
-          <span class="bc-kpi"><img src="${iconPath}icon-no-impact.svg" alt="No Impact Icon"> No impact (1%)</span>
+          <span class="bc-kpi-label">
+            <img src="${iconPath}icon-outcome.svg" alt="Outcome Icon"> Students Outcome:
+          </span>
+          ${outcomesHTML(c.outcomes)}
         </div>
         <div class="bc-bottom-container">
             <div class="bc-worth">
@@ -276,10 +293,18 @@
         render();
       }
     });
+    root.querySelectorAll(".bc-fbody").forEach((body) => {
+      body.style.maxHeight = body.scrollHeight + "px"; // open by default
+    });
+
     root.querySelectorAll(".bc-fhead").forEach((h) => {
       h.addEventListener("click", () => {
-        const b = h.parentElement.querySelector(".bc-fbody");
-        b.style.display = b.style.display === "none" ? "" : "none";
+        const body = h.parentElement.querySelector(".bc-fbody");
+        if (body.style.maxHeight && body.style.maxHeight !== "0px") {
+          body.style.maxHeight = "0";
+        } else {
+          body.style.maxHeight = body.scrollHeight + "px";
+        }
       });
     });
 
@@ -290,7 +315,7 @@
       advance: "Advance",
     };
 
-    // --- Fetch real data ---
+    // --- Fetch real data from REST API ---
     async function fetchCourses() {
       try {
         const res = await fetch("/wp-json/wp/v2/course?per_page=50");
@@ -303,8 +328,6 @@
         };
         courses = data.map((c) => {
           // Demo extras:
-          const rating = Math.round((3 + Math.random() * 2) * 10) / 10;
-          const reviews = 50 + Math.floor(Math.random() * 400);
           const rec = 0.6 + Math.random() * 0.3;
           const worth = 0.4 + Math.random() * 0.5;
           const tone = rec < 0.45 ? "red" : rec < 0.6 ? "amber" : "green";
@@ -319,12 +342,13 @@
             instructor: c.course_instructor?.name || "",
             durationHours: parseFloat(c.course_duration) || 0,
             level: level,
+            link: c.link,
+            rating: parseFloat(c.rating_data?.average) || 0,
+            reviews: parseInt(c.rating_data?.count) || 0,
+            outcomes: c.outcomes_data || {},
             // demo fields
-            rating,
-            reviews,
             isFree: Math.random() < 0.2,
             price: Math.round((Math.random() * 49 + 5) * 100) / 100,
-            outcomes: ["Improved skills"],
             recommend: rec,
             worthYes: worth,
             ribbonTone: tone,

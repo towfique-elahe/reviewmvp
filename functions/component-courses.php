@@ -146,3 +146,167 @@ function browse_courses_shortcode() {
   return ob_get_clean();
 }
 add_shortcode('browse_courses','browse_courses_shortcode');
+
+/**
+ * Helper: Get average rating + count for a course
+ */
+function reviewmvp_get_course_overall_rating_data( $course_id ) {
+    global $wpdb;
+
+    $query = $wpdb->prepare("
+        SELECT pm.meta_value
+        FROM {$wpdb->postmeta} pm
+        INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+        WHERE pm.meta_key = %s
+          AND p.post_type = %s
+          AND p.post_status = 'publish'
+          AND EXISTS (
+              SELECT 1 FROM {$wpdb->postmeta} pm2
+              WHERE pm2.post_id = p.ID
+              AND pm2.meta_key = %s
+              AND pm2.meta_value = %d
+          )
+    ", '_review_rating', 'course_review', '_review_course', $course_id );
+
+    $ratings = $wpdb->get_col( $query );
+
+    if ( empty( $ratings ) ) {
+        return [
+            'average' => 0,
+            'count'   => 0,
+        ];
+    }
+
+    $ratings = array_map( 'intval', $ratings );
+    $count   = count( $ratings );
+    $average = round( array_sum( $ratings ) / $count, 1 );
+
+    return [
+        'average' => $average,
+        'count'   => $count,
+    ];
+}
+
+/**
+ * Helper: Get overall outcomes data for a course
+ */
+function reviewmvp_get_overall_course_outcomes($course_id) {
+    global $wpdb;
+
+    // fetch all outcomes for reviews of this course
+    $query = $wpdb->prepare("
+        SELECT pm.meta_value
+        FROM {$wpdb->postmeta} pm
+        INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+        WHERE pm.meta_key = %s
+          AND p.post_type = %s
+          AND p.post_status = 'publish'
+          AND EXISTS (
+              SELECT 1 FROM {$wpdb->postmeta} pm2
+              WHERE pm2.post_id = p.ID
+              AND pm2.meta_key = %s
+              AND pm2.meta_value = %d
+          )
+    ", '_review_outcome', 'course_review', '_review_course', $course_id);
+
+    $rawOutcomes = $wpdb->get_col($query);
+
+    if (empty($rawOutcomes)) {
+        return [];
+    }
+
+    // Flatten arrays (stored as serialized arrays in DB)
+    $outcomes = [];
+    foreach ($rawOutcomes as $val) {
+        $arr = maybe_unserialize($val);
+        if (is_array($arr)) {
+            foreach ($arr as $item) {
+                $outcomes[] = $item;
+            }
+        } else {
+            $outcomes[] = $arr;
+        }
+    }
+
+    if (empty($outcomes)) {
+        return [];
+    }
+
+    $counts = array_count_values($outcomes);
+    $total  = array_sum($counts);
+
+    // map to icons
+    $icons = [
+        "Improved Skill"    => "icon-improved-skill.svg",
+        "Built Project"     => "icon-built-project.svg",
+        "No Impact"         => "icon-no-impact.svg",
+        "Career Boost"      => "icon-career.svg",
+        "Earned Income"     => "icon-income.svg",
+        "Gained Confidence" => "icon-confidence.svg",
+    ];
+
+    $overall = [];
+    foreach ($counts as $label => $count) {
+        $percent = $total > 0 ? round(($count / $total) * 100) : 0;
+        $key = sprintf("%s (%d%%)", $label, $percent);
+        $overall[$key] = $icons[$label] ?? 'icon-default.svg';
+    }
+
+    return $overall;
+}
+
+/**
+ * Add custom meta fields to REST API for 'course'
+ */
+function reviewmvp_register_course_rest_fields() {
+    $fields = [
+        'course_provider'  => '_course_provider',
+        'course_duration'  => '_course_duration',
+        'course_level'     => '_course_level',
+        'course_instructor'=> '_course_instructor',
+    ];
+
+    foreach ($fields as $key => $meta_key) {
+        register_rest_field('course', $key, [
+            'get_callback' => function($object) use ($meta_key) {
+                return get_post_meta($object['id'], $meta_key, true);
+            },
+            'schema' => null,
+        ]);
+    }
+}
+add_action('rest_api_init', 'reviewmvp_register_course_rest_fields');
+
+// Add rating data in REST API for 'course'
+add_action('rest_api_init', function () {
+    register_rest_field('course', 'rating_data', [
+        'get_callback' => function ($object) {
+            $course_id = $object['id'];
+            $rating = reviewmvp_get_course_overall_rating_data($course_id);
+            return [
+                'average' => $rating['average'],
+                'count'   => $rating['count'],
+            ];
+        },
+        'schema' => [
+            'description' => 'Course rating data',
+            'type'        => 'object',
+        ],
+    ]);
+});
+
+// Add outcomes data in REST API for 'course'
+add_action('rest_api_init', function () {
+    register_rest_field('course', 'outcomes_data', [
+        'get_callback' => function ($object) {
+            $course_id = $object['id'];
+            $outcomes = reviewmvp_get_overall_course_outcomes($course_id);
+
+            return $outcomes; // already formatted as ["Improved skill (20%)" => "icon.svg", ...]
+        },
+        'schema' => [
+            'description' => 'Course outcomes data',
+            'type'        => 'object',
+        ],
+    ]);
+});
