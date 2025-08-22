@@ -49,7 +49,7 @@ function reviewmvp_register_course_post_type() {
         'public'                => true,
         'show_in_menu'          => true,
         'menu_position'         => 5,
-        'menu_icon'             => 'dashicons-welcome-learn-more', // More relevant icon for courses
+        'menu_icon'             => 'dashicons-welcome-learn-more',
         'show_in_admin_bar'     => true,
         'show_in_nav_menus'     => true,
         'can_export'            => true,
@@ -321,9 +321,9 @@ function reviewmvp_register_review_post_type() {
 
     $args = array(
         'labels'             => $labels,
-        'public'             => false, // Reviews don’t need to appear on frontend automatically
+        'public'             => false,
         'show_ui'            => true,
-        'show_in_menu'       => 'edit.php?post_type=course', // 👈 attaches to Courses menu
+        'show_in_menu'       => 'edit.php?post_type=course',
         'supports'           => array('title', 'editor', 'author'),
         'capability_type'    => 'post',
         'has_archive'        => false,
@@ -352,21 +352,22 @@ function reviewmvp_render_review_meta_box($post) {
     wp_nonce_field('reviewmvp_save_review_meta', 'reviewmvp_review_meta_nonce');
 
     $meta = [
-        'status'             => (array) get_post_meta($post->ID, '_review_status', true),
-        'review_date'        => get_post_meta($post->ID, '_review_date', true),
-        'reviewer'           => get_post_meta($post->ID, '_reviewer', true),
-        'course_id'          => get_post_meta($post->ID, '_review_course', true),
-        'rating'             => get_post_meta($post->ID, '_review_rating', true),
-        'message'            => get_post_meta($post->ID, '_review_message', true),
-        'good'               => get_post_meta($post->ID, '_review_good', true),
-        'bad'                => get_post_meta($post->ID, '_review_bad', true),
-        'outcome'            => get_post_meta($post->ID, '_review_outcome', true),
-        'quality'            => get_post_meta($post->ID, '_review_quality', true),
-        'support'            => get_post_meta($post->ID, '_review_support', true),
-        'worth'              => get_post_meta($post->ID, '_review_worth', true),
-        'recommend'          => get_post_meta($post->ID, '_review_recommend', true),
-        'refund'             => get_post_meta($post->ID, '_review_refund', true),
-        'proof'              => get_post_meta($post->ID, '_review_proof', true),
+        'status'    => (array) get_post_meta($post->ID, '_review_status', true),
+        'review_date' => get_post_meta($post->ID, '_review_date', true),
+        'reviewer'    => get_post_meta($post->ID, '_reviewer', true),
+        'course_id'   => get_post_meta($post->ID, '_review_course', true),
+        'rating'      => get_post_meta($post->ID, '_review_rating', true),
+        'message'     => get_post_meta($post->ID, '_review_message', true),
+        'good'        => get_post_meta($post->ID, '_review_good', true),
+        'bad'         => get_post_meta($post->ID, '_review_bad', true),
+        'outcome'     => get_post_meta($post->ID, '_review_outcome', true),
+        'quality'     => get_post_meta($post->ID, '_review_quality', true),
+        'support'     => get_post_meta($post->ID, '_review_support', true),
+        'worth'       => get_post_meta($post->ID, '_review_worth', true),
+        'recommend'   => get_post_meta($post->ID, '_review_recommend', true),
+        'refund'      => get_post_meta($post->ID, '_review_refund', true),
+        'proof'       => get_post_meta($post->ID, '_review_proof', true),
+        'video'       => get_post_meta($post->ID, '_review_video', true),
     ];
 
     // Status checkboxes
@@ -448,27 +449,32 @@ function reviewmvp_render_review_meta_box($post) {
     echo '<input type="text" name="review_proof" value="'.esc_attr($meta['proof']).'" style="width:80%;"> ';
     echo '<button class="button upload_review_proof">Upload</button></p>';
 
+    // Video review (video upload)
+    echo '<p><label><strong>Video Review</strong></label><br>';
+    echo '<input type="text" name="review_video" value="'.esc_attr($meta['video']).'" style="width:80%;"> ';
+    echo '<button class="button upload_review_video">Upload</button></p>';
+
     // JS uploader
     ?>
 <script>
 jQuery(document).ready(function($) {
-    $('.upload_review_proof').on('click', function(e) {
-        e.preventDefault();
-        var button = $(this);
-        var input = button.prev('input');
-        var frame = wp.media({
-            title: 'Select Image',
-            multiple: false,
-            library: {
-                type: 'image'
-            }
+    function bindUploader(buttonClass, inputSelector) {
+        $(buttonClass).on('click', function(e) {
+            e.preventDefault();
+            var input = $(this).prev('input');
+            var frame = wp.media({
+                title: 'Select File',
+                multiple: false
+            });
+            frame.on('select', function() {
+                var attachment = frame.state().get('selection').first().toJSON();
+                input.val(attachment.url);
+            });
+            frame.open();
         });
-        frame.on('select', function() {
-            var attachment = frame.state().get('selection').first().toJSON();
-            input.val(attachment.url);
-        });
-        frame.open();
-    });
+    }
+    bindUploader('.upload_review_proof', 'input[name="review_proof"]');
+    bindUploader('.upload_review_video', 'input[name="review_video"]');
 });
 </script>
 <?php
@@ -483,7 +489,7 @@ function reviewmvp_save_review_meta($post_id) {
     $fields = [
         'review_date','reviewer','review_course','review_rating','review_message',
         'review_good','review_bad','review_quality','review_support',
-        'review_worth','review_recommend','review_refund','review_proof'
+        'review_worth','review_recommend','review_refund','review_proof','review_video'
     ];
     foreach ($fields as $field) {
         if (isset($_POST[$field])) {
@@ -492,7 +498,6 @@ function reviewmvp_save_review_meta($post_id) {
         }
     }
 
-    // Status (multiple checkboxes)
     if (isset($_POST['review_status'])) {
         $statuses = array_map('sanitize_text_field', (array)$_POST['review_status']);
         update_post_meta($post_id, '_review_status', $statuses);
@@ -500,7 +505,6 @@ function reviewmvp_save_review_meta($post_id) {
         delete_post_meta($post_id, '_review_status');
     }
 
-    // Course Outcomes (multiple select)
     if (isset($_POST['review_outcome'])) {
         $outcomes = array_map('sanitize_text_field', (array) $_POST['review_outcome']);
         update_post_meta($post_id, '_review_outcome', $outcomes);
