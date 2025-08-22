@@ -33,15 +33,21 @@ function reviewmvp_add_review_form() {
                 <select name="review_course" id="reviewCourse" required>
                     <option value="" selected disabled>— Select Course —</option>
                     <?php 
+                        $selected_course_id = isset($_GET['course_id']) ? intval($_GET['course_id']) : 0;
+
                         $courses = get_posts([
                             'post_type'   => 'course',
                             'numberposts' => -1,
                             'orderby'     => 'title',
                             'order'       => 'ASC'
                         ]);
+
                         foreach ($courses as $course) {
                             $platform = get_post_meta($course->ID, '_course_provider', true); 
-                            echo '<option value="'.$course->ID.'" data-platform="'.esc_attr($platform).'">'.esc_html($course->post_title).'</option>';
+                            $selected = $selected_course_id === $course->ID ? 'selected' : '';
+                            echo '<option value="'.$course->ID.'" data-platform="'.esc_attr($platform).'" '.$selected.'>'
+                                .esc_html($course->post_title).
+                                '</option>';
                         }
                     ?>
                 </select>
@@ -365,6 +371,7 @@ jQuery(document).ready(function($) {
         var platform = $(this).find(':selected').data('platform') || '';
         $('#reviewPlatform').val(platform);
     });
+    $('#reviewCourse').trigger('change');
 });
 (function($) {
     $('#addReviewForm').on('submit', function(e) {

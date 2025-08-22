@@ -270,10 +270,10 @@ while ( have_posts() ) : the_post();
                             <?php endforeach; ?>
                         </div>
                     </div>
-                    <button class="write-review-btn">
+                    <a href="<?= site_url('/write-a-review/?course_id=' . $course_id); ?>" class="write-review-btn">
                         <img src="<?= getMedia('icon-pencil.svg') ?>" alt="Pencil Icon">
                         Write your review
-                    </button>
+                    </a>
                 </div>
 
                 <!-- Tabs -->

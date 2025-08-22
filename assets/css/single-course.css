@@ -397,6 +397,7 @@
   font-family: var(--primary-font-family);
   font-weight: 600;
   font-size: 16px;
+  text-decoration: none;
   background: var(--accent-color);
   color: var(--button-text-color);
   padding: 20px;
