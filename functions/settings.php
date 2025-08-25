@@ -5,6 +5,14 @@
  * The file for theme support functions.
  */
 
+// Start session
+function reviewmvp_start_session() {
+    if (!session_id()) {
+        session_start();
+    }
+}
+add_action('init', 'reviewmvp_start_session', 1);
+
 // Register theme support features
 function reviewmvp_advanced_theme_support() {
     // Enable custom logo support with specific dimensions and flexibility

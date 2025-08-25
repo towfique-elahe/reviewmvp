@@ -6,8 +6,7 @@
   const popover = wrap.querySelector(".results-popover");
   const list = wrap.querySelector("#courseSearchList");
   const addMissing = wrap.querySelector(".add-missing");
-  const items =
-    (window.courseSearchData && window.courseSearchData.items) || [];
+
   const addMissingUrl =
     window.courseSearchData?.addMissingUrl || "/add-missing-course/";
   const labels = window.courseSearchData?.labels || {
@@ -16,8 +15,9 @@
     noMatch: "Add missing course",
   };
 
-  let activeIndex = -1; // keyboard focus index
+  let activeIndex = -1;
   let currentResults = [];
+  let timer;
 
   function open() {
     wrap.classList.add("is-open");
@@ -45,13 +45,11 @@
         li.setAttribute("role", "option");
         li.setAttribute("aria-selected", "false");
         li.innerHTML = `
-          <div class="result-name">${r.name}</div>
-          <div class="result-type">${labels[r.type] || ""}</div>
+          <a href="${r.url}">
+            <div class="result-name">${r.name}</div>
+            <div class="result-type">${labels[r.type] || ""}</div>
+          </a>
         `;
-        li.addEventListener("mousedown", (e) => {
-          e.preventDefault();
-          select(i);
-        });
         list.appendChild(li);
       });
     } else {
@@ -59,18 +57,26 @@
     }
   }
 
-  function filter(q) {
-    const s = q.trim().toLowerCase();
-    if (!s) {
-      // show a few popular items by default
-      render(items.slice(0, 6));
-      return;
-    }
-    const res = items.filter(
-      (x) =>
-        x.name.toLowerCase().includes(s) || x.type.toLowerCase().includes(s)
-    );
-    render(res);
+  function fetchResults(q) {
+    const search = q.trim();
+
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      fetch(
+        `${courseSearchData.ajaxUrl}?action=reviewmvp_course_search&nonce=${
+          courseSearchData.nonce
+        }&q=${encodeURIComponent(search)}`
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.length) {
+            render(data);
+          } else {
+            render([]); // show Add Missing button
+          }
+        })
+        .catch(() => render([]));
+    }, 300);
   }
 
   function select(i) {
@@ -78,8 +84,7 @@
     if (!choice) return;
     input.value = choice.name;
     close();
-    // TODO: navigate to the course/category page if you have URLs.
-    // window.location.href = choice.url;
+    if (choice.url) window.location.href = choice.url;
   }
 
   function move(delta) {
@@ -98,11 +103,11 @@
   // events
   input.addEventListener("focus", () => {
     open();
-    filter(input.value);
+    fetchResults(input.value); // will fetch empty q → latest 10
   });
   input.addEventListener("input", () => {
     open();
-    filter(input.value);
+    fetchResults(input.value);
   });
 
   input.addEventListener("keydown", (e) => {
@@ -117,7 +122,20 @@
         e.preventDefault();
         select(activeIndex);
       } else if (!currentResults.length) {
-        window.location.href = addMissingUrl;
+        e.preventDefault();
+
+        // Save term in session via AJAX, then redirect
+        fetch(courseSearchData.ajaxUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            action: "reviewmvp_save_no_match_term",
+            nonce: courseSearchData.nonce,
+            term: input.value.trim(),
+          }),
+        }).then(() => {
+          window.location.href = `${window.location.origin}/no-course-found/`;
+        });
       }
     } else if (e.key === "Escape") {
       close();
@@ -132,6 +150,5 @@
     if (!wrap.contains(e.target)) close();
   });
 
-  // initial state
   close();
 })();
