@@ -45,15 +45,22 @@
   color: var(--button-text-color);
   padding: 6px 14px;
   border-radius: 8px;
+  font-family: var(--text-font-family);
   font-weight: 700;
   font-size: 16px;
   display: flex;
   align-items: center;
   gap: 2px;
 }
+#featuredReviews .rating img {
+  width: 19px;
+  border-radius: 0;
+  margin: 0;
+}
 
 #featuredReviews .reviews-count,
 #featuredReviews .platform {
+  font-family: var(--text-font-family);
   font-weight: 400;
   font-size: 14px;
   color: var(--text-color);
@@ -106,13 +113,16 @@
 }
 
 #featuredReviews .review-stats .stat img {
+  width: 13px;
   border-radius: 0;
+  margin: 0;
 }
 
 /* Reviewer info */
 #featuredReviews .reviewer {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 4px;
 }
 
@@ -121,17 +131,20 @@
   font-size: 14px;
   margin: 0;
 }
-
-/* Verified badge */
-#featuredReviews .verified-purchase {
-  background-color: #11b981;
-  color: var(--light-text-color);
-  padding: 4px 8px;
-  font-size: 12px;
-  border-radius: 100px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+#featuredReviews .reviewer img {
+  width: 10px;
+  margin: 0;
+}
+#featuredReviews .reviewer .reviewer-badge {
+  padding: 0 8px;
+  font-weight: 400;
+  line-height: 0;
+}
+#featuredReviews .reviewer .reviewer-badge.verified {
+  padding: 0;
+}
+#featuredReviews .reviewer .reviewer-badge.verified img {
+  width: 14px;
 }
 
 /* Pros and cons */
@@ -155,6 +168,12 @@
   overflow: hidden; /* Required */
 }
 
+#featuredReviews .pros-cons li img {
+  width: 14px;
+  border-radius: 0;
+  margin: 0;
+}
+
 #featuredReviews .pros-cons li span {
   white-space: nowrap;
   overflow: hidden;
@@ -163,13 +182,22 @@
   display: inline-block;
 }
 
+#featuredReviews .pros-cons .con img {
+  margin-bottom: -5px;
+}
+
 /* Worth section */
 #featuredReviews .worth {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   display: flex;
   align-items: center;
   gap: 6px;
+  margin: 0;
+}
+#featuredReviews .worth img {
+  width: 14px;
+  border-radius: 0;
   margin: 0;
 }
 
@@ -186,8 +214,13 @@
   border-color: var(--primary-color);
   background-color: transparent;
   color: var(--primary-color);
+  font-family: var(--primary-font-family);
   font-weight: 700;
+  font-size: 14px;
   border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   transition: background-color 0.3s, color 0.3s;
 }

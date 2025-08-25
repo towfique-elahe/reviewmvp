@@ -181,25 +181,3 @@ function reviewmvp_widgets_init() {
     ) );
 }
 add_action( 'widgets_init', 'reviewmvp_widgets_init' );
-
-/**
- * Icon Helper
- */
-function get_theme_icon_url($icon_name) {
-    $icon_path = get_template_directory() . '/assets/media/' . $icon_name;
-    $icon_url  = get_template_directory_uri() . '/assets/media/' . $icon_name;
-    $icon_fallback  = get_template_directory_uri() . '/assets/media/icon-fallback.svg';
-
-    return file_exists($icon_path) ? $icon_url : $icon_fallback;
-}
-
-/**
- * Media Helper
- */
-function get_theme_media_url($media_name) {
-    $media_path = get_template_directory() . '/assets/media/' . $media_name;
-    $media_url  = get_template_directory_uri() . '/assets/media/' . $media_name;
-    $media_fallback  = get_template_directory_uri() . '/assets/media/media-fallback.svg';
-
-    return file_exists($media_path) ? $media_url : $media_fallback;
-}

@@ -8,143 +8,6 @@ get_header();
 global $post; 
 $course_id = $post->ID;
 
-// Helper function to display media files from theme
-function getMedia($fileName) {
-    $themeDirectory = get_template_directory_uri() . "/assets/media/";
-    return $themeDirectory . $fileName;
-}
-
-// Helper function to display rating stars
-function get_rating_stars($rating) {
-    $stars = "";
-    for ($i = 1; $i <= 5; $i++) {
-        if ($rating >= $i) {
-            $stars .= '<span class="r-star active"><ion-icon name="star" aria-hidden="true"></ion-icon></span>';
-        } elseif ($rating >= $i - 0.5) {
-            $stars .= '<span class="r-star half active"><ion-icon name="star-half" aria-hidden="true"></ion-icon></span>';
-        } else {
-            $stars .= '<span class="r-star"><ion-icon name="star" aria-hidden="true"></ion-icon></span>';
-        }
-    }
-    return $stars;
-}
-
-// Helper function to get rating data
-function reviewmvp_get_course_rating_data($course_id) {
-    global $wpdb;
-
-    $query = $wpdb->prepare("
-        SELECT pm.meta_value
-        FROM {$wpdb->postmeta} pm
-        INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
-        WHERE pm.meta_key = %s
-          AND p.post_type = %s
-          AND p.post_status = 'publish'
-          AND EXISTS (
-              SELECT 1 FROM {$wpdb->postmeta} pm2
-              WHERE pm2.post_id = p.ID
-              AND pm2.meta_key = %s
-              AND pm2.meta_value = %d
-          )
-    ", '_review_rating', 'course_review', '_review_course', $course_id);
-
-    $ratings = $wpdb->get_col($query);
-
-    if (empty($ratings)) {
-        return [
-            'average'   => 0,
-            'count'     => 0,
-            'breakdown' => [5=>0,4=>0,3=>0,2=>0,1=>0],
-        ];
-    }
-
-    $ratings = array_map('intval', $ratings);
-    $count   = count($ratings);
-    $average = round(array_sum($ratings) / $count, 1);
-
-    // Count each star
-    $counts = array_count_values($ratings);
-
-    // Initialize breakdown (percentages)
-    $breakdown = [];
-    for ($i = 5; $i >= 1; $i--) {
-        $starCount = $counts[$i] ?? 0;
-        $breakdown[$i] = $count > 0 ? round(($starCount / $count) * 100) : 0;
-    }
-
-    return [
-        'average'   => $average,
-        'count'     => $count,
-        'breakdown' => $breakdown,
-    ];
-}
-
-// Helper function to get overall outcomes data
-function reviewmvp_get_course_outcomes($course_id) {
-    global $wpdb;
-
-    // fetch all outcomes for reviews of this course
-    $query = $wpdb->prepare("
-        SELECT pm.meta_value
-        FROM {$wpdb->postmeta} pm
-        INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
-        WHERE pm.meta_key = %s
-          AND p.post_type = %s
-          AND p.post_status = 'publish'
-          AND EXISTS (
-              SELECT 1 FROM {$wpdb->postmeta} pm2
-              WHERE pm2.post_id = p.ID
-              AND pm2.meta_key = %s
-              AND pm2.meta_value = %d
-          )
-    ", '_review_outcome', 'course_review', '_review_course', $course_id);
-
-    $rawOutcomes = $wpdb->get_col($query);
-
-    if (empty($rawOutcomes)) {
-        return [];
-    }
-
-    // Flatten arrays (stored as serialized arrays in DB)
-    $outcomes = [];
-    foreach ($rawOutcomes as $val) {
-        $arr = maybe_unserialize($val);
-        if (is_array($arr)) {
-            foreach ($arr as $item) {
-                $outcomes[] = $item;
-            }
-        } else {
-            $outcomes[] = $arr;
-        }
-    }
-
-    if (empty($outcomes)) {
-        return [];
-    }
-
-    $counts = array_count_values($outcomes);
-    $total  = array_sum($counts);
-
-    // map to icons
-    $icons = [
-        "Improved Skill"    => "icon-improved-skill.svg",
-        "Built Project"     => "icon-built-project.svg",
-        "No Impact"         => "icon-no-impact.svg",
-        "Career Boost"      => "icon-career.svg",
-        "Earned Income"     => "icon-income.svg",
-        "Gained Confidence" => "icon-confidence.svg",
-    ];
-
-    $overall = [];
-    foreach ($counts as $label => $count) {
-        $percent = $total > 0 ? round(($count / $total) * 100) : 0;
-        $key = sprintf("%s (%d%%)", $label, $percent);
-        $overall[$key] = $icons[$label] ?? 'icon-default.svg';
-    }
-
-    return $overall;
-}
-
 // Status badges
 $statusBadges = [
     "verified"          => ["text" => "", "icon" => "icon-verified-badge.svg"],
@@ -228,7 +91,7 @@ while ( have_posts() ) : the_post();
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
     <div id="scDetails" class="course-info">
         <!-- background -->
-        <img src="<?= getMedia('background-1.svg') ?>" alt="background" class="bg">
+        <img src="<?= get_theme_media_url('background-1.svg') ?>" alt="background" class="bg">
 
         <!-- course info/details -->
         <div class="course-info-container">
@@ -263,15 +126,15 @@ while ( have_posts() ) : the_post();
                         <div class="col">
                             <?php foreach ($overallOutcomes as $outcomeText => $iconName): ?>
                             <span class="outcome">
-                                <img src="<?= getMedia($iconName) ?>" alt="<?= esc_attr($outcomeText) ?> Icon"
-                                    class="outcome-icon">
+                                <img src="<?= get_theme_media_url($iconName) ?>"
+                                    alt="<?= esc_attr($outcomeText) ?> Icon" class="outcome-icon">
                                 <?php echo esc_html($outcomeText); ?>
                             </span>
                             <?php endforeach; ?>
                         </div>
                     </div>
                     <a href="<?= site_url('/write-a-review/?course_id=' . $course_id); ?>" class="write-review-btn">
-                        <img src="<?= getMedia('icon-pencil.svg') ?>" alt="Pencil Icon">
+                        <img src="<?= get_theme_media_url('icon-pencil.svg') ?>" alt="Pencil Icon">
                         Write your review
                     </a>
                 </div>
@@ -304,7 +167,7 @@ while ( have_posts() ) : the_post();
             <!-- sidebar -->
             <div class="sidebar">
                 <div class="real-rating">
-                    <img src="<?= getMedia('icon-real-rating.svg') ?>" alt="Real Rating Icon">
+                    <img src="<?= get_theme_media_url('icon-real-rating.svg') ?>" alt="Real Rating Icon">
                     <p>Courses can't pay to hide or boost reviews. Every opinion here is real.</p>
                 </div>
                 <div class="course-rating-overall">
@@ -342,42 +205,42 @@ while ( have_posts() ) : the_post();
                     </p>
                     <div class="cd-list">
                         <div class="cd-list-item">
-                            <img src="<?= getMedia('icon-instructor.svg') ?>" alt="Instructor Icon">
+                            <img src="<?= get_theme_media_url('icon-instructor.svg') ?>" alt="Instructor Icon">
                             <p>
                                 <span class="cd-list-label">Instructor:</span>
                                 <?php echo esc_html($instructor['name']); ?>
                             </p>
                         </div>
                         <div class="cd-list-item">
-                            <img src="<?= getMedia('icon-duration.svg') ?>" alt="Duration Icon">
+                            <img src="<?= get_theme_media_url('icon-duration.svg') ?>" alt="Duration Icon">
                             <p>
                                 <span class="cd-list-label">Duration:</span>
                                 <?php echo $duration; ?> hour
                             </p>
                         </div>
                         <div class="cd-list-item">
-                            <img src="<?= getMedia('icon-level.svg') ?>" alt="Level Icon">
+                            <img src="<?= get_theme_media_url('icon-level.svg') ?>" alt="Level Icon">
                             <p>
                                 <span class="cd-list-label">Level:</span>
                                 <?php echo esc_html($level_label[$level]); ?>
                             </p>
                         </div>
                         <div class="cd-list-item">
-                            <img src="<?= getMedia('icon-certificate.svg') ?>" alt="Certificate Icon">
+                            <img src="<?= get_theme_media_url('icon-certificate.svg') ?>" alt="Certificate Icon">
                             <p>
                                 <span class="cd-list-label">Certificate:</span>
                                 <?php echo esc_html($certificate); ?>
                             </p>
                         </div>
                         <div class="cd-list-item">
-                            <img src="<?= getMedia('icon-refundable.svg') ?>" alt="Refund Icon">
+                            <img src="<?= get_theme_media_url('icon-refundable.svg') ?>" alt="Refund Icon">
                             <p>
                                 <span class="cd-list-label">Refund Available:</span>
                                 <?php echo esc_html($refundable); ?>
                             </p>
                         </div>
                         <div class="cd-list-item">
-                            <img src="<?= getMedia('icon-language.svg') ?>" alt="Language Icon">
+                            <img src="<?= get_theme_media_url('icon-language.svg') ?>" alt="Language Icon">
                             <p>
                                 <span class="cd-list-label">Language:</span>
                                 <?php echo implode(", ", $languages); ?>
@@ -450,7 +313,7 @@ while ( have_posts() ) : the_post();
                                     foreach ($review['badges'] as $badge_key => $badge):
                                         ?>
                                 <span class="reviewer-badge <?php echo esc_attr($badge_key); ?>">
-                                    <img src="<?= getMedia($badge['icon']) ?>"
+                                    <img src="<?= get_theme_media_url($badge['icon']) ?>"
                                         alt="<?= esc_attr($badge['text']) ?> Icon" class="badge-icon">
                                     <?php echo esc_html($badge['text']); ?>
                                 </span>
@@ -476,7 +339,7 @@ while ( have_posts() ) : the_post();
                             <?php if ($good): ?>
                             <div class="pc-col pro">
                                 <p class="pc-label">
-                                    <img src="<?= getMedia('icon-positive.svg') ?>" alt="Positive Icon">
+                                    <img src="<?= get_theme_media_url('icon-positive.svg') ?>" alt="Positive Icon">
                                     <span class="review-label">What was good?</span>
                                 </p>
                                 <p class="pc-review"><?php echo esc_html($good); ?></p>
@@ -486,7 +349,7 @@ while ( have_posts() ) : the_post();
                             <?php if ($bad): ?>
                             <div class="pc-col con">
                                 <p class="pc-label">
-                                    <img src="<?= getMedia('icon-negative.svg') ?>" alt="Negative Icon">
+                                    <img src="<?= get_theme_media_url('icon-negative.svg') ?>" alt="Negative Icon">
                                     <span class="review-label">What was bad?</span>
                                 </p>
                                 <p class="pc-review"><?php echo esc_html($bad); ?></p>
@@ -501,8 +364,8 @@ while ( have_posts() ) : the_post();
                                 <span class="review-item-value">
                                     <?php foreach ($review['outcomes'] as $outcomeText => $iconName): ?>
                                     <span class="outcome">
-                                        <img src="<?= getMedia($iconName) ?>" alt="<?= esc_attr($outcomeText) ?> Icon"
-                                            class="outcome-icon">
+                                        <img src="<?= get_theme_media_url($iconName) ?>"
+                                            alt="<?= esc_attr($outcomeText) ?> Icon" class="outcome-icon">
                                         <?php echo esc_html($outcomeText); ?>
                                     </span>
                                     <?php endforeach; ?>
@@ -703,7 +566,7 @@ while ( have_posts() ) : the_post();
                                     foreach ($review['badges'] as $badge_key => $badge):
                                         ?>
                                     <span class="reviewer-badge <?php echo esc_attr($badge_key); ?>">
-                                        <img src="<?= getMedia($badge['icon']) ?>"
+                                        <img src="<?= get_theme_media_url($badge['icon']) ?>"
                                             alt="<?= esc_attr($badge['text']) ?> Icon" class="badge-icon">
                                         <?php echo esc_html($badge['text']); ?>
                                     </span>
@@ -729,7 +592,7 @@ while ( have_posts() ) : the_post();
                                 <?php if ($good): ?>
                                 <div class="pc-col pro">
                                     <p class="pc-label">
-                                        <img src="<?= getMedia('icon-positive.svg') ?>" alt="Positive Icon">
+                                        <img src="<?= get_theme_media_url('icon-positive.svg') ?>" alt="Positive Icon">
                                         <span class="review-label">What was good?</span>
                                     </p>
                                     <p class="pc-review"><?php echo esc_html($good); ?></p>
@@ -739,7 +602,7 @@ while ( have_posts() ) : the_post();
                                 <?php if ($bad): ?>
                                 <div class="pc-col con">
                                     <p class="pc-label">
-                                        <img src="<?= getMedia('icon-negative.svg') ?>" alt="Negative Icon">
+                                        <img src="<?= get_theme_media_url('icon-negative.svg') ?>" alt="Negative Icon">
                                         <span class="review-label">What was bad?</span>
                                     </p>
                                     <p class="pc-review"><?php echo esc_html($bad); ?></p>
@@ -754,7 +617,7 @@ while ( have_posts() ) : the_post();
                                     <span class="review-item-value">
                                         <?php foreach ($review['outcomes'] as $outcomeText => $iconName): ?>
                                         <span class="outcome">
-                                            <img src="<?= getMedia($iconName) ?>"
+                                            <img src="<?= get_theme_media_url($iconName) ?>"
                                                 alt="<?= esc_attr($outcomeText) ?> Icon" class="outcome-icon">
                                             <?php echo esc_html($outcomeText); ?>
                                         </span>
