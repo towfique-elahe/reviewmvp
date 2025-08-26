@@ -9,7 +9,7 @@
 /* input */
 #searchCourse .course-search-input {
   width: 100%;
-  padding: 13px 40px 13px 15px;
+  padding: 15px 40px 15px 15px;
   border: var(--border);
   border-radius: 16px;
   font-family: var(--text-font-family);
@@ -67,7 +67,7 @@
   overflow: auto;
 }
 
-#searchCourse .result-item {
+#searchCourse .result-item a {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -76,8 +76,8 @@
   cursor: pointer;
 }
 
-#searchCourse .result-item[aria-selected="true"],
-#searchCourse .result-item:hover {
+#searchCourse .result-item[aria-selected="true"] a,
+#searchCourse .result-item a:hover {
   background: var(--gray-background-color);
 }
 

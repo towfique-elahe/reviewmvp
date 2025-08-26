@@ -8,19 +8,6 @@
 // Shortcode: [course_search_box]
 
 function course_search_box_shortcode() {
-
-    // Demo static data (courses + categories). Replace later with AJAX.
-    $demo_items = [
-        ['type' => 'course', 'name' => 'Intro to Data Science'],
-        ['type' => 'course', 'name' => 'Advanced React'],
-        ['type' => 'course', 'name' => 'Foundations of Marketing'],
-        ['type' => 'course', 'name' => 'PHP & WordPress Essentials'],
-        ['type' => 'category', 'name' => 'Design'],
-        ['type' => 'category', 'name' => 'Development'],
-        ['type' => 'category', 'name' => 'Business'],
-        ['type' => 'category', 'name' => 'Data'],
-    ];
-
     wp_localize_script('reviewmvp-course-search', 'courseSearchData', [
         'ajaxUrl'       => admin_url('admin-ajax.php'),
         'nonce'         => wp_create_nonce('reviewmvp_course_search'),

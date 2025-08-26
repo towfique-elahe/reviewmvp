@@ -16,7 +16,7 @@
   background: var(--white-background-color);
   font-family: var(--text-font-family);
   box-sizing: border-box;
-  transition: transform 0.3s ease;
+  transition: 0.3s ease;
   display: flex;
   flex-direction: column;
   gap: 19px;
@@ -24,6 +24,8 @@
 
 #featuredReviews .review-card:hover {
   transform: translateY(-5px);
+  border-color: var(--accent-color);
+  box-shadow: var(--box-shadow);
 }
 
 /* Review header */
