@@ -25,12 +25,6 @@
     // --- Helpers ---
     const $$ = (sel, parent = sidebar) =>
       Array.from(parent.querySelectorAll(sel));
-    function ratingToneClass(r) {
-      if (r >= 4.5) return "tone-great";
-      if (r >= 4.0) return "tone-good";
-      if (r >= 3.0) return "tone-okay";
-      return "tone-poor";
-    }
 
     function ratingIconsHTML(r) {
       let html = "";
@@ -46,23 +40,22 @@
       return html;
     }
 
-    function ratingStarsHTML(r, provider) {
-      const tone = ratingToneClass(r);
+    function ratingStarsHTML(r, provider, reviews) {
       return `
-        <div class="bc-rating-container">
-          <div class="col">
-            <span class="bc-rating">${r.toFixed(1)}</span>
-            <span class="bc-stars ${tone}" aria-label="${r.toFixed(1)} out of 5">
-              <span class="bc-starsbox">${ratingIconsHTML(r)}</span>
-            </span>
-            <span class="bc-chip">${Math.max(
-              ...courses.map((c) => c.reviews)
-            )} reviews</span>
-          </div>
-          <div class="col">
-            <span class="bc-provider">${provider || ""}</span>
-          </div>
-        </div>`;
+    <div class="bc-rating-container">
+      <div class="col">
+        <span class="bc-rating">${r.toFixed(1)}</span>
+        <span class="bc-stars" aria-label="${r.toFixed(1)} out of 5">
+          <span class="bc-starsbox">${ratingIconsHTML(r)}</span>
+        </span>
+        <span class="bc-chip">${reviews} reviews</span>
+      </div>
+      ${
+        provider
+          ? `<div class="col"><span class="bc-provider">${provider}</span></div>`
+          : ""
+      }
+    </div>`;
     }
 
     const formatDuration = (h) =>
@@ -89,10 +82,18 @@
 
     // --- Filters ---
     function getFilters() {
+      const decodeHTML = (str) => {
+        const txt = document.createElement("textarea");
+        txt.innerHTML = str;
+        return txt.value;
+      };
+
       const f = {};
       ["rating", "category", "outcomes", "level", "price", "duration"].forEach(
         (g) => {
-          f[g] = $$(`input[name="${g}"]:checked`).map((i) => i.value);
+          f[g] = $$(`input[name="${g}"]:checked`).map((i) =>
+            decodeHTML(i.value.trim())
+          );
         }
       );
       return f;
@@ -102,10 +103,14 @@
       return arr.filter((c) => {
         if (f.rating.length && !f.rating.some((v) => c.rating >= parseFloat(v)))
           return false;
-        if (f.category.length && !f.category.includes(c.category)) return false;
+        if (
+          f.category.length &&
+          !f.category.some((cat) => c.categories.includes(cat))
+        )
+          return false;
         if (
           f.outcomes.length &&
-          !f.outcomes.every((o) => c.outcomes.includes(o))
+          !f.outcomes.some((o) => c.outcomeLabels.includes(o))
         )
           return false;
         if (f.level.length && !f.level.includes(c.level)) return false;
@@ -132,19 +137,13 @@
         (k, dir = 1) =>
         (a, b) =>
           a[k] > b[k] ? dir : a[k] < b[k] ? -dir : 0;
+
       switch (v) {
-        case "rating_desc":
+        case "rating_desc": // highest rated
           return cp.sort(by("rating", -1));
-        case "rating_asc":
-          return cp.sort(by("rating", 1));
-        case "duration_asc":
-          return cp.sort(by("durationHours", 1));
-        case "duration_desc":
-          return cp.sort(by("durationHours", -1));
-        case "price_asc":
-          return cp.sort(by("price", 1));
-        case "price_desc":
-          return cp.sort(by("price", -1));
+        case "newest": // most recently added
+          return cp.sort(by("id", -1)); // higher ID = newer (WP style)
+        case "relevance": // just return as-is
         default:
           return cp;
       }
@@ -207,45 +206,83 @@
 
     // --- Card ---
     function cardHTML(c) {
-      const yesPct = Math.round(c.worthYes * 100),
-        recPct = Math.round(c.recommend * 100);
-      const tone =
-        c.ribbonTone === "red"
-          ? "red"
-          : c.ribbonTone === "amber"
-          ? "amber"
-          : "";
+      const yesPct = c.worthYes,
+        recPct = c.recommend;
+
+      // worth percentage color
+      let worthColor = "#DC2625";
+      if (yesPct >= 70) {
+        worthColor = "#11B981";
+      } else if (yesPct >= 30) {
+        worthColor = "#F6C701";
+      }
+
+      // recommend ribbon colors
+      let recColor = "#DC2625";
+      let recBg = "#FEF1F2";
+      if (recPct >= 70) {
+        recColor = "#11B981";
+        recBg = "#e0f6ef";
+      } else if (recPct >= 30) {
+        recColor = "#F6C701";
+        recBg = "#fbf9e2";
+      }
 
       const themeDirectory = "/wp-content/themes/reviewmvp";
       const iconPath = `${themeDirectory}/assets/media/`;
 
+      // --- Metas (duration + level) ---
+      let metasHTML = "";
+      if (c.durationHours) {
+        metasHTML += `<span class="bc-meta"><img src="${iconPath}icon-duration.svg" alt="Duration Icon"> ${formatDuration(
+          c.durationHours
+        )}</span>`;
+      }
+      if (c.level) {
+        metasHTML += `<span class="bc-meta"><img src="${iconPath}icon-level.svg" alt="Level Icon"> ${c.level}</span>`;
+      }
+      const metasBlock = metasHTML
+        ? `<div class="bc-metas">${metasHTML}</div>`
+        : "";
+
+      // --- Outcomes ---
+      let outcomesBlock = "";
+      if (c.outcomes && Object.keys(c.outcomes).length > 0) {
+        outcomesBlock = `<div class="bc-kpis">
+        <span class="bc-kpi-label">
+          <img src="${iconPath}icon-outcome.svg" alt="Outcome Icon"> Students Outcome:
+        </span>
+        ${outcomesHTML(c.outcomes)}
+      </div>`;
+      }
+
       return `<article class="bc-card" data-id="${c.id}">
-        <div class="bc-starsline">${ratingStarsHTML(c.rating, c.provider)}</div>
-        <div class="bc-info">
-            <a href="${c.link}" class="bc-title">${c.title}</a>
-            <div class="bc-author" style="font-size:13px">By ${
-              c.instructor
-            }</div>
-            <div class="bc-description">${c.description}</div>
-        </div>
-        <div class="bc-metas">
-          <span class="bc-meta"><img src="${iconPath}icon-duration.svg" alt="Duration Icon"> ${formatDuration(c.durationHours)}</span>
-          <span class="bc-meta"><img src="${iconPath}icon-level.svg" alt="Level Icon"> ${c.level}</span>
-        </div>
-        <div class="bc-kpis">
-          <span class="bc-kpi-label">
-            <img src="${iconPath}icon-outcome.svg" alt="Outcome Icon"> Students Outcome:
+      <div class="bc-starsline">${ratingStarsHTML(
+        c.rating,
+        c.provider,
+        c.reviews
+      )}</div>
+      <div class="bc-info">
+          <a href="${c.link}" class="bc-title">${c.title}</a>
+          ${
+            c.instructor
+              ? `<div class="bc-author" style="font-size:13px">By ${c.instructor}</div>`
+              : ""
+          }
+          <div class="bc-description">${c.description}</div>
+      </div>
+      ${metasBlock}
+      ${outcomesBlock}
+      <div class="bc-bottom-container">
+          <div class="bc-worth">
+              <img src="${iconPath}icon-worth.svg" alt="Worth Icon">
+              Worth the money? <strong style="color:${worthColor}">${yesPct}% say YES</strong>
+          </div>
+          <span class="bc-ribbon" style="color:${recColor};background-color:${recBg}">
+            ${recPct}% of students recommend this course
           </span>
-          ${outcomesHTML(c.outcomes)}
-        </div>
-        <div class="bc-bottom-container">
-            <div class="bc-worth">
-                <img src="${iconPath}icon-worth.svg" alt="Worth Icon">
-                Worth the money? <strong>${yesPct}% say YES</strong>
-            </div>
-            <span class="bc-ribbon ${tone}">${recPct}% of students recommend this course</span>
-        </div>
-      </article>`;
+      </div>
+    </article>`;
     }
 
     // --- Render ---
@@ -293,17 +330,16 @@
         render();
       }
     });
-    root.querySelectorAll(".bc-fbody").forEach((body) => {
-      body.style.maxHeight = body.scrollHeight + "px"; // open by default
-    });
 
+    // Toggle on click
     root.querySelectorAll(".bc-fhead").forEach((h) => {
       h.addEventListener("click", () => {
         const body = h.parentElement.querySelector(".bc-fbody");
-        if (body.style.maxHeight && body.style.maxHeight !== "0px") {
-          body.style.maxHeight = "0";
-        } else {
-          body.style.maxHeight = body.scrollHeight + "px";
+        const icon = h.querySelector("ion-icon");
+
+        body.classList.toggle("open");
+        if (icon) {
+          icon.classList.toggle("open", body.classList.contains("open"));
         }
       });
     });
@@ -326,16 +362,26 @@
           intermediate: "Intermediate",
           advance: "Advance",
         };
+        let allCategories = new Set();
         courses = data.map((c) => {
-          // Demo extras:
-          const rec = 0.6 + Math.random() * 0.3;
-          const worth = 0.4 + Math.random() * 0.5;
-          const tone = rec < 0.45 ? "red" : rec < 0.6 ? "amber" : "green";
           const rawLevel = c.course_level || "";
-          const level = levelLabels[rawLevel] || rawLevel; // fallback if unknown
+          const level = levelLabels[rawLevel] || rawLevel;
+          const rawPrice = parseFloat(c.course_price) || 0;
+          const isFree = rawPrice <= 0;
+
+          // outcomes
+          const outcomesObj = c.outcomes_data || {};
+          const outcomeLabels = Object.keys(outcomesObj).map((k) =>
+            k.replace(/\s*\(\d+%?\)/, "").trim()
+          );
+
+          // categories
+          const categories = (c.course_categories || []).map((cat) => cat.name);
+          categories.forEach((cat) => allCategories.add(cat));
 
           return {
             id: c.id,
+            date: c.date,
             title: c.title.rendered,
             description: c.excerpt?.rendered || "",
             provider: c.course_provider || "",
@@ -345,15 +391,30 @@
             link: c.link,
             rating: parseFloat(c.rating_data?.average) || 0,
             reviews: parseInt(c.rating_data?.count) || 0,
-            outcomes: c.outcomes_data || {},
-            // demo fields
-            isFree: Math.random() < 0.2,
-            price: Math.round((Math.random() * 49 + 5) * 100) / 100,
-            recommend: rec,
-            worthYes: worth,
-            ribbonTone: tone,
+            outcomes: outcomesObj,
+            outcomeLabels: outcomeLabels,
+            worthYes: parseFloat(c.review_stats?.worth) || 0,
+            recommend: parseFloat(c.review_stats?.recommend) || 0,
+            price: rawPrice,
+            isFree: isFree,
+            categories: categories,
           };
         });
+        // Inject categories dynamically
+        const catContainer = root.querySelector(
+          '[data-role="category-options"]'
+        );
+        if (catContainer) {
+          catContainer.innerHTML = Array.from(allCategories)
+            .sort()
+            .map(
+              (cat) =>
+                `<label class="bc-check">
+          <input type="checkbox" name="category" value="${cat}"> ${cat}
+        </label>`
+            )
+            .join("");
+        }
         render();
       } catch (err) {
         console.error("Error fetching courses:", err);

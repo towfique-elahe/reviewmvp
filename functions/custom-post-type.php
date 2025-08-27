@@ -14,29 +14,16 @@ function reviewmvp_register_course_post_type() {
         'singular_name'         => _x('Course', 'Post Type Singular Name', 'reviewmvp'),
         'menu_name'             => __('Courses', 'reviewmvp'),
         'name_admin_bar'        => __('Course', 'reviewmvp'),
-        'archives'              => __('Course Archives', 'reviewmvp'),
-        'attributes'            => __('Course Attributes', 'reviewmvp'),
-        'parent_item_colon'     => __('Parent Course:', 'reviewmvp'),
         'all_items'             => __('All Courses', 'reviewmvp'),
-        'add_new_item'          => __('Add Course', 'reviewmvp'),
+        'add_new_item'          => __('Add New Course', 'reviewmvp'),
         'add_new'               => __('Add New', 'reviewmvp'),
         'new_item'              => __('New Course', 'reviewmvp'),
         'edit_item'             => __('Edit Course', 'reviewmvp'),
         'update_item'           => __('Update Course', 'reviewmvp'),
         'view_item'             => __('View Course', 'reviewmvp'),
-        'view_items'            => __('View Courses', 'reviewmvp'),
         'search_items'          => __('Search Course', 'reviewmvp'),
         'not_found'             => __('No courses found', 'reviewmvp'),
         'not_found_in_trash'    => __('No courses found in Trash', 'reviewmvp'),
-        'featured_image'        => __('Featured Image', 'reviewmvp'),
-        'set_featured_image'    => __('Set featured image', 'reviewmvp'),
-        'remove_featured_image' => __('Remove featured image', 'reviewmvp'),
-        'use_featured_image'    => __('Use as featured image', 'reviewmvp'),
-        'insert_into_item'      => __('Insert into course', 'reviewmvp'),
-        'uploaded_to_this_item' => __('Uploaded to this course', 'reviewmvp'),
-        'items_list'            => __('Courses list', 'reviewmvp'),
-        'items_list_navigation' => __('Courses list navigation', 'reviewmvp'),
-        'filter_items_list'     => __('Filter courses list', 'reviewmvp'),
     );
 
     $args = array(
@@ -44,7 +31,6 @@ function reviewmvp_register_course_post_type() {
         'description'           => __('Custom Post Type for Courses', 'reviewmvp'),
         'labels'                => $labels,
         'supports'              => array('title', 'editor', 'excerpt', 'thumbnail', 'comments', 'revisions', 'author', 'custom-fields'),
-        'taxonomies'            => array('category', 'post_tag'),
         'hierarchical'          => false,
         'public'                => true,
         'show_in_menu'          => true,
@@ -67,6 +53,38 @@ function reviewmvp_register_course_post_type() {
     register_post_type('course', $args);
 }
 add_action('init', 'reviewmvp_register_course_post_type');
+
+/**
+ * Register Custom Taxonomy: Course Category
+ */
+function reviewmvp_register_course_category_taxonomy() {
+    $labels = array(
+        'name'              => _x('Course Categories', 'taxonomy general name', 'reviewmvp'),
+        'singular_name'     => _x('Course Category', 'taxonomy singular name', 'reviewmvp'),
+        'search_items'      => __('Search Course Categories', 'reviewmvp'),
+        'all_items'         => __('All Course Categories', 'reviewmvp'),
+        'parent_item'       => __('Parent Category', 'reviewmvp'),
+        'parent_item_colon' => __('Parent Category:', 'reviewmvp'),
+        'edit_item'         => __('Edit Course Category', 'reviewmvp'),
+        'update_item'       => __('Update Course Category', 'reviewmvp'),
+        'add_new_item'      => __('Add New Course Category', 'reviewmvp'),
+        'new_item_name'     => __('New Course Category Name', 'reviewmvp'),
+        'menu_name'         => __('Course Categories', 'reviewmvp'),
+    );
+
+    $args = array(
+        'hierarchical'      => true,
+        'labels'            => $labels,
+        'show_ui'           => true,
+        'show_admin_column' => true,
+        'query_var'         => true,
+        'show_in_rest'      => true,
+        'rewrite'           => array('slug' => 'course-category'),
+    );
+
+    register_taxonomy('course_category', array('course'), $args);
+}
+add_action('init', 'reviewmvp_register_course_category_taxonomy');
 
 /**
  * Add custom meta box for 'course' post type.

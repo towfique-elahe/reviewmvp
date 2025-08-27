@@ -38,11 +38,41 @@
   margin: 0;
   margin-bottom: 30px;
   display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: 17px;
 }
-.bc-sidebar-heading ion-icon {
-  font-size: 20px;
+.bc-sidebar-heading span {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+}
+.bc-sidebar-heading img {
+  border-radius: 0;
+  margin: 0;
+  width: 20px;
+}
+.bc-sidebar-heading button {
+  background-color: var(--gray-background-color) !important;
+  padding: 5px 20px !important;
+  border: var(--border) !important;
+  border-radius: 20px !important;
+  color: var(--dark-text-color) !important;
+  font-family: var(--text-font-family) !important;
+  font-weight: 400;
+  font-size: 14px !important;
+  cursor: pointer;
+  transition: ease 0.3s;
+}
+.bc-sidebar-heading button:hover {
+  background-color: var(--accent-color) !important;
+  color: var(--button-text-color) !important;
+}
+.bc-fhead ion-icon {
+  transition: transform 0.3s ease;
+}
+.bc-fhead ion-icon.open {
+  transform: rotate(180deg);
 }
 .bc-filter-container {
   background: var(--white-background-color);
@@ -71,6 +101,9 @@
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.3s ease;
+}
+.bc-fbody.open {
+  max-height: 200px;
 }
 .bc-check {
   display: flex;
@@ -102,7 +135,19 @@
 .bc-count {
   font-size: 14px;
 }
+.bc-sort-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.bc-select {
+  position: relative;
+  display: inline-block;
+}
 .bc-sort {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
   color: var(--dark-text-color);
   font-family: var(--primary-font-family);
   font-weight: 600;
@@ -113,8 +158,17 @@
   border-color: var(--text-color);
   background-color: transparent;
   border-radius: 6px;
-  padding: 10px;
+  padding: 10px 40px 10px 10px;
   cursor: pointer;
+}
+.bc-select-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 18px;
+  color: var(--text-color);
 }
 .bc-btn {
   color: var(--dark-text-color);

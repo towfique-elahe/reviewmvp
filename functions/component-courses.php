@@ -17,7 +17,10 @@ function browse_courses_shortcode() {
             <!-- Sidebar -->
             <aside class="bc-sidebar">
                 <h4 class="bc-sidebar-heading">
-                    <ion-icon name="options"></ion-icon> Filter by
+                    <span>
+                        <img src="<?php echo get_theme_icon_url('filter-icon.svg'); ?>" alt="Filter icon" /> Filter by
+                    </span>
+                    <button data-action="clear">Clear filters</button>
                 </h4>
 
                 <div class="bc-filter-container">
@@ -25,13 +28,25 @@ function browse_courses_shortcode() {
                         <div class="bc-fhead">Ratings <span class="bc-muted">
                                 <ion-icon name="chevron-down-outline"></ion-icon>
                             </span></div>
-                        <div class="bc-fbody">
-                            <label class="bc-check"><input type="checkbox" name="rating" value="4.5"> 4.5 &amp;
+                        <div class="bc-fbody open">
+                            <label class="bc-check"><input type="checkbox" name="rating" value="4.5"><img
+                                    src="<?php echo get_theme_icon_url('filter-star-icon.svg'); ?>" alt="Filter icon" />
+                                4.5
+                                &amp;
                                 up</label>
-                            <label class="bc-check"><input type="checkbox" name="rating" value="4"> 4.0 &amp; up</label>
-                            <label class="bc-check"><input type="checkbox" name="rating" value="3.5"> 3.5 &amp;
+                            <label class="bc-check"><input type="checkbox" name="rating" value="4"><img
+                                    src="<?php echo get_theme_icon_url('filter-star-icon.svg'); ?>" alt="Filter icon" />
+                                4.0
+                                &amp; up</label>
+                            <label class="bc-check"><input type="checkbox" name="rating" value="3.5"><img
+                                    src="<?php echo get_theme_icon_url('filter-star-icon.svg'); ?>" alt="Filter icon" />
+                                3.5
+                                &amp;
                                 up</label>
-                            <label class="bc-check"><input type="checkbox" name="rating" value="3"> 3.0 &amp; up</label>
+                            <label class="bc-check"><input type="checkbox" name="rating" value="3"><img
+                                    src="<?php echo get_theme_icon_url('filter-star-icon.svg'); ?>" alt="Filter icon" />
+                                3.0
+                                &amp; up</label>
                         </div>
                     </div>
 
@@ -39,14 +54,8 @@ function browse_courses_shortcode() {
                         <div class="bc-fhead">Category <span class="bc-muted">
                                 <ion-icon name="chevron-down-outline"></ion-icon>
                             </span></div>
-                        <div class="bc-fbody">
-                            <label class="bc-check"><input type="checkbox" name="category" value="UI/UX"> UI/UX</label>
-                            <label class="bc-check"><input type="checkbox" name="category" value="Dropshipping">
-                                Dropshipping</label>
-                            <label class="bc-check"><input type="checkbox" name="category" value="Software development">
-                                Software development</label>
-                            <label class="bc-check"><input type="checkbox" name="category" value="Data analytics"> Data
-                                analytics</label>
+                        <div class="bc-fbody open" data-role="category-options">
+                            <!-- JS will inject categories here -->
                         </div>
                     </div>
 
@@ -54,20 +63,20 @@ function browse_courses_shortcode() {
                         <div class="bc-fhead">Student outcomes <span class="bc-muted">
                                 <ion-icon name="chevron-down-outline"></ion-icon>
                             </span></div>
-                        <div class="bc-fbody">
-                            <label class="bc-check"><input type="checkbox" name="outcomes" value="Improved skills">
+                        <div class="bc-fbody open">
+                            <label class="bc-check"><input type="checkbox" name="outcomes" value="Improved Skill">
                                 Improved
-                                skills</label>
-                            <label class="bc-check"><input type="checkbox" name="outcomes" value="Built project"> Built
+                                skill</label>
+                            <label class="bc-check"><input type="checkbox" name="outcomes" value="Built Project"> Built
                                 project</label>
-                            <label class="bc-check"><input type="checkbox" name="outcomes" value="Career boost"> Career
+                            <label class="bc-check"><input type="checkbox" name="outcomes" value="Career Boost"> Career
                                 boost</label>
-                            <label class="bc-check"><input type="checkbox" name="outcomes" value="Gained confidence">
+                            <label class="bc-check"><input type="checkbox" name="outcomes" value="Gained Confidence">
                                 Gained
                                 confidence</label>
-                            <label class="bc-check"><input type="checkbox" name="outcomes" value="Earned income"> Earned
+                            <label class="bc-check"><input type="checkbox" name="outcomes" value="Earned Income"> Earned
                                 income</label>
-                            <label class="bc-check"><input type="checkbox" name="outcomes" value="No impact"> No
+                            <label class="bc-check"><input type="checkbox" name="outcomes" value="No Impact"> No
                                 impact</label>
                         </div>
                     </div>
@@ -76,7 +85,7 @@ function browse_courses_shortcode() {
                         <div class="bc-fhead">Level <span class="bc-muted">
                                 <ion-icon name="chevron-down-outline"></ion-icon>
                             </span></div>
-                        <div class="bc-fbody">
+                        <div class="bc-fbody open">
                             <label class="bc-check"><input type="checkbox" name="level" value="Beginner">
                                 Beginner</label>
                             <label class="bc-check"><input type="checkbox" name="level" value="Intermediate">
@@ -90,7 +99,7 @@ function browse_courses_shortcode() {
                         <div class="bc-fhead">Price <span class="bc-muted">
                                 <ion-icon name="chevron-down-outline"></ion-icon>
                             </span></div>
-                        <div class="bc-fbody">
+                        <div class="bc-fbody open">
                             <label class="bc-check"><input type="checkbox" name="price" value="Paid"> Paid</label>
                             <label class="bc-check"><input type="checkbox" name="price" value="Free"> Free</label>
                         </div>
@@ -100,7 +109,7 @@ function browse_courses_shortcode() {
                         <div class="bc-fhead">Duration <span class="bc-muted">
                                 <ion-icon name="chevron-down-outline"></ion-icon>
                             </span></div>
-                        <div class="bc-fbody">
+                        <div class="bc-fbody open">
                             <label class="bc-check"><input type="checkbox" name="duration" value="0-1"> 0–1 Hour</label>
                             <label class="bc-check"><input type="checkbox" name="duration" value="1-3"> 1–3
                                 Hours</label>
@@ -119,19 +128,17 @@ function browse_courses_shortcode() {
             <main class="bc-main">
                 <div class="bc-toolbar">
                     <div class="bc-count">0 results</div>
-                    <div style="display:flex;gap:8px;align-items:center">
-                        <button class="bc-btn" data-action="clear">Clear filters</button>
+                    <div class="bc-sort-wrapper">
                         <label for="<?php echo esc_attr($uid); ?>_sort" class="bc-muted"
                             style="margin-right:8px;font-size:14px;">Sort by</label>
-                        <select id="<?php echo esc_attr($uid); ?>_sort" class="bc-sort">
-                            <option value="relevance">relevancy</option>
-                            <option value="rating_desc">rating (high → low)</option>
-                            <option value="rating_asc">rating (low → high)</option>
-                            <option value="duration_asc">duration (short → long)</option>
-                            <option value="duration_desc">duration (long → short)</option>
-                            <option value="price_asc">price (low → high)</option>
-                            <option value="price_desc">price (high → low)</option>
-                        </select>
+                        <div class="bc-select">
+                            <select id="<?php echo esc_attr($uid); ?>_sort" class="bc-sort">
+                                <option value="relevance">relevancy</option>
+                                <option value="rating_desc">highest rated</option>
+                                <option value="newest">most recently added</option>
+                            </select>
+                            <ion-icon name="chevron-down-outline" class="bc-select-icon"></ion-icon>
+                        </div>
                     </div>
                 </div>
 
@@ -188,79 +195,12 @@ function reviewmvp_get_course_overall_rating_data( $course_id ) {
 }
 
 /**
- * Helper: Get overall outcomes data for a course
- */
-function reviewmvp_get_overall_course_outcomes($course_id) {
-    global $wpdb;
-
-    // fetch all outcomes for reviews of this course
-    $query = $wpdb->prepare("
-        SELECT pm.meta_value
-        FROM {$wpdb->postmeta} pm
-        INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
-        WHERE pm.meta_key = %s
-          AND p.post_type = %s
-          AND p.post_status = 'publish'
-          AND EXISTS (
-              SELECT 1 FROM {$wpdb->postmeta} pm2
-              WHERE pm2.post_id = p.ID
-              AND pm2.meta_key = %s
-              AND pm2.meta_value = %d
-          )
-    ", '_review_outcome', 'course_review', '_review_course', $course_id);
-
-    $rawOutcomes = $wpdb->get_col($query);
-
-    if (empty($rawOutcomes)) {
-        return [];
-    }
-
-    // Flatten arrays (stored as serialized arrays in DB)
-    $outcomes = [];
-    foreach ($rawOutcomes as $val) {
-        $arr = maybe_unserialize($val);
-        if (is_array($arr)) {
-            foreach ($arr as $item) {
-                $outcomes[] = $item;
-            }
-        } else {
-            $outcomes[] = $arr;
-        }
-    }
-
-    if (empty($outcomes)) {
-        return [];
-    }
-
-    $counts = array_count_values($outcomes);
-    $total  = array_sum($counts);
-
-    // map to icons
-    $icons = [
-        "Improved Skill"    => "icon-improved-skill.svg",
-        "Built Project"     => "icon-built-project.svg",
-        "No Impact"         => "icon-no-impact.svg",
-        "Career Boost"      => "icon-career.svg",
-        "Earned Income"     => "icon-income.svg",
-        "Gained Confidence" => "icon-confidence.svg",
-    ];
-
-    $overall = [];
-    foreach ($counts as $label => $count) {
-        $percent = $total > 0 ? round(($count / $total) * 100) : 0;
-        $key = sprintf("%s (%d%%)", $label, $percent);
-        $overall[$key] = $icons[$label] ?? 'icon-default.svg';
-    }
-
-    return $overall;
-}
-
-/**
  * Add custom meta fields to REST API for 'course'
  */
 function reviewmvp_register_course_rest_fields() {
     $fields = [
         'course_provider'  => '_course_provider',
+        'course_price'     => '_course_price',
         'course_duration'  => '_course_duration',
         'course_level'     => '_course_level',
         'course_instructor'=> '_course_instructor',
@@ -300,13 +240,54 @@ add_action('rest_api_init', function () {
     register_rest_field('course', 'outcomes_data', [
         'get_callback' => function ($object) {
             $course_id = $object['id'];
-            $outcomes = reviewmvp_get_overall_course_outcomes($course_id);
+            $outcomes = reviewmvp_get_course_outcomes($course_id);
 
             return $outcomes; // already formatted as ["Improved skill (20%)" => "icon.svg", ...]
         },
         'schema' => [
             'description' => 'Course outcomes data',
             'type'        => 'object',
+        ],
+    ]);
+});
+
+// Add worth % and recommend % to REST API for 'course'
+add_action('rest_api_init', function () {
+    register_rest_field('course', 'review_stats', [
+        'get_callback' => function ($object) {
+            $course_id = $object['id'];
+            $stats = reviewmvp_get_course_review_stats($course_id);
+            return [
+                'worth'      => $stats['worth'] ?? 0,
+                'recommend'  => $stats['recommend'] ?? 0,
+            ];
+        },
+        'schema' => [
+            'description' => 'Worth and recommendation stats',
+            'type'        => 'object',
+        ],
+    ]);
+});
+
+// Add categories to REST API for 'course'
+add_action('rest_api_init', function () {
+    register_rest_field('course', 'course_categories', [
+        'get_callback' => function ($object) {
+            $terms = get_the_terms($object['id'], 'course_category');
+            if (empty($terms) || is_wp_error($terms)) {
+                return [];
+            }
+            return array_map(function ($t) {
+                return [
+                    'id'   => $t->term_id,
+                    'name' => $t->name,
+                    'slug' => $t->slug,
+                ];
+            }, $terms);
+        },
+        'schema' => [
+            'description' => 'Categories for the course',
+            'type'        => 'array',
         ],
     ]);
 });
