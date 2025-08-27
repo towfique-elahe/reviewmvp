@@ -26,27 +26,13 @@
     const $$ = (sel, parent = sidebar) =>
       Array.from(parent.querySelectorAll(sel));
 
-    function ratingIconsHTML(r) {
-      let html = "";
-      for (let i = 1; i <= 5; i++) {
-        if (r >= i) {
-          html += `<span class="bc-star active"><ion-icon name="star" aria-hidden="true"></ion-icon></span>`;
-        } else if (r >= i - 0.5) {
-          html += `<span class="bc-star active"><ion-icon name="star-half" aria-hidden="true"></ion-icon></span>`;
-        } else {
-          html += `<span class="bc-star"><ion-icon name="star" aria-hidden="true"></ion-icon></span>`;
-        }
-      }
-      return html;
-    }
-
-    function ratingStarsHTML(r, provider, reviews) {
+    function ratingStarsHTML(r, provider, reviews, html) {
       return `
     <div class="bc-rating-container">
       <div class="col">
         <span class="bc-rating">${r.toFixed(1)}</span>
         <span class="bc-stars" aria-label="${r.toFixed(1)} out of 5">
-          <span class="bc-starsbox">${ratingIconsHTML(r)}</span>
+          <span class="bc-starsbox">${html}</span>
         </span>
         <span class="bc-chip">${reviews} reviews</span>
       </div>
@@ -260,7 +246,8 @@
       <div class="bc-starsline">${ratingStarsHTML(
         c.rating,
         c.provider,
-        c.reviews
+        c.reviews,
+        c.ratingHTML
       )}</div>
       <div class="bc-info">
           <a href="${c.link}" class="bc-title">${c.title}</a>
@@ -307,6 +294,25 @@
       state.page = 1;
       render();
     });
+    // Auto-resize sort <select> width to fit selected option
+    (function (select) {
+      function resize() {
+        const temp = document.createElement("span");
+        temp.style.visibility = "hidden";
+        temp.style.position = "absolute";
+        temp.style.whiteSpace = "nowrap";
+        temp.textContent = select.options[select.selectedIndex].text;
+        document.body.appendChild(temp);
+
+        // Add ~40px padding for the dropdown arrow
+        select.style.width = temp.offsetWidth + 60 + "px";
+
+        temp.remove();
+      }
+
+      resize(); // run once at start
+      select.addEventListener("change", resize);
+    })(sortEl);
     sidebar.addEventListener("change", function (e) {
       if (e.target.matches('input[type="checkbox"]')) {
         state.page = 1;
@@ -343,6 +349,22 @@
         }
       });
     });
+
+    // --- Mobile sidebar toggle ---
+    const backdrop = root.querySelector(".bc-backdrop");
+    const filterToggle = root.querySelector(".bc-filter-toggle");
+
+    if (filterToggle && backdrop) {
+      filterToggle.addEventListener("click", () => {
+        sidebar.classList.add("open");
+        backdrop.classList.add("active");
+      });
+
+      backdrop.addEventListener("click", () => {
+        sidebar.classList.remove("open");
+        backdrop.classList.remove("active");
+      });
+    }
 
     // map stored level slug to display label
     const levelLabels = {
@@ -391,6 +413,7 @@
             link: c.link,
             rating: parseFloat(c.rating_data?.average) || 0,
             reviews: parseInt(c.rating_data?.count) || 0,
+            ratingHTML: c.rating_html || "",
             outcomes: outcomesObj,
             outcomeLabels: outcomeLabels,
             worthYes: parseFloat(c.review_stats?.worth) || 0,

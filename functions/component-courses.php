@@ -26,7 +26,7 @@ function browse_courses_shortcode() {
                 <div class="bc-filter-container">
                     <div class="bc-fgroup" data-group="ratings">
                         <div class="bc-fhead">Ratings <span class="bc-muted">
-                                <ion-icon name="chevron-down-outline"></ion-icon>
+                                <ion-icon name="chevron-down-outline" class="open"></ion-icon>
                             </span></div>
                         <div class="bc-fbody open">
                             <label class="bc-check"><input type="checkbox" name="rating" value="4.5"><img
@@ -52,7 +52,7 @@ function browse_courses_shortcode() {
 
                     <div class="bc-fgroup" data-group="category">
                         <div class="bc-fhead">Category <span class="bc-muted">
-                                <ion-icon name="chevron-down-outline"></ion-icon>
+                                <ion-icon name="chevron-down-outline" class="open"></ion-icon>
                             </span></div>
                         <div class="bc-fbody open" data-role="category-options">
                             <!-- JS will inject categories here -->
@@ -61,7 +61,7 @@ function browse_courses_shortcode() {
 
                     <div class="bc-fgroup" data-group="outcomes">
                         <div class="bc-fhead">Student outcomes <span class="bc-muted">
-                                <ion-icon name="chevron-down-outline"></ion-icon>
+                                <ion-icon name="chevron-down-outline" class="open"></ion-icon>
                             </span></div>
                         <div class="bc-fbody open">
                             <label class="bc-check"><input type="checkbox" name="outcomes" value="Improved Skill">
@@ -83,7 +83,7 @@ function browse_courses_shortcode() {
 
                     <div class="bc-fgroup" data-group="level">
                         <div class="bc-fhead">Level <span class="bc-muted">
-                                <ion-icon name="chevron-down-outline"></ion-icon>
+                                <ion-icon name="chevron-down-outline" class="open"></ion-icon>
                             </span></div>
                         <div class="bc-fbody open">
                             <label class="bc-check"><input type="checkbox" name="level" value="Beginner">
@@ -97,7 +97,7 @@ function browse_courses_shortcode() {
 
                     <div class="bc-fgroup" data-group="price">
                         <div class="bc-fhead">Price <span class="bc-muted">
-                                <ion-icon name="chevron-down-outline"></ion-icon>
+                                <ion-icon name="chevron-down-outline" class="open"></ion-icon>
                             </span></div>
                         <div class="bc-fbody open">
                             <label class="bc-check"><input type="checkbox" name="price" value="Paid"> Paid</label>
@@ -107,7 +107,7 @@ function browse_courses_shortcode() {
 
                     <div class="bc-fgroup" data-group="duration">
                         <div class="bc-fhead">Duration <span class="bc-muted">
-                                <ion-icon name="chevron-down-outline"></ion-icon>
+                                <ion-icon name="chevron-down-outline" class="open"></ion-icon>
                             </span></div>
                         <div class="bc-fbody open">
                             <label class="bc-check"><input type="checkbox" name="duration" value="0-1"> 0–1 Hour</label>
@@ -127,7 +127,12 @@ function browse_courses_shortcode() {
             <!-- Main -->
             <main class="bc-main">
                 <div class="bc-toolbar">
-                    <div class="bc-count">0 results</div>
+                    <div class="bc-count-wrapper">
+                        <button class="bc-filter-toggle" aria-label="Toggle filters">
+                            <img src="<?php echo get_theme_icon_url('filter-icon.svg'); ?>" alt="Filter icon" />
+                        </button>
+                        <div class="bc-count">0 results</div>
+                    </div>
                     <div class="bc-sort-wrapper">
                         <label for="<?php echo esc_attr($uid); ?>_sort" class="bc-muted"
                             style="margin-right:8px;font-size:14px;">Sort by</label>
@@ -148,6 +153,7 @@ function browse_courses_shortcode() {
             </main>
         </div>
     </div>
+    <div class="bc-backdrop"></div>
 </div>
 <?php
   return ob_get_clean();
@@ -217,8 +223,8 @@ function reviewmvp_register_course_rest_fields() {
 }
 add_action('rest_api_init', 'reviewmvp_register_course_rest_fields');
 
-// Add rating data in REST API for 'course'
 add_action('rest_api_init', function () {
+    // Add rating data in REST API for 'course'
     register_rest_field('course', 'rating_data', [
         'get_callback' => function ($object) {
             $course_id = $object['id'];
@@ -233,10 +239,7 @@ add_action('rest_api_init', function () {
             'type'        => 'object',
         ],
     ]);
-});
-
-// Add outcomes data in REST API for 'course'
-add_action('rest_api_init', function () {
+    // Add outcomes data in REST API for 'course'
     register_rest_field('course', 'outcomes_data', [
         'get_callback' => function ($object) {
             $course_id = $object['id'];
@@ -249,10 +252,7 @@ add_action('rest_api_init', function () {
             'type'        => 'object',
         ],
     ]);
-});
-
-// Add worth % and recommend % to REST API for 'course'
-add_action('rest_api_init', function () {
+    // Add worth % and recommend % to REST API for 'course'
     register_rest_field('course', 'review_stats', [
         'get_callback' => function ($object) {
             $course_id = $object['id'];
@@ -267,10 +267,7 @@ add_action('rest_api_init', function () {
             'type'        => 'object',
         ],
     ]);
-});
-
-// Add categories to REST API for 'course'
-add_action('rest_api_init', function () {
+    // Add categories to REST API for 'course'
     register_rest_field('course', 'course_categories', [
         'get_callback' => function ($object) {
             $terms = get_the_terms($object['id'], 'course_category');
@@ -288,6 +285,18 @@ add_action('rest_api_init', function () {
         'schema' => [
             'description' => 'Categories for the course',
             'type'        => 'array',
+        ],
+    ]);
+    // Add rating stars to REST API for 'course'
+    register_rest_field('course', 'rating_html', [
+        'get_callback' => function ($object) {
+            $course_id = $object['id'];
+            $rating = reviewmvp_get_course_overall_rating_data($course_id);
+            return get_rating_stars($rating['average']);
+        },
+        'schema' => [
+            'description' => 'Course rating stars HTML',
+            'type'        => 'string',
         ],
     ]);
 });
