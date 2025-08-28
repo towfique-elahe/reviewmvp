@@ -205,11 +205,12 @@ function reviewmvp_get_course_overall_rating_data( $course_id ) {
  */
 function reviewmvp_register_course_rest_fields() {
     $fields = [
-        'course_provider'  => '_course_provider',
-        'course_price'     => '_course_price',
-        'course_duration'  => '_course_duration',
-        'course_level'     => '_course_level',
-        'course_instructor'=> '_course_instructor',
+        'course_provider'    => '_course_provider',
+        'course_short_desc'  => '_course_short_desc',
+        'course_price'       => '_course_price',
+        'course_duration'    => '_course_duration',
+        'course_level'       => '_course_level',
+        'course_instructor'  => '_course_instructor',
     ];
 
     foreach ($fields as $key => $meta_key) {

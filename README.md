@@ -4,13 +4,19 @@
 - Author: Towfique Elahe
 - Author URI: https://towfique-elahe.framer.website/
 - Description: A custom WordPress theme for course review system, compatible with Elementor and WooCommerce.
-- Version: 1.1.3
+- Version: 1.1.4
 - License: GNU General Public License v3 or later
 - License URI: http://www.gnu.org/licenses/gpl-3.0.html
 - Text Domain: review-mvp
 - Tags: review, course review, review system, course rating, course review theme, review theme,
 
 ## Version History
+
+## V1.1.4
+
+- Added: **Short Description** meta field for CPT `course`.
+- Added: Short Description field to Add/Edit Course screen in WP Admin.
+- Updated: Course archive page to display the Short Description under each course listing.
 
 ## V1.1.3
 

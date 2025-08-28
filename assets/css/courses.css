@@ -255,13 +255,16 @@
   font-family: var(--text-font-family) !important;
   font-weight: 600;
 }
+.bc-title:hover {
+  color: var(--accent-color) !important;
+}
 .bc-author {
   color: var(--text-color);
   font-family: var(--text-font-family);
   font-weight: 400;
   font-size: 14px;
 }
-.bc-description p {
+.bc-description {
   color: var(--secondary-color);
   font-family: var(--text-font-family);
   font-weight: 400;

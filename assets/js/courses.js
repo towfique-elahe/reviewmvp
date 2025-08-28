@@ -256,7 +256,7 @@
               ? `<div class="bc-author" style="font-size:13px">By ${c.instructor}</div>`
               : ""
           }
-          <div class="bc-description">${c.description}</div>
+          <div class="bc-description">${c.shortDesc}</div>
       </div>
       ${metasBlock}
       ${outcomesBlock}
@@ -405,8 +405,8 @@
             id: c.id,
             date: c.date,
             title: c.title.rendered,
-            description: c.excerpt?.rendered || "",
             provider: c.course_provider || "",
+            shortDesc: c.course_short_desc || "",
             instructor: c.course_instructor?.name || "",
             durationHours: parseFloat(c.course_duration) || 0,
             level: level,

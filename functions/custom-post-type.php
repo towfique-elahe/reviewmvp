@@ -109,7 +109,8 @@ function reviewmvp_render_course_meta_box($post) {
 
     // Get meta
     $meta = [
-        'course_provider'       => get_post_meta($post->ID, '_course_provider', true),
+        'course_provider'    => get_post_meta($post->ID, '_course_provider', true),
+        'course_short_desc'  => get_post_meta($post->ID, '_course_short_desc', true),
         'course_price'       => get_post_meta($post->ID, '_course_price', true),
         'course_duration'    => get_post_meta($post->ID, '_course_duration', true),
         'course_certificate' => get_post_meta($post->ID, '_course_certificate', true),
@@ -135,26 +136,35 @@ function reviewmvp_render_course_meta_box($post) {
 
     ?>
 <p>
-    <label><strong>Provider</strong></label><br>
+    <label><strong>Platform</strong></label><br>
     <input type="text" name="course_provider" value="<?php echo esc_attr($meta['course_provider']); ?>"
-        style="width:100%;">
+        placeholder="e.g., Coursera, Udemy, Skillshare" style="width:100%;">
+</p>
+
+<p>
+    <label><strong>Short Description</strong></label><br>
+    <textarea name="course_short_desc" rows="3" style="width:100%;"
+        placeholder="Enter a brief summary of the course..."><?php 
+        echo esc_textarea(get_post_meta($post->ID, '_course_short_desc', true)); 
+    ?></textarea>
 </p>
 
 <p>
     <label><strong>Course Price ($)</strong></label><br>
     <input type="number" step="0.01" name="course_price" value="<?php echo esc_attr($meta['course_price']); ?>"
-        style="width:100%;">
+        placeholder="e.g., 49.99" style="width:100%;">
 </p>
 
 <p>
     <label><strong>Course Duration (hours)</strong></label><br>
     <input type="number" name="course_duration" value="<?php echo esc_attr($meta['course_duration']); ?>"
-        style="width:100%;">
+        placeholder="e.g., 20" style="width:100%;">
 </p>
 
 <p>
     <label><strong>Certificate</strong></label><br>
     <select name="course_certificate" style="width:100%;">
+        <option value="">— Select —</option>
         <option value="Yes" <?php selected($meta['course_certificate'], 'Yes'); ?>>Yes</option>
         <option value="No" <?php selected($meta['course_certificate'], 'No'); ?>>No</option>
     </select>
@@ -163,6 +173,7 @@ function reviewmvp_render_course_meta_box($post) {
 <p>
     <label><strong>Refundable</strong></label><br>
     <select name="course_refundable" style="width:100%;">
+        <option value="">— Select —</option>
         <option value="Yes" <?php selected($meta['course_refundable'], 'Yes'); ?>>Yes</option>
         <option value="No" <?php selected($meta['course_refundable'], 'No'); ?>>No</option>
     </select>
@@ -170,12 +181,14 @@ function reviewmvp_render_course_meta_box($post) {
 
 <p>
     <label><strong>Course Link</strong></label><br>
-    <input type="url" name="course_link" value="<?php echo esc_attr($meta['course_link']); ?>" style="width:100%;">
+    <input type="url" name="course_link" value="<?php echo esc_attr($meta['course_link']); ?>"
+        placeholder="https://example.com/course" style="width:100%;">
 </p>
 
 <p>
     <label><strong>Level</strong></label><br>
     <select name="course_level" style="width:100%;">
+        <option value="">— Select Level —</option>
         <option value="beginner" <?php selected($meta['course_level'], 'beginner'); ?>>Beginner</option>
         <option value="intermediate" <?php selected($meta['course_level'], 'intermediate'); ?>>Intermediate</option>
         <option value="advance" <?php selected($meta['course_level'], 'advance'); ?>>Advance</option>
@@ -184,7 +197,8 @@ function reviewmvp_render_course_meta_box($post) {
 
 <p>
     <label><strong>Language(s)</strong></label><br>
-    <select name="course_language[]" multiple style="width:100%; height: 80px;">
+    <select name="course_language[]" multiple style="width:100%; height: 80px;"
+        aria-placeholder="Select one or more languages">
         <?php foreach (['English','French','Spanish','German','Hindi'] as $lang): ?>
         <option value="<?php echo esc_attr($lang); ?>"
             <?php echo in_array($lang, $meta['course_language']) ? 'selected' : ''; ?>>
@@ -201,40 +215,48 @@ function reviewmvp_render_course_meta_box($post) {
 <p>
     <label><strong>Name</strong></label><br>
     <input type="text" name="course_instructor[name]"
-        value="<?php echo esc_attr($meta['course_instructor']['name']); ?>" style="width:100%;">
+        value="<?php echo esc_attr($meta['course_instructor']['name']); ?>" placeholder="Instructor full name"
+        style="width:100%;">
 </p>
 <p>
     <label><strong>Position</strong></label><br>
     <input type="text" name="course_instructor[position]"
-        value="<?php echo esc_attr($meta['course_instructor']['position']); ?>" style="width:100%;">
+        value="<?php echo esc_attr($meta['course_instructor']['position']); ?>" placeholder="e.g., Senior UX Designer"
+        style="width:100%;">
 </p>
 <p>
     <label><strong>Details</strong></label><br>
-    <textarea name="course_instructor[details]" rows="4"
-        style="width:100%;"><?php echo esc_textarea($meta['course_instructor']['details']); ?></textarea>
+    <textarea name="course_instructor[details]" rows="4" style="width:100%;"
+        placeholder="Short bio or instructor details..."><?php 
+        echo esc_textarea($meta['course_instructor']['details']); ?></textarea>
 </p>
 
 <hr>
 <h4>Social Links</h4>
 <p><label><strong>Facebook</strong></label><br>
     <input type="url" name="course_instructor[facebook]"
-        value="<?php echo esc_attr($meta['course_instructor']['facebook'] ?? ''); ?>" style="width:100%;">
+        value="<?php echo esc_attr($meta['course_instructor']['facebook'] ?? ''); ?>"
+        placeholder="https://facebook.com/instructor" style="width:100%;">
 </p>
 <p><label><strong>Instagram</strong></label><br>
     <input type="url" name="course_instructor[instagram]"
-        value="<?php echo esc_attr($meta['course_instructor']['instagram'] ?? ''); ?>" style="width:100%;">
+        value="<?php echo esc_attr($meta['course_instructor']['instagram'] ?? ''); ?>"
+        placeholder="https://instagram.com/instructor" style="width:100%;">
 </p>
 <p><label><strong>LinkedIn</strong></label><br>
     <input type="url" name="course_instructor[linkedin]"
-        value="<?php echo esc_attr($meta['course_instructor']['linkedin'] ?? ''); ?>" style="width:100%;">
+        value="<?php echo esc_attr($meta['course_instructor']['linkedin'] ?? ''); ?>"
+        placeholder="https://linkedin.com/in/instructor" style="width:100%;">
 </p>
 <p><label><strong>Twitter / X</strong></label><br>
     <input type="url" name="course_instructor[twitter]"
-        value="<?php echo esc_attr($meta['course_instructor']['twitter'] ?? ''); ?>" style="width:100%;">
+        value="<?php echo esc_attr($meta['course_instructor']['twitter'] ?? ''); ?>"
+        placeholder="https://twitter.com/instructor" style="width:100%;">
 </p>
 <p><label><strong>YouTube</strong></label><br>
     <input type="url" name="course_instructor[youtube]"
-        value="<?php echo esc_attr($meta['course_instructor']['youtube'] ?? ''); ?>" style="width:100%;">
+        value="<?php echo esc_attr($meta['course_instructor']['youtube'] ?? ''); ?>"
+        placeholder="https://youtube.com/@instructor" style="width:100%;">
 </p>
 
 <hr>
@@ -255,7 +277,7 @@ function reviewmvp_save_course_meta_box($post_id) {
     if (!current_user_can('edit_post', $post_id)) return;
 
     // Basic text fields
-    $fields = ['course_provider','course_price','course_duration','course_certificate','course_refundable','course_link','course_level'];
+    $fields = ['course_provider','course_short_desc','course_price','course_duration','course_certificate','course_refundable','course_link','course_level'];
 
     foreach ($fields as $field) {
         if (isset($_POST[$field])) {
