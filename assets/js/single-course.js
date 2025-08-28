@@ -4,9 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
   var btn = document.querySelector(".toggle-desc-btn");
   if (!desc || !btn) return;
 
-  // If content doesn't overflow (i.e., not truncated), hide the button
-  // Temporarily force clamp to check overflow
-  var isOverflowing = desc.scrollHeight > desc.clientHeight + 1; // +1 buffer
+  var isOverflowing = desc.scrollHeight > desc.clientHeight + 1;
   if (!isOverflowing) {
     btn.classList.add("is-hidden");
     return;
@@ -22,6 +20,7 @@ document.addEventListener("DOMContentLoaded", function () {
       label.textContent = "Show less";
     } else {
       label.textContent = "Show more";
+      document.querySelector("#tabs").scrollIntoView({ behavior: "smooth" });
     }
   });
 });
@@ -47,4 +46,27 @@ document.addEventListener("DOMContentLoaded", function () {
       loadMoreBtn.style.display = "none";
     }
   });
+});
+
+// handle scroll + smooth scroll to top
+document.addEventListener("DOMContentLoaded", function () {
+  const backToTopBtn = document.querySelector(".back-to-top-btn");
+  const reviewsSection = document.querySelector("#allReviews");
+
+  if (backToTopBtn && reviewsSection) {
+    window.addEventListener("scroll", function () {
+      // Show button only when inside All Reviews section
+      const rect = reviewsSection.getBoundingClientRect();
+      if (rect.top < window.innerHeight && rect.bottom > 200) {
+        backToTopBtn.classList.add("show");
+      } else {
+        backToTopBtn.classList.remove("show");
+      }
+    });
+
+    backToTopBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      reviewsSection.scrollIntoView({ behavior: "smooth" });
+    });
+  }
 });

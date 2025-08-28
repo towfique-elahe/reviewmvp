@@ -7,12 +7,14 @@
   top: 0;
   left: 0;
   z-index: -1;
+  border-radius: 0 !important;
+  margin: 0 !important;
 }
 
 /* section heading */
 .section-heading {
-  color: var(--secondary-color);
-  font-family: var(--primary-font-family);
+  color: var(--secondary-color) !important;
+  font-family: var(--primary-font-family) !important;
   font-weight: 600;
   font-size: 25px;
   margin-bottom: 20px;
@@ -33,8 +35,8 @@
   gap: 8px;
 }
 .cro-rating {
-  color: var(--dark-text-color);
-  font-family: var(--primary-font-family);
+  color: var(--dark-text-color) !important;
+  font-family: var(--primary-font-family) !important;
   font-weight: 700;
   font-size: 40px;
   margin: 0;
@@ -108,7 +110,9 @@
 .reviewer {
   display: flex;
   align-items: center;
-  gap: 10px;
+  flex-wrap: wrap;
+  column-gap: 10px;
+  row-gap: 5px;
 }
 .avatar {
   background: #cbebe9;
@@ -132,7 +136,7 @@
 .reviewer-badge {
   background: #dcdce6;
   color: var(--dark-text-color);
-  padding: 2px 8px;
+  padding: 0 8px;
   font-family: var(--primary-font-family);
   font-weight: 600;
   font-size: 12px;
@@ -149,6 +153,7 @@
 .reviewer-badge.verified_purchase {
   background-color: #11b981;
   color: #ffffff;
+  font-weight: 400;
 }
 .reviewer-badge.rising_voice {
   background-color: #ffe0b2;
@@ -188,6 +193,7 @@
 .review-item {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 13px;
 }
 .review-item-value {
@@ -197,16 +203,24 @@
   font-size: 16px;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 13px;
 }
-.review-item-value .outcome {
+.review-item-value .outcome,
+.review-item-value.chip {
   color: var(--text-color);
   border: var(--border);
   border-radius: 8px;
-  padding: 6px 10px;
+  padding: 5px 10px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  font-family: var(--text-font-family);
+  font-weight: 400;
+  font-size: 14px;
+}
+.review-item-value.chip {
+  color: var(--dark-text-color);
 }
 .review-item-value img {
   border-radius: 0 !important;
@@ -214,12 +228,32 @@
 .pro-con {
   display: flex;
   gap: 20px;
+  margin-bottom: 10px;
 }
 .pc-col {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 19px;
+  gap: 15px;
+}
+.pro-con .pc-label {
+  font-family: var(--text-font-family);
+  font-weight: 700;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+.pro-con .pc-label img {
+  width: 15px;
+  border-radius: 0;
+  margin: 0;
+}
+.pro-con .pc-review {
+  color: var(--secondary-color);
+  font-family: var(--text-font-family);
+  font-weight: 400;
+  font-size: 16px;
 }
 .review-item-list {
   display: flex;
@@ -261,16 +295,23 @@
   display: none;
 }
 
+#scDetails .r-star {
+  font-size: 15px;
+  padding: 4px;
+  border-radius: 2px;
+}
+
 /* ------------ global styles ends ------------ */
 
 /* ------------ single course details page starts ------------ */
 
 /* course info/details section */
 #scDetails.course-info {
+  box-sizing: border-box;
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  margin-top: 100px;
+  margin-top: 130px;
   margin-bottom: 50px;
   padding: 20px 15px;
 }
@@ -333,14 +374,17 @@
 #scDetails .course-info-container .r-text {
   color: var(--text-color);
   font-family: var(--text-font-family);
-  font-weight: 900;
-  font-size: 16px;
-}
-#scDetails .course-info-container .r-text-muted {
   font-weight: 400;
+  font-size: 16px;
+  opacity: 0.9;
+}
+#scDetails .course-info-container .r-text strong {
+  color: var(--dark-text-color);
+  opacity: 1;
 }
 #scDetails .course-info-container .outcomes {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   margin-top: 30px;
 }
@@ -357,6 +401,7 @@
   font-weight: 700;
   font-size: 16px;
   margin: 0;
+  padding-top: 4px;
 }
 #scDetails .course-info-container .outcome {
   background-color: transparent;
@@ -382,7 +427,7 @@
   background: var(--accent-color);
   color: var(--button-text-color);
   padding: 20px;
-  margin-top: 30px;
+  margin-top: 40px;
   border-radius: 10px;
   display: flex;
   align-items: center;
@@ -395,22 +440,7 @@
   color: var(--button-text-color) !important;
 }
 #scDetails .course-info-container .real-rating {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px;
-  border: var(--border);
-  border-radius: 6px;
-  background-color: #faf9f9;
-}
-#scDetails .course-info-container .real-rating img {
-  border-radius: 0 !important;
-}
-#scDetails .course-info-container .real-rating p {
-  color: var(--text-color);
-  font-family: var(--primary-font-family);
-  font-weight: 400;
-  font-size: 12px;
+  border-radius: 0;
   margin: 0;
 }
 #scDetails .course-info-container .course-details {
@@ -649,5 +679,140 @@
   background-color: #e94c89 !important;
   color: #ffffff !important;
 }
+#scDetails .all-reviews-container .back-to-top-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 50px;
+  background: var(--primary-color);
+  color: var(--light-text-color);
+  border: none;
+  border-radius: 50%;
+  padding: 12px;
+  cursor: pointer;
+  display: none; /* hidden by default */
+  z-index: 1000;
+  transition: ease 0.3s;
+}
+#scDetails .all-reviews-container .back-to-top-btn:hover {
+  background-color: var(--accent-color);
+  color: var(--dark-text-color);
+}
+#scDetails .all-reviews-container .back-to-top-btn ion-icon {
+  font-size: 24px;
+}
+#scDetails .all-reviews-container .back-to-top-btn.show {
+  display: inline-flex;
+}
 
 /* ------------ single course details page ends ------------ */
+
+@media (max-width: 1024px) {
+  #scDetails .course-info-container {
+    gap: 20px;
+  }
+  #scDetails .course-info-container .main {
+    flex: 4;
+  }
+  #scDetails .course-info-container .course-title {
+    font-size: 28px;
+  }
+  #scDetails .course-info-container .course-instructor {
+    font-size: 20px;
+  }
+  #scDetails .course-info-container .outcomes {
+    margin: 0;
+  }
+  #scDetails .course-info-container .outcomes .col {
+    gap: 10px;
+  }
+  #scDetails .course-info-container .write-review-btn {
+    margin: 0;
+  }
+  #scDetails .course-info-container .tabs {
+    flex-wrap: wrap;
+    gap: 30px;
+  }
+  #scDetails .course-info-container .sidebar {
+    gap: 20px;
+  }
+  #scDetails .course-info-container .course-rating-overall,
+  #scDetails .course-info-container .real-rating {
+    display: none;
+  }
+  #scDetails .rb-row {
+    gap: 10px;
+  }
+  #scDetails .rb-container {
+    width: 100px;
+  }
+  #scDetails .cro-rating {
+    font-size: 32px;
+  }
+  #scDetails .cro-stars .r-star {
+    font-size: 14px;
+    padding: 3px;
+  }
+  #scDetails .course-info-container .course-details {
+    width: 250px;
+    padding: 15px;
+    gap: 15px;
+  }
+  #scDetails .course-info-container .cd-price {
+    font-size: 28x;
+  }
+  #scDetails .course-info-container .cd-list {
+    gap: 15px;
+  }
+
+  #scDetails .section-heading {
+    font-size: 22px;
+  }
+  #scDetails .reviews {
+    gap: 25px !important;
+  }
+  #scDetails .all-reviews-btn {
+    margin-top: 40px;
+  }
+  #scDetails .all-reviews-container .load-more-btn {
+    margin-top: 30px;
+  }
+  #scDetails .course-instructor-container .section-heading,
+  #scDetails .all-reviews-container .section-heading {
+    margin-top: 50px;
+  }
+}
+
+@media (max-width: 768px) {
+  #scDetails .course-info-container {
+    flex-direction: column;
+  }
+  #scDetails .course-info-container .sidebar {
+    padding-top: 20px;
+  }
+  #scDetails .course-info-container .course-details {
+    box-sizing: border-box;
+    width: 100%;
+  }
+  #scDetails .all-reviews-container .all-reviews-layout {
+    flex-direction: column;
+  }
+  #scDetails .all-reviews-container .course-rating-overall {
+    position: unset;
+  }
+}
+
+@media (max-width: 425px) {
+  #scDetails.course-info {
+    margin-top: 90px;
+  }
+  #scDetails .course-info-container .tab-button {
+    border-bottom: 3px solid #4e52552d !important;
+  }
+  #scDetails .pro-con {
+    flex-direction: column;
+  }
+  #scDetails .all-reviews-container .course-rating-overall {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
