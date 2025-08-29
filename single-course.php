@@ -322,6 +322,7 @@ while ( have_posts() ) : the_post();
                         $review['outcomes'] = array_intersect_key($outcomeBadges, array_flip($outcomes));
                         $quality     = get_post_meta($review_id, '_review_quality', true);
                         $support     = get_post_meta($review_id, '_review_support', true);
+                        $level     = get_post_meta($review_id, '_review_level', true);
                         $worth       = get_post_meta($review_id, '_review_worth', true);
                         $recommend   = get_post_meta($review_id, '_review_recommend', true);
                         $refund      = get_post_meta($review_id, '_review_refund', true);
@@ -417,6 +418,13 @@ while ( have_posts() ) : the_post();
                             <p class="review-item">
                                 <span class="review-label">Instructor & Support Experience:</span>
                                 <span class="review-item-value"><?php echo esc_html($support); ?></span>
+                            </p>
+                            <?php endif; ?>
+
+                            <?php if ($level): ?>
+                            <p class="review-item">
+                                <span class="review-label">What level did this course feels like?</span>
+                                <span class="review-item-value chip"><?php echo esc_html($level); ?></span>
                             </p>
                             <?php endif; ?>
 

@@ -160,12 +160,33 @@
   align-items: center;
   gap: 10px;
 }
+#addReviewForm .form-label .required {
+  color: crimson;
+}
+#addReviewForm .error-message {
+  color: crimson;
+  font-family: var(--text-font-family);
+  font-weight: 500;
+  font-size: 16px;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
 #addReviewForm .form-label.bold {
   font-weight: 700;
 }
+#addReviewForm .form-label.anonymous {
+  margin-bottom: 10px;
+}
+#addReviewForm .form-label.anonymous,
 #addReviewForm .form-label.consent {
   font-weight: 400;
   align-items: flex-start;
+}
+#addReviewForm .form-label.anonymous input,
+#addReviewForm .form-label.consent input {
+  margin-top: 5px;
 }
 #addReviewForm .form-para {
   margin: 0;
@@ -229,21 +250,111 @@
   display: inline-block;
   width: 100%;
   max-width: 600px;
+  margin-top: 14px;
 }
-#addReviewForm select {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
+#addReviewForm .select2-container .select2-selection--single {
+  height: 61px;
+  outline: none;
+  border: var(--border);
+  border-radius: 16px;
+  background-color: transparent;
+  font-family: var(--text-font-family);
+  font-size: 16px;
+}
+#addReviewForm
+  .select2-container--default
+  .select2-selection--single
+  .select2-selection__rendered {
+  line-height: 61px;
+  padding-left: 22px;
   padding-right: 50px;
-  cursor: pointer;
 }
-#addReviewForm .custom-select-icon {
-  position: absolute;
-  right: 20px;
-  top: 50%;
-  transform: translateY(calc(-50% + 10px));
-  pointer-events: none;
-  font-size: 20px;
+#addReviewForm
+  .select2-container--default
+  .select2-selection--single
+  .select2-selection__arrow {
+  height: 61px;
+  right: 22px;
+}
+.select2-container--default
+  .select2-selection--single
+  .select2-selection__clear {
+  height: 60px;
+  margin-right: 50px;
+  color: crimson;
+}
+.select2-dropdown {
+  background-color: var(--white-background-color);
+  border: var(--border) !important;
+  border-color: #4e525542 !important;
+  border-radius: 16px;
+  font-family: var(--text-font-family);
+  color: var(--dark-text-color);
+  margin-top: 10px;
+  box-shadow: var(--box-shadow);
+}
+.select2-container--default .select2-results > .select2-results__options li {
+  border-bottom: var(--border);
+}
+.select2-container--default
+  .select2-results
+  > .select2-results__options
+  li
+  .selec2-course {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.select2-container--default
+  .select2-results
+  > .select2-results__options
+  li
+  .select2-course-platform {
+  color: var(--text-color);
+  background-color: var(--gray-background-color);
+  border: var(--border);
+  border-radius: 50px;
+  padding: 2px 10px;
+  font-size: 14px;
+}
+.select2-container--default
+  .select2-results
+  > .select2-results__options
+  li:last-of-type {
+  border-bottom: none;
+}
+.select2-container--open .select2-dropdown--below {
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+.select2-search--dropdown {
+  padding: 10px;
+}
+.select2-container--default .select2-search--dropdown .select2-search__field {
+  border: var(--border);
+  border-radius: 10px !important;
+  outline: none;
+  color: var(--dark-text-color) !important;
+  font-family: var(--text-font-family) !important;
+  font-size: 16px;
+}
+.select2-container--default
+  .select2-search--dropdown
+  .select2-search__field:focus {
+  border-color: var(--accent-color);
+}
+.select2-results__option {
+  color: var(--dark-text-color);
+  font-family: var(--text-font-family);
+  font-weight: 400;
+  font-size: 16px;
+  padding: 10px;
+}
+.select2-container--default
+  .select2-results__option--highlighted.select2-results__option--selectable {
+  background-color: var(--accent-color);
   color: var(--dark-text-color);
 }
 #addReviewForm select option {
@@ -293,6 +404,12 @@
 }
 #addReviewForm .form-option input[type="radio"] {
   margin-top: -1px;
+  display: none;
+}
+#addReviewForm .form-option:has(input[type="radio"]:checked) {
+  background-color: var(--accent-color);
+  color: var(--dark-text-color);
+  border-color: var(--accent-color);
 }
 #addReviewForm .form-option img {
   border-radius: 0;

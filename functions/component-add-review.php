@@ -28,9 +28,9 @@ function reviewmvp_add_review_form() {
         </div>
 
         <div class="form-group">
-            <label for="reviewCourse" class="form-label">Course title</label>
+            <label for="reviewCourse" class="form-label">Course title <span class="required">*</span></label>
             <div class="custom-select-wrapper">
-                <select name="review_course" id="reviewCourse" required>
+                <select name="review_course" id="reviewCourse">
                     <option value="" selected disabled>— Select Course —</option>
                     <?php 
                         $selected_course_id = isset($_GET['course_id']) ? intval($_GET['course_id']) : 0;
@@ -51,14 +51,8 @@ function reviewmvp_add_review_form() {
                         }
                     ?>
                 </select>
-                <ion-icon name="chevron-down-outline" class="custom-select-icon"></ion-icon>
             </div>
-        </div>
-
-        <div class="form-group">
-            <label for="reviewPlatform" class="form-label">Platform</label>
-            <input type="text" name="review_course_platform" id="reviewPlatform"
-                placeholder="e.g., Udemy, Coursera, etc." required>
+            <div class="error-message"></div>
         </div>
 
         <div class="form-heading-group">
@@ -67,7 +61,7 @@ function reviewmvp_add_review_form() {
         </div>
 
         <div class="form-group">
-            <label class="form-label">Overall rating</label>
+            <label class="form-label">Overall rating <span class="required">*</span></label>
             <div class="form-star-group">
                 <?php for ($i=1; $i<=5; $i++): ?>
                 <label class="form-star" data-value="<?php echo $i; ?>">
@@ -77,21 +71,29 @@ function reviewmvp_add_review_form() {
                 <?php endfor; ?>
                 <p class="form-tip">click to rate</p>
             </div>
-            <textarea name="review_message" id="reviewMessage" rows="5" required></textarea>
+            <div class="error-message"></div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Your overall feedback <span class="required">*</span></label>
+            <textarea name="review_message" id="reviewMessage" rows="5"></textarea>
             <p class="form-para" style="margin-top: 10px">Tell us what you liked and what could have been better</p>
+            <div class="error-message"></div>
         </div>
 
         <div class="form-row">
             <div class="form-group">
-                <label for="reviewGood" class="form-label">What was good?</label>
+                <label for="reviewGood" class="form-label">What was good? <span class="required">*</span></label>
                 <textarea name="review_good" id="reviewGood" rows="5"
                     placeholder="What you liked about the course? What worked well?"></textarea>
+                <div class="error-message"></div>
             </div>
 
             <div class="form-group">
-                <label for="reviewBad" class="form-label">What was bad?</label>
+                <label for="reviewBad" class="form-label">What was bad? <span class="required">*</span></label>
                 <textarea name="review_bad" id="reviewBad" rows="5"
                     placeholder="What could have been better? Outdated content, missing topics...."></textarea>
+                <div class="error-message"></div>
             </div>
         </div>
 
@@ -106,7 +108,7 @@ function reviewmvp_add_review_form() {
             ];
         ?>
         <div class="form-group">
-            <label class="form-label">What result did you get from this course?</label>
+            <label class="form-label">What result did you get from this course? <span class="required">*</span></label>
             <p class="form-tip">Select all that apply</p>
             <div class="form-options-group">
                 <?php foreach ($outcomes as $outcomeText => $data): ?>
@@ -125,6 +127,7 @@ function reviewmvp_add_review_form() {
                 </label>
                 <?php endforeach; ?>
             </div>
+            <div class="error-message"></div>
         </div>
 
         <?php
@@ -134,7 +137,7 @@ function reviewmvp_add_review_form() {
             ]
         ?>
         <div class="form-group">
-            <label class="form-label">Would you recommend this course to others?</label>
+            <label class="form-label">Would you recommend this course to others? <span class="required">*</span></label>
             <div class="form-options-group">
                 <?php foreach ($recommends as $data => $id): ?>
                 <label for="<?= esc_attr($id) ?>" class="form-option">
@@ -144,6 +147,7 @@ function reviewmvp_add_review_form() {
                 </label>
                 <?php endforeach; ?>
             </div>
+            <div class="error-message"></div>
         </div>
 
         <?php
@@ -153,7 +157,7 @@ function reviewmvp_add_review_form() {
             ]
         ?>
         <div class="form-group">
-            <label class="form-label">Was it worth the money?</label>
+            <label class="form-label">Was it worth the money? <span class="required">*</span></label>
             <div class="form-options-group">
                 <?php foreach ($worths as $data => $id): ?>
                 <label for="<?= esc_attr($id) ?>" class="form-option">
@@ -162,6 +166,7 @@ function reviewmvp_add_review_form() {
                 </label>
                 <?php endforeach; ?>
             </div>
+            <div class="error-message"></div>
         </div>
 
         <div class="form-group">
@@ -200,8 +205,9 @@ function reviewmvp_add_review_form() {
             <label for="reviewQuality" class="form-label">Was the course content up to date and practical enough to
                 apply in
                 real-world
-                situations?</label>
+                situations? <span class="required">*</span></label>
             <textarea name="review_quality" id="reviewQuality" rows="1"></textarea>
+            <div class="error-message"></div>
         </div>
 
         <?php
@@ -212,27 +218,31 @@ function reviewmvp_add_review_form() {
             ]
         ?>
         <div class="form-group">
-            <label class="form-label">What level did this course feel like to you?</label>
+            <label class="form-label">What level did this course feel like to you? <span
+                    class="required">*</span></label>
             <div class="form-options-group">
                 <?php foreach ($levels as $data => $id): ?>
                 <label for="<?= esc_attr($id) ?>" class="form-option">
-                    <input type="radio" name="reviewLevel" id="<?= esc_attr($id) ?>" value="<?= esc_attr($data) ?>">
+                    <input type="radio" name="review_level" id="<?= esc_attr($id) ?>" value="<?= esc_attr($data) ?>">
                     <?php echo esc_html($data); ?>
                 </label>
                 <?php endforeach; ?>
             </div>
+            <div class="error-message"></div>
         </div>
 
         <div class="form-group">
-            <label for="reviewSupport" class="form-label">Instructor & Support</label>
+            <label for="reviewSupport" class="form-label">Instructor & Support <span class="required">*</span></label>
             <textarea name="review_support" id="reviewSupport" rows="1"
                 placeholder="Was the teaching clear, engaging, and helpful?"></textarea>
+            <div class="error-message"></div>
         </div>
 
         <div class="form-group">
-            <label for="reviewRefund" class="form-label">Any Refund Issues?</label>
+            <label for="reviewRefund" class="form-label">Any Refund Issues? <span class="required">*</span></label>
             <textarea name="review_refund" id="reviewRefund" rows="1"
                 placeholder="Any problem getting a refund if you requested one?"></textarea>
+            <div class="error-message"></div>
         </div>
 
         <div class="form-group">
@@ -249,11 +259,28 @@ function reviewmvp_add_review_form() {
         </div>
 
         <div class="form-group">
-            <label for="" class="form-label">Linkedin profile <span class="form-tip optional">Optional</span></label>
-            <a href="" class="connect-profile">
+            <label for="reviewLinkedin" class="form-label">LinkedIn profile <span
+                    class="form-tip optional">Optional</span></label>
+
+            <!-- hidden input (filled by OAuth if successful) -->
+            <input type="hidden" name="review_linkedin" id="reviewLinkedin">
+
+            <!-- OAuth connect -->
+            <a href="#" id="connectLinkedin" class="connect-profile">
                 <ion-icon name="logo-linkedin"></ion-icon>
-                Connect your linkedin profile
+                Connect your LinkedIn profile
             </a>
+
+            <!-- fallback manual field (initially hidden) -->
+            <div id="linkedinManual" style="display:none; margin-top:10px;">
+                <input type="url" name="review_linkedin_manual" id="reviewLinkedinManual"
+                    placeholder="https://www.linkedin.com/in/your-profile" style="width:100%;">
+                <small>Couldn’t connect automatically? Paste your LinkedIn profile URL here.</small>
+            </div>
+
+            <p id="linkedinConnected" style="display:none; color:green; margin-top:5px;">
+                <ion-icon name="checkmark-circle"></ion-icon> LinkedIn profile connected
+            </p>
         </div>
 
         <div class="form-group notice">
@@ -263,20 +290,25 @@ function reviewmvp_add_review_form() {
         </div>
 
         <div class="form-group">
+            <label for="reviewAnonymously" class="form-label anonymous">
+                <input type="checkbox" name="review_anonymously" id="reviewAnonymously">
+                <strong>Review anonymously</strong> (your name will not be shown publicly)
+            </label>
             <label for="reviewConsent" class="form-label consent">
-                <input type="checkbox" name="review_consent" id="reviewConsent" required>
+                <input type="checkbox" name="review_consent" id="reviewConsent">
                 I certify this review is based on my own experience and is my genuine opinion of this course, and that I
                 have no personal or business relationship with this establishment. I understand that Spill the course
                 has a
                 zero-tolerance policy on fake reviews and reviews that do not comply with guidelines.
             </label>
+            <div class="error-message"></div>
         </div>
 
         <div class="button-group">
             <button class="form-button">
                 <ion-icon name="arrow-back"></ion-icon> Previous
             </button>
-            <button type="submit" class="form-button submit">Submit review <ion-icon name="send"></ion-icon></button>
+            <button type="submit" class="form-button submit">Submit review</button>
         </div>
     </div>
 
@@ -284,6 +316,42 @@ function reviewmvp_add_review_form() {
 </form>
 
 <script>
+// Initialize Select2 for course selection
+jQuery(document).ready(function($) {
+    $('#reviewCourse').select2({
+        placeholder: "— Select Course —",
+        allowClear: true,
+        width: '100%'
+    });
+});
+
+// Show platform with course title in course selection
+jQuery(document).ready(function($) {
+    $('#reviewCourse').select2({
+        placeholder: "— Select Course —",
+        allowClear: true,
+        width: '100%',
+        templateResult: function(state) {
+            if (!state.id) return state.text; // placeholder
+
+            // get platform from data attribute
+            var platform = $(state.element).data('platform');
+
+            if (platform) {
+                return $('<div class="selec2-course"><span class="select2-course-title">' + state
+                    .text + '</span><span class="select2-course-platform">' + platform +
+                    '</span></div>');
+            }
+            return state.text;
+        },
+        templateSelection: function(state) {
+            if (!state.id) return state.text;
+            var platform = $(state.element).data('platform');
+            return platform ? state.text + ' — ' + platform : state.text;
+        }
+    });
+});
+
 // star behaviour
 document.querySelectorAll('.form-star-group').forEach(group => {
     const stars = group.querySelectorAll('.form-star');
@@ -317,6 +385,27 @@ document.querySelectorAll('.form-star-group').forEach(group => {
             });
         });
     });
+});
+
+// LinkedIn connect (OpenID)
+document.getElementById("connectLinkedin").addEventListener("click", function(e) {
+    e.preventDefault();
+
+    let clientId = "8619zvo75jvko7"; // LinkedIn Client ID
+    let redirectUri = "<?php echo site_url('/linkedin-callback/'); ?>";
+    let state = Math.random().toString(36).substring(2);
+
+    let oauthUrl = "https://www.linkedin.com/oauth/v2/authorization?response_type=code" +
+        "&client_id=" + clientId +
+        "&redirect_uri=" + encodeURIComponent(redirectUri) +
+        "&scope=openid%20profile%20email" +
+        "&state=" + state;
+
+    try {
+        window.location.href = oauthUrl;
+    } catch (err) {
+        document.getElementById("linkedinManual").style.display = "block";
+    }
 });
 
 // file upload validation
@@ -365,41 +454,79 @@ document.getElementById("videoBox").addEventListener("change", function() {
     validateFile(this, ["mp4"], 20, "videoInfo");
 });
 
-// when a course is selected, auto-fill platform field
-jQuery(document).ready(function($) {
-    $('#reviewCourse').on('change', function() {
-        var platform = $(this).find(':selected').data('platform') || '';
-        $('#reviewPlatform').val(platform);
-    });
-    $('#reviewCourse').trigger('change');
-});
+// Validation
 (function($) {
     $('#addReviewForm').on('submit', function(e) {
         e.preventDefault();
 
-        let form = $(this)[0]; // DOM element
-        let messageBox = $('#reviewmvpReviewFormMessage');
-        messageBox.html('').css('color', '');
+        let form = $(this)[0];
+        let hasError = false;
+        let firstError = null;
 
-        // collect required fields
-        let course = $('#reviewCourse').val();
-        let platform = $('#reviewPlatform').val().trim();
-        let rating = $('input[name="review_rating"]:checked').val();
-        let message = $('#reviewMessage').val().trim();
-        let recommend = $('input[name="review_recommend"]:checked').val();
-        let worth = $('input[name="review_worth"]:checked').val();
-        let quality = $('#reviewQuality').val().trim();
-        let support = $('#reviewSupport').val().trim();
-        let refund = $('#reviewRefund').val().trim();
-        let consent = $('#reviewConsent').is(':checked');
+        // Clear previous errors
+        $(form).find('.error-message').text('');
 
-        if (!course || !platform || !rating || !message || !recommend || !worth || !quality || !support || !
-            refund || !consent) {
-            messageBox.css('color', 'crimson').text(
-                'Please complete all required fields before submitting.');
+        function showError(input, message) {
+            const group = $(input).closest('.form-group');
+            group.find('.error-message').html(
+                "<ion-icon name='alert-circle-outline'></ion-icon> " + message
+            );
+            if (!firstError) {
+                firstError = group;
+            }
+            hasError = true;
+        }
+
+        // Validate fields
+        const course = $('#reviewCourse').val();
+        if (!course) showError('#reviewCourse', 'Please select a course.');
+
+        const rating = $('input[name="review_rating"]:checked').val();
+        if (!rating) showError($('input[name="review_rating"]').last(), 'Please give a rating.');
+
+        const message = $('#reviewMessage').val().trim();
+        if (!message) showError('#reviewMessage', 'Please enter your overall feedback.');
+
+        const good = $('#reviewGood').val().trim();
+        if (!good) showError('#reviewGood', 'Please tell us what was good.');
+
+        const bad = $('#reviewBad').val().trim();
+        if (!bad) showError('#reviewBad', 'Please tell us what was bad.');
+
+        const outcomes = $('input[name="review_outcome[]"]:checked').length;
+        if (!outcomes) showError($('input[name="review_outcome[]"]').last(),
+            'Please select at least one outcome.');
+
+        const recommend = $('input[name="review_recommend"]:checked').val();
+        if (!recommend) showError($('input[name="review_recommend"]').last(), 'Please select an option.');
+
+        const worth = $('input[name="review_worth"]:checked').val();
+        if (!worth) showError($('input[name="review_worth"]').last(), 'Please select an option.');
+
+        const level = $('input[name="review_level"]:checked').val();
+        if (!level) showError($('input[name="review_level"]').last(), 'Please select a course level.');
+
+        const quality = $('#reviewQuality').val().trim();
+        if (!quality) showError('#reviewQuality', 'Please describe the course content quality.');
+
+        const support = $('#reviewSupport').val().trim();
+        if (!support) showError('#reviewSupport', 'Please describe the instructor & support.');
+
+        const refund = $('#reviewRefund').val().trim();
+        if (!refund) showError('#reviewRefund', 'Please describe refund experience.');
+
+        const consent = $('#reviewConsent').is(':checked');
+        if (!consent) showError('#reviewConsent', 'You must agree before submitting.');
+
+        // If error → scroll to first invalid field
+        if (hasError) {
+            $('html, body').animate({
+                scrollTop: firstError.offset().top - 50
+            }, 600);
             return;
         }
 
+        // ✅ No errors → submit AJAX
         let formData = new FormData(form);
         formData.append('action', 'reviewmvp_submit_review');
 
@@ -413,12 +540,11 @@ jQuery(document).ready(function($) {
                 if (response.success) {
                     window.location.href = "<?php echo site_url('/thank-you/'); ?>";
                 } else {
-                    messageBox.css('color', 'crimson').text(response.data ||
-                        'Submission failed. Try again.');
+                    alert(response.data || 'Submission failed. Try again.');
                 }
             },
             error: function() {
-                messageBox.css('color', 'crimson').text('Server error. Please try again.');
+                alert('Server error. Please try again.');
             }
         });
     });
@@ -430,17 +556,67 @@ jQuery(document).ready(function($) {
 add_shortcode('add_review', 'reviewmvp_add_review_form');
 
 /**
+ * Handle LinkedIn profile connect (OpenID only)
+ */
+add_action('init', function() {
+    if (
+        isset($_GET['code']) && isset($_GET['state']) &&
+        strpos($_SERVER['REQUEST_URI'], 'linkedin-callback') !== false
+    ) {
+        $code = sanitize_text_field($_GET['code']);
+
+        // Exchange code for access token
+        $response = wp_remote_post("https://www.linkedin.com/oauth/v2/accessToken", [
+            'body' => [
+                'grant_type'    => 'authorization_code',
+                'code'          => $code,
+                'redirect_uri'  => site_url('/linkedin-callback/'),
+                'client_id'     => '8619zvo75jvko7',
+                'client_secret' => 'WPL_AP1.fyIbGk7LUs77imwB.Ul/W8A=='
+            ]
+        ]);
+
+        $body = json_decode(wp_remote_retrieve_body($response), true);
+        $access_token = $body['access_token'] ?? '';
+
+        if ($access_token) {
+            // Fetch profile using OpenID userinfo
+            $profile = wp_remote_get("https://api.linkedin.com/v2/userinfo", [
+                'headers' => ['Authorization' => 'Bearer ' . $access_token]
+            ]);
+            $profileData = json_decode(wp_remote_retrieve_body($profile), true);
+
+            $id = $profileData['sub'] ?? '';
+            $linkedinUrl = $id ? "https://www.linkedin.com/openid/id/" . $id : '';
+
+            if ($linkedinUrl) {
+                setcookie("linkedin_profile", $linkedinUrl, time()+3600, "/");
+            }
+
+            // Always redirect back to review form
+            wp_redirect(site_url('/write-a-review/?linkedin=success'));
+            exit;
+        } else {
+            // OAuth failed → fallback
+            wp_redirect(site_url('/write-a-review/?linkedin=fallback'));
+            exit;
+        }
+    }
+});
+
+/**
  * Handle AJAX review submission
  */
 function reviewmvp_handle_review_submission() {
-    if (!isset($_POST['reviewmvp_add_review_nonce']) || 
-        !wp_verify_nonce($_POST['reviewmvp_add_review_nonce'], 'reviewmvp_add_review_action')) {
+    if (
+        !isset($_POST['reviewmvp_add_review_nonce']) || 
+        !wp_verify_nonce($_POST['reviewmvp_add_review_nonce'], 'reviewmvp_add_review_action')
+    ) {
         wp_send_json_error('Security check failed.');
     }
 
     // Collect inputs
     $course_id = intval($_POST['review_course'] ?? 0);
-    $platform  = sanitize_text_field($_POST['review_course_platform'] ?? '');
     $rating    = intval($_POST['review_rating'] ?? 0);
     $message   = sanitize_textarea_field($_POST['review_message'] ?? '');
     $good      = sanitize_textarea_field($_POST['review_good'] ?? '');
@@ -450,23 +626,45 @@ function reviewmvp_handle_review_submission() {
     $refund    = sanitize_textarea_field($_POST['review_refund'] ?? '');
     $recommend = sanitize_text_field($_POST['review_recommend'] ?? '');
     $worth     = sanitize_text_field($_POST['review_worth'] ?? '');
+    $level     = sanitize_text_field($_POST['review_level'] ?? '');
     $outcomes  = array_map('sanitize_text_field', (array)($_POST['review_outcome'] ?? []));
     $consent   = !empty($_POST['review_consent']);
 
     // Validate required fields
-    if ($course_id <= 0 || empty($platform) || $rating <= 0 || empty($message) || empty($quality) || empty($support) || empty($refund) || empty($recommend) || empty($worth) || !$consent) {
+    if (
+        $course_id <= 0 || $rating <= 0 || empty($message) ||
+        empty($quality) || empty($support) || empty($refund) || empty($recommend) ||
+        empty($worth) || empty($level) || !$consent
+    ) {
         wp_send_json_error('Please complete all required fields.');
     }
 
     // Create review post
+    $course_title = get_the_title($course_id);
+
     $post_id = wp_insert_post([
-        'post_title'   => 'Review for course '.$course_id,
+        'post_title'   => 'Review for course: (ID-'.$course_id.') '.$course_title,
         'post_type'    => 'course_review',
         'post_status'  => 'pending',
     ]);
 
     if (!$post_id) {
         wp_send_json_error('Something went wrong while saving review.');
+    }
+
+    // Handle anonymous
+    $anonymously = !empty($_POST['review_anonymously']);
+    if ($anonymously) {
+        update_post_meta($post_id, '_review_status', ['anonymous']);
+    }
+
+    // LinkedIn profile (OAuth or manual)
+    $linkedin = sanitize_text_field($_POST['review_linkedin'] ?? ($_COOKIE['linkedin_profile'] ?? ''));
+    if (empty($linkedin) && !empty($_POST['review_linkedin_manual'])) {
+        $linkedin = sanitize_text_field($_POST['review_linkedin_manual']);
+    }
+    if (!empty($linkedin)) {
+        update_post_meta($post_id, '_review_linkedin', esc_url_raw($linkedin));
     }
 
     // Save meta
@@ -481,12 +679,11 @@ function reviewmvp_handle_review_submission() {
     update_post_meta($post_id, '_review_refund', $refund);
     update_post_meta($post_id, '_review_recommend', $recommend);
     update_post_meta($post_id, '_review_worth', $worth);
+    update_post_meta($post_id, '_review_level', $level);
     update_post_meta($post_id, '_review_outcome', $outcomes);
     update_post_meta($post_id, '_review_date', current_time('Y-m-d'));
 
-    /**
-     * Handle file uploads (Proof + Video) - optional
-     */
+    // Handle file uploads
     if (!function_exists('wp_handle_upload')) {
         require_once(ABSPATH . 'wp-admin/includes/file.php');
     }
@@ -509,3 +706,12 @@ function reviewmvp_handle_review_submission() {
 }
 add_action('wp_ajax_reviewmvp_submit_review', 'reviewmvp_handle_review_submission');
 add_action('wp_ajax_nopriv_reviewmvp_submit_review', 'reviewmvp_handle_review_submission');
+
+// enqueue select2
+add_action('wp_enqueue_scripts', function() {
+    // Only enqueue on pages with the form
+    if (is_page('write-a-review')) { 
+        wp_enqueue_style('select2-css', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css');
+        wp_enqueue_script('select2-js', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js', ['jquery'], null, true);
+    }
+});

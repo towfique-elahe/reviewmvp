@@ -402,16 +402,18 @@ function reviewmvp_render_review_meta_box($post) {
         'bad'         => get_post_meta($post->ID, '_review_bad', true),
         'outcome'     => get_post_meta($post->ID, '_review_outcome', true),
         'quality'     => get_post_meta($post->ID, '_review_quality', true),
+        'level'       => get_post_meta($post->ID, '_review_level', true),
         'support'     => get_post_meta($post->ID, '_review_support', true),
         'worth'       => get_post_meta($post->ID, '_review_worth', true),
         'recommend'   => get_post_meta($post->ID, '_review_recommend', true),
         'refund'      => get_post_meta($post->ID, '_review_refund', true),
         'proof'       => get_post_meta($post->ID, '_review_proof', true),
         'video'       => get_post_meta($post->ID, '_review_video', true),
+        'linkedin'    => get_post_meta($post->ID, '_review_linkedin', true),
     ];
 
     // Status checkboxes
-    $statuses = ['active','verified','verified_purchase','rising_voice','top_voice'];
+    $statuses = ['verified','verified_purchase','rising_voice','top_voice','anonymous'];
     echo '<p><strong>Status:</strong><br>';
     foreach ($statuses as $status) {
         echo '<label><input type="checkbox" name="review_status[]" value="'.$status.'" '.checked(in_array($status, $meta['status']), true, false).'> '.ucwords(str_replace('_',' ', $status)).'</label><br>';
@@ -456,14 +458,42 @@ function reviewmvp_render_review_meta_box($post) {
         'bad'       => 'What was bad?',
         'quality'   => 'Content Quality',
         'support'   => 'Instructor & Support',
-        'worth'     => 'Worth Money?',
-        'recommend' => 'Recommend this course?',
         'refund'    => 'Refund Experience',
     ];
     foreach ($fields as $key=>$label) {
         echo '<p><label><strong>'.$label.'</strong></label><br>';
-        echo '<textarea name="review_'.$key.'" rows="3" style="width:100%;">'.esc_textarea($meta[$key]).'</textarea></p>';
+        echo '<textarea name="review_'.$key.'" rows="3" style="width:100%;" placeholder="Enter '.$label.'">'.esc_textarea($meta[$key]).'</textarea></p>';
     }
+
+    // Course Level (dropdown)
+    echo '<p><label><strong>What level did this course feel like to you?</strong></label><br>';
+    echo '<select name="review_level" style="width:100%;">';
+    echo '<option value="">— Select Level —</option>';
+    $options_level = ['Beginner','Intermediate','Advance'];
+    foreach ($options_level as $opt) {
+        echo '<option value="'.$opt.'" '.selected($meta['level'], $opt, false).'>'.$opt.'</option>';
+    }
+    echo '</select></p>';
+
+    // Worth (dropdown)
+    echo '<p><label><strong>Worth Money?</strong></label><br>';
+    echo '<select name="review_worth" style="width:100%;">';
+    echo '<option value="">— Select Option —</option>';
+    $options_worth = ['Yes, good value','No, overpriced'];
+    foreach ($options_worth as $opt) {
+        echo '<option value="'.$opt.'" '.selected($meta['worth'], $opt, false).'>'.$opt.'</option>';
+    }
+    echo '</select></p>';
+
+    // Recommend (dropdown)
+    echo '<p><label><strong>Recommend this course?</strong></label><br>';
+    echo '<select name="review_recommend" style="width:100%;">';
+    echo '<option value="">— Select Option —</option>';
+    $options_recommend = ['Yes, I’d recommend it','No, I would’t'];
+    foreach ($options_recommend as $opt) {
+        echo '<option value="'.$opt.'" '.selected($meta['recommend'], $opt, false).'>'.$opt.'</option>';
+    }
+    echo '</select></p>';
 
     // Course Outcomes (multi-select)
     $outcomes = [
@@ -486,13 +516,18 @@ function reviewmvp_render_review_meta_box($post) {
 
     // Proof of enrollment (image upload)
     echo '<p><label><strong>Proof of Enrollment</strong></label><br>';
-    echo '<input type="text" name="review_proof" value="'.esc_attr($meta['proof']).'" style="width:80%;"> ';
+    echo '<input type="text" name="review_proof" value="'.esc_attr($meta['proof']).'" placeholder="Enter media URL of proof" style="width:80%;"> ';
     echo '<button class="button upload_review_proof">Upload</button></p>';
 
     // Video review (video upload)
     echo '<p><label><strong>Video Review</strong></label><br>';
-    echo '<input type="text" name="review_video" value="'.esc_attr($meta['video']).'" style="width:80%;"> ';
+    echo '<input type="text" name="review_video" value="'.esc_attr($meta['video']).'" placeholder="Enter media URL of video"  style="width:80%;"> ';
     echo '<button class="button upload_review_video">Upload</button></p>';
+
+    // Linkedin profile connect
+    echo '<p><label><strong>LinkedIn Profile</strong></label><br>';
+    echo '<input type="url" name="review_linkedin" value="'.esc_attr($meta['linkedin']).'" style="width:100%;" placeholder="https://linkedin.com/in/...">';
+    echo '</p>';
 
     // JS uploader
     ?>
@@ -528,8 +563,8 @@ function reviewmvp_save_review_meta($post_id) {
 
     $fields = [
         'review_date','reviewer','review_course','review_rating','review_message',
-        'review_good','review_bad','review_quality','review_support',
-        'review_worth','review_recommend','review_refund','review_proof','review_video'
+        'review_good','review_bad','review_quality','review_support','review_level',
+        'review_worth','review_recommend','review_refund','review_proof','review_video','review_linkedin'
     ];
     foreach ($fields as $field) {
         if (isset($_POST[$field])) {
