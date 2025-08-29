@@ -1,3 +1,10 @@
+.form-page-container {
+  display: none;
+}
+.form-page-container.active {
+  display: block;
+}
+
 #addReviewForm {
   width: 100%;
   max-width: 890px;
@@ -5,6 +12,7 @@
   display: flex;
   flex-direction: column;
   gap: 40px;
+  overflow: hidden;
 }
 #addReviewForm .form-pagination {
   display: flex;
@@ -46,13 +54,16 @@
   display: flex;
   gap: 18px;
   width: 100%;
-  max-width: 600px;
+  margin-bottom: 24px;
+}
+#addReviewForm .form-row .form-group {
+  margin: 0;
 }
 #addReviewForm .form-group {
   width: 100%;
   display: flex;
   flex-direction: column;
-  margin-bottom: 54px;
+  margin-bottom: 24px;
 }
 #addReviewForm .form-star-group {
   display: flex;
@@ -72,15 +83,10 @@
 #addReviewForm .form-star-group .form-tip {
   margin-left: 12px;
 }
-#addReviewForm .form-file-box:hover {
-  background-color: var(--gray-background-color);
-  border-color: var(--accent-color);
-}
 #addReviewForm .form-file-box {
   width: 100%;
-  max-width: 600px;
   margin-top: 20px;
-  padding: 20px 100px;
+  padding: 40px 100px;
   border: var(--border);
   border-style: dashed;
   border-width: 2px;
@@ -97,7 +103,15 @@
   text-align: center;
   gap: 10px;
 }
+#addReviewForm .form-file-box:hover {
+  background-color: var(--gray-background-color);
+  border-color: var(--accent-color);
+}
+#addReviewForm .form-file-box ion-icon {
+  font-size: 42px;
+}
 #addReviewForm .file-info {
+  margin: 0;
   margin-top: 8px;
   color: var(--dark-text-color);
   font-family: var(--text-font-family);
@@ -112,7 +126,6 @@
 }
 #addReviewForm .connect-profile {
   width: 100%;
-  max-width: 600px;
   border: var(--border);
   border-radius: 8px;
   padding: 20px 22px;
@@ -139,22 +152,35 @@
   padding: 16px 10px;
   background-color: #dfffd6;
 }
+#addReviewForm .form-group.notice .form-label {
+  margin-bottom: 5px;
+  font-weight: 600;
+  font-size: 14px;
+}
+#addReviewForm .form-group.notice .form-para {
+  margin: 0;
+  font-size: 14px;
+  line-height: 24px;
+}
 #addReviewForm .form-heading-group {
   display: flex;
   flex-direction: column;
-  margin-bottom: 54px;
+  margin-bottom: 27px;
+}
+#addReviewForm #pageTwo .form-heading-group {
+  margin-bottom: 18px;
 }
 #addReviewForm .form-section-heading {
   color: var(--secondary-color);
-  font-family: var(--primary-font-family);
-  font-weight: 600;
+  font-family: var(--text-font-family);
+  font-weight: 700;
   font-size: 25px;
   margin: 0;
 }
 #addReviewForm .form-label {
   color: var(--secondary-color);
   font-family: var(--text-font-family);
-  font-weight: 500;
+  font-weight: 400;
   font-size: 16px;
   display: flex;
   align-items: center;
@@ -196,6 +222,9 @@
   font-size: 16px;
   margin-top: 10px;
 }
+#addReviewForm .form-para.bold {
+  font-weight: 600;
+}
 #addReviewForm .form-tip {
   margin: 0;
   color: var(--secondary-color);
@@ -222,7 +251,6 @@
 #addReviewForm select,
 #addReviewForm textarea {
   width: 100%;
-  max-width: 600px;
   background-color: transparent;
   padding: 20px 22px;
   margin-top: 20px;
@@ -249,7 +277,6 @@
   position: relative;
   display: inline-block;
   width: 100%;
-  max-width: 600px;
   margin-top: 14px;
 }
 #addReviewForm .select2-container .select2-selection--single {
@@ -374,7 +401,6 @@
 }
 #addReviewForm .form-options-group {
   width: 100%;
-  max-width: 600px;
   display: flex;
   flex-wrap: wrap;
   column-gap: 15px;
@@ -492,4 +518,20 @@
 #addReviewForm .form-button.submit:hover {
   color: #fce8f0;
   background-color: #e94c89;
+}
+
+@media (max-width: 425px) {
+  #addReviewForm .form-section-heading {
+    font-size: 20px;
+  }
+  #addReviewForm .form-row {
+    flex-direction: column;
+  }
+  #addReviewForm .form-group {
+    margin-bottom: 18px;
+  }
+  #addReviewForm .form-options-group {
+    column-gap: 10px;
+    row-gap: 12px;
+  }
 }

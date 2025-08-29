@@ -22,7 +22,7 @@ function reviewmvp_add_review_form() {
         </div>
     </div>
 
-    <div id="pageOne" class="page">
+    <div id="pageOne" class="form-page-container active">
         <div class="form-heading-group">
             <h3 class="form-section-heading">Course info</h3>
         </div>
@@ -77,7 +77,8 @@ function reviewmvp_add_review_form() {
         <div class="form-group">
             <label class="form-label">Your overall feedback <span class="required">*</span></label>
             <textarea name="review_message" id="reviewMessage" rows="5"></textarea>
-            <p class="form-para" style="margin-top: 10px">Tell us what you liked and what could have been better</p>
+            <p class="form-para bold" style="margin-top: 10px">Tell us what you liked and what could have been better
+            </p>
             <div class="error-message"></div>
         </div>
 
@@ -195,10 +196,10 @@ function reviewmvp_add_review_form() {
         </div>
     </div>
 
-    <div id="pageTwo" class="page">
+    <div id="pageTwo" class="form-page-container">
         <div class="form-heading-group">
             <h3 class="form-section-heading">Course details</h3>
-            <p class="form-para">Help others understand the course quality and difficulty</p>
+            <p class="form-para bold">Help others understand the course quality and difficulty</p>
         </div>
 
         <div class="form-group">
@@ -292,7 +293,7 @@ function reviewmvp_add_review_form() {
         <div class="form-group">
             <label for="reviewAnonymously" class="form-label anonymous">
                 <input type="checkbox" name="review_anonymously" id="reviewAnonymously">
-                <strong>Review anonymously</strong> (your name will not be shown publicly)
+                <span><strong>Review anonymously</strong> (your name will not be shown publicly)</span>
             </label>
             <label for="reviewConsent" class="form-label consent">
                 <input type="checkbox" name="review_consent" id="reviewConsent">
@@ -454,79 +455,123 @@ document.getElementById("videoBox").addEventListener("change", function() {
     validateFile(this, ["mp4"], 20, "videoInfo");
 });
 
-// Validation
-(function($) {
-    $('#addReviewForm').on('submit', function(e) {
-        e.preventDefault();
+jQuery(document).ready(function($) {
+    let currentPage = 1;
 
-        let form = $(this)[0];
+    function showPage(page) {
+        $(".form-page-container.active").removeClass("active").fadeOut(300, function() {
+            let target = (page === 1) ? "#pageOne" : "#pageTwo";
+            $(target).fadeIn(300).addClass("active");
+
+            // Instant scroll to top of form
+            $(window).scrollTop($("#addReviewForm").offset().top - 40);
+        });
+
+        $(".form-page-number").removeClass("active");
+        $(".form-page-number").eq(page - 1).addClass("active");
+    }
+
+    // Validation: Page One
+    function validatePageOne() {
         let hasError = false;
         let firstError = null;
-
-        // Clear previous errors
-        $(form).find('.error-message').text('');
+        $("#pageOne .error-message").text("");
 
         function showError(input, message) {
             const group = $(input).closest('.form-group');
             group.find('.error-message').html(
                 "<ion-icon name='alert-circle-outline'></ion-icon> " + message
             );
-            if (!firstError) {
-                firstError = group;
-            }
+            if (!firstError) firstError = group; // capture first invalid group
             hasError = true;
         }
 
-        // Validate fields
-        const course = $('#reviewCourse').val();
-        if (!course) showError('#reviewCourse', 'Please select a course.');
-
-        const rating = $('input[name="review_rating"]:checked').val();
-        if (!rating) showError($('input[name="review_rating"]').last(), 'Please give a rating.');
-
-        const message = $('#reviewMessage').val().trim();
-        if (!message) showError('#reviewMessage', 'Please enter your overall feedback.');
-
-        const good = $('#reviewGood').val().trim();
-        if (!good) showError('#reviewGood', 'Please tell us what was good.');
-
-        const bad = $('#reviewBad').val().trim();
-        if (!bad) showError('#reviewBad', 'Please tell us what was bad.');
-
-        const outcomes = $('input[name="review_outcome[]"]:checked').length;
-        if (!outcomes) showError($('input[name="review_outcome[]"]').last(),
+        if (!$('#reviewCourse').val()) showError('#reviewCourse', 'Please select a course.');
+        if (!$('input[name="review_rating"]:checked').val()) showError('input[name="review_rating"]',
+            'Please give a rating.');
+        if (!$('#reviewMessage').val().trim()) showError('#reviewMessage',
+            'Please enter your overall feedback.');
+        if (!$('#reviewGood').val().trim()) showError('#reviewGood', 'Please tell us what was good.');
+        if (!$('#reviewBad').val().trim()) showError('#reviewBad', 'Please tell us what was bad.');
+        if (!$('input[name="review_outcome[]"]:checked').length) showError('input[name="review_outcome[]"]',
             'Please select at least one outcome.');
+        if (!$('input[name="review_recommend"]:checked').val()) showError('input[name="review_recommend"]',
+            'Please select an option.');
+        if (!$('input[name="review_worth"]:checked').val()) showError('input[name="review_worth"]',
+            'Please select an option.');
 
-        const recommend = $('input[name="review_recommend"]:checked').val();
-        if (!recommend) showError($('input[name="review_recommend"]').last(), 'Please select an option.');
+        // Scroll to first error if found
+        if (firstError) {
+            $('html, body').scrollTop(firstError.offset().top - 50);
+        }
 
-        const worth = $('input[name="review_worth"]:checked').val();
-        if (!worth) showError($('input[name="review_worth"]').last(), 'Please select an option.');
+        return !hasError;
+    }
 
-        const level = $('input[name="review_level"]:checked').val();
-        if (!level) showError($('input[name="review_level"]').last(), 'Please select a course level.');
+    // Validation: Page Two
+    function validatePageTwo() {
+        let hasError = false;
+        let firstError = null;
+        $("#pageTwo .error-message").text("");
 
-        const quality = $('#reviewQuality').val().trim();
-        if (!quality) showError('#reviewQuality', 'Please describe the course content quality.');
+        function showError(input, message) {
+            const group = $(input).closest('.form-group');
+            group.find('.error-message').html(
+                "<ion-icon name='alert-circle-outline'></ion-icon> " + message
+            );
+            if (!firstError) firstError = group; // capture first invalid group
+            hasError = true;
+        }
 
-        const support = $('#reviewSupport').val().trim();
-        if (!support) showError('#reviewSupport', 'Please describe the instructor & support.');
+        if (!$('#reviewQuality').val().trim()) showError('#reviewQuality',
+            'Please describe the course content quality.');
+        if (!$('input[name="review_level"]:checked').val()) showError('input[name="review_level"]',
+            'Please select a course level.');
+        if (!$('#reviewSupport').val().trim()) showError('#reviewSupport',
+            'Please describe the instructor & support.');
+        if (!$('#reviewRefund').val().trim()) showError('#reviewRefund', 'Please describe refund experience.');
+        if (!$('#reviewConsent').is(':checked')) showError('#reviewConsent',
+            'You must agree before submitting.');
 
-        const refund = $('#reviewRefund').val().trim();
-        if (!refund) showError('#reviewRefund', 'Please describe refund experience.');
+        // Scroll to first error if found
+        if (firstError) {
+            $('html, body').scrollTop(firstError.offset().top - 50);
+        }
 
-        const consent = $('#reviewConsent').is(':checked');
-        if (!consent) showError('#reviewConsent', 'You must agree before submitting.');
+        return !hasError;
+    }
 
-        // If error → scroll to first invalid field
-        if (hasError) {
-            $('html, body').animate({
-                scrollTop: firstError.offset().top - 50
-            }, 600);
+    // Next button → validate Page 1 before moving
+    $("#pageOne .form-button").on("click", function(e) {
+        e.preventDefault();
+        if (validatePageOne()) {
+            currentPage = 2;
+            showPage(currentPage);
+        }
+    });
+
+    // Previous button
+    $("#pageTwo .form-button").first().on("click", function(e) {
+        e.preventDefault();
+        currentPage = 1;
+        showPage(currentPage);
+    });
+
+    // Submit → validate Page 2
+    $('#addReviewForm').on('submit', function(e) {
+        e.preventDefault();
+        if (!validatePageTwo()) {
+            // Scroll to first error on Page 2
+            let firstError = $("#pageTwo .error-message:contains('ion-icon')").first().closest(
+                ".form-group");
+            if (firstError.length) {
+                $('html, body').scrollTop(firstError.offset().top - 50);
+            }
             return;
         }
 
-        // ✅ No errors → submit AJAX
+        // ✅ No errors → proceed AJAX
+        let form = $(this)[0];
         let formData = new FormData(form);
         formData.append('action', 'reviewmvp_submit_review');
 
@@ -548,7 +593,11 @@ document.getElementById("videoBox").addEventListener("change", function() {
             }
         });
     });
-})(jQuery);
+
+    // Init
+    $(".form-page-container").hide();
+    $("#pageOne").show().addClass("active");
+});
 </script>
 <?php
     return ob_get_clean();
@@ -669,7 +718,6 @@ function reviewmvp_handle_review_submission() {
 
     // Save meta
     update_post_meta($post_id, '_review_course', $course_id);
-    update_post_meta($post_id, '_review_course_platform', $platform);
     update_post_meta($post_id, '_review_rating', $rating);
     update_post_meta($post_id, '_review_message', $message);
     update_post_meta($post_id, '_review_good', $good);
