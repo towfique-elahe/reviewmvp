@@ -529,6 +529,8 @@
   font-size: 16px;
 }
 #scDetails .course-info-container .course-description-content {
+  color: var(--dark-text-color);
+  font-family: var(--text-font-family);
   display: -webkit-box;
   -webkit-box-orient: vertical;
   overflow: hidden;

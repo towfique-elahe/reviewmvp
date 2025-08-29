@@ -20,8 +20,8 @@
   margin-bottom: 71px;
 }
 .bc-sidebar-heading {
-  color: var(--secondary-color);
-  font-family: var(--primary-font-family);
+  color: var(--secondary-color) !important;
+  font-family: var(--primary-font-family) !important;
   font-weight: 600;
   font-size: 16px;
   margin: 0;
@@ -98,8 +98,8 @@
   align-items: center;
   gap: 8px;
   margin: 6px 0;
-  color: var(--dark-text-color);
-  font-family: var(--text-font-family);
+  color: var(--dark-text-color) !important;
+  font-family: var(--text-font-family) !important;
   font-weight: 400;
   font-size: 14px;
 }
@@ -111,7 +111,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  color: var(--text-color) !important;
+  font-family: var(--text-font-family) !important;
+  font-weight: 400;
+  font-size: 16px;
 }
 .bc-toolbar {
   display: flex;
@@ -122,7 +125,7 @@
 .bc-count-wrapper {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 5px;
 }
 .bc-filter-toggle {
   display: none;
@@ -139,7 +142,11 @@
   width: 20px;
 }
 .bc-count {
+  color: var(--text-color);
+  font-family: var(--text-font-family);
+  font-weight: 400;
   font-size: 14px;
+  padding-left: 5px;
 }
 .bc-sort-wrapper {
   display: flex;
@@ -213,6 +220,7 @@
   gap: 4px;
 }
 .bc-rating {
+  color: var(--secondary-color);
   font-family: var(--text-font-family);
   font-weight: 700;
   font-size: 16px;
@@ -233,8 +241,10 @@
 }
 .bc-chip {
   display: inline-block;
-  font-size: 14px;
   color: var(--text-color);
+  font-family: var(--text-font-family);
+  font-weight: 400;
+  font-size: 14px;
 }
 .bc-provider {
   color: var(--text-color);
@@ -254,6 +264,7 @@
   color: var(--secondary-color) !important;
   font-family: var(--text-font-family) !important;
   font-weight: 600;
+  font-size: 16px;
 }
 .bc-title:hover {
   color: var(--accent-color) !important;
@@ -262,7 +273,7 @@
   color: var(--text-color);
   font-family: var(--text-font-family);
   font-weight: 400;
-  font-size: 14px;
+  font-size: 14px !important;
 }
 .bc-description {
   color: var(--secondary-color);
