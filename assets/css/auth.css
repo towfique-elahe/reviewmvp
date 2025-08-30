@@ -1,0 +1,223 @@
+#auth {
+  width: 100%;
+  max-width: 850px;
+  margin: 0 auto;
+}
+#auth .social-btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: 33px;
+}
+#auth .social-btn {
+  width: 100%;
+  padding: 10px 20px;
+  border: var(--border);
+  border-color: var(--secondary-color);
+  border-radius: 10px;
+  background: transparent !important;
+  color: var(--secondary-color);
+  font-family: var(--primary-font-family);
+  font-weight: 600;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background-color ease 0.3s;
+}
+#auth .social-btn:hover {
+  background-color: var(--accent-color) !important;
+}
+#auth .social-btn ion-icon {
+  font-size: 32px;
+  color: var(--primary-color);
+}
+#auth .divider-text {
+  color: var(--dark-text-color);
+  font-family: var(--primary-font-family);
+  font-weight: 400;
+  font-size: 16px;
+  text-align: center;
+  margin: 65px 0 18px 0;
+}
+#auth .form-group {
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+#auth .custom-forgot-password .form-group {
+  margin-top: 30px;
+  margin-bottom: 48px;
+}
+#auth .form-group label {
+  color: var(--secondary-color);
+  font-family: var(--text-font-family);
+  font-weight: 400;
+  font-size: 16px;
+}
+#auth .form-group input {
+  background-color: transparent;
+  padding: 20px 22px;
+  outline: none;
+  border: var(--border);
+  border-radius: 16px;
+  color: var(--secondary-color);
+  font-family: var(--text-font-family);
+  font-weight: 400;
+  font-size: 16px;
+}
+#auth .form-group input:hover,
+#auth .form-group input:focus {
+  background-color: var(--gray-background-color);
+  border-color: var(--accent-color);
+}
+#auth .password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+#auth .password-wrapper input {
+  width: 100%;
+  padding-right: 40px;
+}
+#auth .toggle-password {
+  position: absolute;
+  right: 20px;
+  cursor: pointer;
+  font-size: 24px;
+  color: var(--text-color);
+  user-select: none;
+}
+#auth .toggle-password:hover {
+  color: var(--dark-text-color);
+}
+#auth .remember-me {
+  flex-direction: row;
+  align-items: center;
+  gap: 13px;
+  color: var(--secondary-color);
+  font-family: var(--text-font-family);
+  font-weight: 400;
+  font-size: 16px;
+}
+#auth .btn-submit {
+  width: 100%;
+  padding: 20px;
+  background: var(--accent-color);
+  color: var(--button-text-color);
+  outline: none;
+  border: none;
+  border-radius: 10px;
+  font-family: var(--primary-font-family);
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: ease 0.3s;
+}
+#auth .btn-submit:hover {
+  background-color: var(--primary-color);
+  color: var(--light-text-color);
+}
+#auth .divider {
+  margin-top: 69px;
+  margin-bottom: 23px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 77px;
+}
+#auth .divider hr {
+  width: 100%;
+  border: var(--border);
+  border-color: var(--text-color);
+}
+#auth .divider p {
+  width: 100%;
+  color: var(--secondary-color);
+  font-family: var(--text-font-family);
+  font-weight: 400;
+  font-size: 16px;
+  text-align: center;
+}
+#auth .form-links {
+  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+#auth .form-links a {
+  color: var(--secondary-color);
+  font-family: var(--text-font-family);
+  font-weight: 500;
+  font-size: 16px;
+  text-decoration: underline;
+}
+#auth .form-links a:hover {
+  color: var(--accent-color);
+}
+#auth .suggest-text {
+  margin-top: 23px;
+  margin-bottom: 35px;
+  color: var(--secondary-color);
+  font-family: var(--text-font-family);
+  font-weight: 400;
+  font-size: 20px;
+  text-align: center;
+}
+#auth .suggest-text a {
+  font-weight: 700;
+  text-decoration: underline;
+}
+#auth .legal-text {
+  color: var(--dark-text-color);
+  font-family: var(--text-font-family);
+  font-weight: 400;
+  font-size: 16px;
+  text-align: center;
+}
+#auth .legal-text a {
+  text-decoration: underline;
+}
+#auth .verified-note {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--dark-text-color);
+  font-family: var(--text-font-family);
+  font-weight: 600;
+  font-size: 16px;
+  margin: 20px 0;
+}
+#auth .verified-note img {
+  width: 19px;
+  margin: 0 !important;
+  border-radius: 0 !important;
+}
+
+@media (max-width: 768px) {
+  #auth .social-btn-group {
+    gap: 20px;
+  }
+  #auth .divider-text,
+  #auth .divider {
+    margin-top: 30px;
+    gap: 30px;
+  }
+}
+@media (max-width: 425px) {
+  #auth .verified-note {
+    align-items: flex-start;
+  }
+  #auth .verified-note img {
+    margin-top: 3px !important;
+  }
+  #auth .divider p {
+    width: 200%;
+  }
+  #auth .suggest-text {
+    font-size: 18px;
+  }
+}

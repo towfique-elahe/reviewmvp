@@ -56,179 +56,84 @@ add_action('init', function() {
  */
 function reviewmvp_custom_register_form() {
     if (is_user_logged_in()) {
-        return '<p>You are already registered and logged in.</p>';
+        return '<p style="text-align:center;">You are already registered and logged in.</p>';
     }
 
     // Pull error message if any
     $message = get_transient('custom_register_error');
     if ($message) {
         delete_transient('custom_register_error');
-        $message = '<p style="color:red;">' . esc_html($message) . '</p>';
+        $message = '<p style="color:crimson;">' . esc_html($message) . '</p>';
     }
 
     ob_start(); ?>
 
-<div class="custom-register-form">
-    <h2>Unlock Trusted Reviews & Share Your Voice</h2>
-    <p>Write your first review or just explore thousands of honest insights.</p>
+<div id="auth" class="auth-container">
+    <div class="custom-register-form">
+        <p class="verified-note">
+            <img src="<?= get_theme_media_url('icon-verified-badge.svg') ?>" alt="verified badge">
+            Get verified badge instantly with LinkedIn login
+        </p>
 
-    <p class="verified-note">
-        <ion-icon name="checkmark-circle-outline"></ion-icon>
-        Get verified badge instantly with LinkedIn login
-    </p>
+        <div class="social-btn-group">
+            <button type="button" class="social-btn linkedin-btn">
+                <ion-icon name="logo-linkedin"></ion-icon>
+                Continue with LinkedIn
+            </button>
 
-    <!-- Social signup buttons -->
-    <button type="button" class="social-btn linkedin-btn">
-        <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/linkedin.svg" width="20">
-        Continue with LinkedIn
-    </button>
-
-    <button type="button" class="social-btn google-btn">
-        <img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/google.svg" width="20">
-        Continue with Google
-    </button>
-
-    <p class="divider">Or, sign up with email</p>
-
-    <?php if (!empty($message)) echo $message; ?>
-
-    <form method="post">
-        <?php wp_nonce_field('custom_register_action', 'custom_register_nonce'); ?>
-
-        <div class="form-group">
-            <label for="name">Name</label>
-            <input type="text" name="name" id="name" required>
+            <button type="button" class="social-btn google-btn">
+                <ion-icon name="logo-google"></ion-icon>
+                Continue with Google
+            </button>
         </div>
 
-        <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" name="email" id="email" required>
+        <p class="divider-text">Or, sign up with email</p>
+
+        <?php if (!empty($message)) echo $message; ?>
+
+        <form method="post">
+            <?php wp_nonce_field('custom_register_action', 'custom_register_nonce'); ?>
+
+            <div class="form-group">
+                <label for="name">Name</label>
+                <input type="text" name="name" id="name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" name="email" id="email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" name="password" id="password" required>
+            </div>
+
+            <div class="form-group remember-me">
+                <input type="checkbox" name="remember" id="remember">
+                <label for="remember">Remember me</label>
+            </div>
+
+            <button type="submit" class="btn-submit">Sign up</button>
+        </form>
+
+        <div class="divider">
+            <hr>
+            <p>Already a member?</p>
+            <hr>
         </div>
 
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" name="password" id="password" required>
-        </div>
+        <p class="suggest-text">
+            <a href="<?php echo site_url('/login/'); ?>">Sign in</a> in using your Spill the course
+            account.
+        </p>
 
-        <div class="form-group remember-me">
-            <input type="checkbox" name="remember" id="remember">
-            <label for="remember">Remember me</label>
-        </div>
-
-        <button type="submit" class="btn-submit">Sign up</button>
-    </form>
-
-    <div class="form-footer">
-        <hr>
-        <p>Already a member? <a href="<?php echo site_url('/login/'); ?>"><strong>Sign in</strong></a></p>
+        <p class="legal-text">
+            By proceeding, you agree to our <a href="#">Terms of Use</a> and confirm you have read our <a
+                href="#">Privacy and Cookie Statement</a>.
+        </p>
     </div>
-
-    <p class="legal-text">
-        By proceeding, you agree to our <a href="/terms-of-use">Terms of Use</a> and confirm you have read our <a
-            href="/privacy-policy">Privacy and Cookie Statement</a>.
-    </p>
 </div>
-
-<style>
-.custom-register-form {
-    max-width: 400px;
-    margin: 0 auto;
-    text-align: center;
-    font-family: Arial, sans-serif;
-}
-
-.custom-register-form h2 {
-    font-size: 22px;
-    margin-bottom: 10px;
-}
-
-.custom-register-form p {
-    margin: 8px 0;
-    color: #444;
-}
-
-.verified-note {
-    font-size: 14px;
-    color: green;
-    margin: 10px 0;
-}
-
-.social-btn {
-    width: 100%;
-    padding: 12px;
-    margin: 8px 0;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    background: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font-size: 16px;
-    cursor: pointer;
-}
-
-.divider {
-    margin: 20px 0;
-    font-size: 14px;
-    color: #666;
-}
-
-.form-group {
-    margin-bottom: 15px;
-    text-align: left;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-size: 14px;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 14px;
-}
-
-.remember-me {
-    display: flex;
-    align-items: center;
-}
-
-.remember-me label {
-    margin-left: 8px;
-    font-size: 14px;
-}
-
-.btn-submit {
-    width: 100%;
-    padding: 12px;
-    background: #00e28c;
-    border: none;
-    border-radius: 6px;
-    color: #fff;
-    font-size: 16px;
-    cursor: pointer;
-}
-
-.form-footer {
-    margin-top: 20px;
-    font-size: 14px;
-}
-
-.legal-text {
-    margin-top: 20px;
-    font-size: 12px;
-    color: #666;
-}
-
-.legal-text a {
-    color: #111;
-}
-</style>
 
 <?php
     return ob_get_clean();

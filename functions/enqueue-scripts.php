@@ -27,7 +27,9 @@ function reviewmvp_register_styles() {
         'reviewmvp-courses-style'               => 'assets/css/courses.css',
         'reviewmvp-single-course-style'         => 'assets/css/single-course.css',
         'reviewmvp-add-course-style'            => 'assets/css/add-course.css',
-        'reviewmvp-add-review-style'            => 'assets/css/add-review.css'
+        'reviewmvp-add-review-style'            => 'assets/css/add-review.css',
+        'reviewmvp-auth-style'                  => 'assets/css/auth.css',
+        'reviewmvp-reviewer-portal-style'       => 'assets/css/reviewer-portal.css'
     ];
 
     foreach ($styles as $handle => $path) {

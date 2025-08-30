@@ -1,0 +1,52 @@
+#reviewerPortal {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+#reviewerPortal.portal-layout {
+  display: flex;
+  font-family: var(--text-font-family);
+}
+#reviewerPortal .sidebar {
+  width: 220px;
+  background-color: var(--gray-background-color);
+  border: var(--border);
+  border-radius: 10px;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+#reviewerPortal .sidebar ul {
+  width: 100%;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+#reviewerPortal .sidebar a {
+  display: inline-block;
+  width: 100%;
+  padding: 10px 20px;
+  background-color: var(--white-background-color);
+  color: var(--secondary-color);
+  font-weight: 500;
+  font-size: 16px;
+  border-bottom: var(--border);
+  transition: ease 0.3s;
+}
+#reviewerPortal .sidebar a:hover {
+  background-color: var(--accent-color);
+}
+#reviewerPortal .sidebar a.logout {
+  background-color: rgb(255, 224, 230);
+}
+#reviewerPortal .sidebar a.logout:hover {
+  background-color: crimson;
+  color: var(--light-text-color);
+}
+
+#reviewerPortal .content {
+  flex: 1;
+  padding: 20px;
+}
