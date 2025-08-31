@@ -42,7 +42,7 @@ function featured_reviews_shortcode() {
                 // Reviewer info
                 $reviewer_id = get_post_meta($review_id, '_reviewer', true);
                 $user        = $reviewer_id ? get_userdata($reviewer_id) : null;
-                $reviewer    = $user ? $user->display_name : 'Anonymous';
+                $reviewer    = $user ? $user->display_name : 'Guest (Verified by Admin)';
 
                 // Meta fields
                 $good        = get_post_meta($review_id, '_review_good', true);

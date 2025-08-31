@@ -320,6 +320,9 @@
   margin-top: 10px;
   box-shadow: var(--box-shadow);
 }
+.select2-container--default .select2-results > .select2-results__options {
+  max-height: fit-content !important;
+}
 .select2-container--default .select2-results > .select2-results__options li {
   border-bottom: var(--border);
 }
@@ -372,8 +375,14 @@
   .select2-search__field:focus {
   border-color: var(--accent-color);
 }
+.select2-course {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
 .select2-results__option {
-  color: var(--dark-text-color);
+  color: var(--text-color);
   font-family: var(--text-font-family);
   font-weight: 400;
   font-size: 16px;
@@ -383,6 +392,23 @@
   .select2-results__option--highlighted.select2-results__option--selectable {
   background-color: var(--accent-color);
   color: var(--dark-text-color);
+}
+.select2-add-missing {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  color: var(--text-color);
+  font-family: var(--text-font-family);
+  font-weight: 600;
+  font-size: 16px;
+  text-decoration: none;
+}
+.select2-add-missing ion-icon {
+  font-size: 24px;
+  background-color: var(--gray-background-color);
+  border: var(--border);
+  border-radius: 4px;
+  padding: 5px;
 }
 #addReviewForm select option {
   background-color: var(--gray-background-color);

@@ -57,7 +57,7 @@ function reviewmvp_add_review_form() {
 
         <div class="form-heading-group">
             <h4 class="form-section-heading">How was your experience?</h4>
-            <p class="form-para">Share your overall thoughts and what you achieved</p>
+            <p class="form-para bold" style="margin-top: 19px;">Share your overall thoughts and what you achieved</p>
         </div>
 
         <div class="form-group">
@@ -77,24 +77,27 @@ function reviewmvp_add_review_form() {
         <div class="form-group">
             <label class="form-label">Your overall feedback <span class="required">*</span></label>
             <textarea name="review_message" id="reviewMessage" rows="5"></textarea>
-            <p class="form-para bold" style="margin-top: 10px">Tell us what you liked and what could have been better
-            </p>
             <div class="error-message"></div>
         </div>
 
-        <div class="form-row">
-            <div class="form-group">
-                <label for="reviewGood" class="form-label">What was good? <span class="required">*</span></label>
-                <textarea name="review_good" id="reviewGood" rows="5"
-                    placeholder="What you liked about the course? What worked well?"></textarea>
-                <div class="error-message"></div>
-            </div>
+        <div class="form-group">
+            <p class="form-para bold" style="margin-bottom: 24px">
+                Tell us what you liked and what could have been better
+            </p>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="reviewGood" class="form-label">What was good? <span class="required">*</span></label>
+                    <textarea name="review_good" id="reviewGood" rows="5"
+                        placeholder="What you liked about the course? What worked well?"></textarea>
+                    <div class="error-message"></div>
+                </div>
 
-            <div class="form-group">
-                <label for="reviewBad" class="form-label">What was bad? <span class="required">*</span></label>
-                <textarea name="review_bad" id="reviewBad" rows="5"
-                    placeholder="What could have been better? Outdated content, missing topics...."></textarea>
-                <div class="error-message"></div>
+                <div class="form-group">
+                    <label for="reviewBad" class="form-label">What was bad? <span class="required">*</span></label>
+                    <textarea name="review_bad" id="reviewBad" rows="5"
+                        placeholder="What could have been better? Outdated content, missing topics...."></textarea>
+                    <div class="error-message"></div>
+                </div>
             </div>
         </div>
 
@@ -134,7 +137,7 @@ function reviewmvp_add_review_form() {
         <?php
             $recommends = [
                 "Yes, I’d recommend it" => "recommendYes",
-                "No, I would’t" => "recommendNo"
+                "No, I wouldn’t" => "recommendNo"
             ]
         ?>
         <div class="form-group">
@@ -291,10 +294,12 @@ function reviewmvp_add_review_form() {
         </div>
 
         <div class="form-group">
+            <?php if (is_user_logged_in()): ?>
             <label for="reviewAnonymously" class="form-label anonymous">
                 <input type="checkbox" name="review_anonymously" id="reviewAnonymously">
                 <span><strong>Review anonymously</strong> (your name will not be shown publicly)</span>
             </label>
+            <?php endif; ?>
             <label for="reviewConsent" class="form-label consent">
                 <input type="checkbox" name="review_consent" id="reviewConsent">
                 I certify this review is based on my own experience and is my genuine opinion of this course, and that I
@@ -679,7 +684,6 @@ function reviewmvp_handle_review_submission() {
     $outcomes  = array_map('sanitize_text_field', (array)($_POST['review_outcome'] ?? []));
     $consent   = !empty($_POST['review_consent']);
 
-    // Validate required fields
     if (
         $course_id <= 0 || $rating <= 0 || empty($message) ||
         empty($quality) || empty($support) || empty($refund) || empty($recommend) ||
@@ -688,22 +692,43 @@ function reviewmvp_handle_review_submission() {
         wp_send_json_error('Please complete all required fields.');
     }
 
+    // Reviewer info (only for logged in users)
+    $reviewer_id   = 0;
+    $reviewer_name = '';
+    if (is_user_logged_in()) {
+        $current_user = wp_get_current_user();
+        $reviewer_id   = $current_user->ID;
+        $reviewer_name = $current_user->display_name;
+    }
+
     // Create review post
     $course_title = get_the_title($course_id);
 
+    if ($reviewer_id) {
+        $title_extra = " | Reviewer [ID:$reviewer_id | Name: $reviewer_name]";
+    } else {
+        $title_extra = " | Reviewer [Guest]";
+    }
+
     $post_id = wp_insert_post([
-        'post_title'   => 'Review for course: (ID-'.$course_id.') '.$course_title,
+        'post_title'   => 'Course [ID:'.$course_id.' | Title: '.$course_title.']'.$title_extra,
         'post_type'    => 'course_review',
         'post_status'  => 'pending',
+        'post_author'  => $reviewer_id ?: 0, // assign logged-in user as author
     ]);
 
     if (!$post_id) {
         wp_send_json_error('Something went wrong while saving review.');
     }
 
-    // Handle anonymous
-    $anonymously = !empty($_POST['review_anonymously']);
-    if ($anonymously) {
+    // Save reviewer meta (only if logged in)
+    if ($reviewer_id) {
+        update_post_meta($post_id, '_reviewer', $reviewer_id);
+        update_post_meta($post_id, '_reviewer_name', sanitize_text_field($reviewer_name));
+    }
+
+    // Handle anonymous (only if logged in reviewer)
+    if ($reviewer_id && !empty($_POST['review_anonymously'])) {
         update_post_meta($post_id, '_review_status', ['anonymous']);
     }
 

@@ -297,7 +297,12 @@ while ( have_posts() ) : the_post();
                         // Reviewer info
                         $reviewer_id = get_post_meta($review_id, '_reviewer', true);
                         $user        = $reviewer_id ? get_userdata($reviewer_id) : null;
-                        $reviewer    = $user ? $user->display_name : 'Anonymous';
+                        $statuses = (array) get_post_meta($review_id, '_review_status', true);
+                        if (in_array('anonymous', $statuses)) {
+                            $reviewer = 'Anonymous (User chose to stay private)';
+                        } else {
+                            $reviewer = $user ? $user->display_name : 'Guest (Verified by Admin)';
+                        }
                         $colors = ['#FFB3BA','#FFDFBA','#FFFFBA','#BAFFC9','#BAE1FF','#E0BBE4','#FFCCE5','#D5E8D4','#FEE1E8','#F6EAC2','#C2F0F7','#D4E6F1','#F9E79F','#ABEBC6','#F5CBA7','#E8DAEF','#FADBD8','#D6EAF8','#FCF3CF','#D1F2EB'];
                         if ($user) {
                             $hash = crc32($user->ID);
@@ -326,7 +331,7 @@ while ( have_posts() ) : the_post();
                         $worth       = get_post_meta($review_id, '_review_worth', true);
                         $recommend   = get_post_meta($review_id, '_review_recommend', true);
                         $refund      = get_post_meta($review_id, '_review_refund', true);
-                        $proof       = get_post_meta($review_id, '_review_proof', true);
+                        $video       = get_post_meta($review_id, '_review_video', true);
                         $statuses = (array) get_post_meta($review_id, '_review_status', true);
                         $review['badges'] = array_intersect_key($statusBadges, array_flip($statuses));
                 ?>
@@ -449,8 +454,11 @@ while ( have_posts() ) : the_post();
                             </p>
                             <?php endif; ?>
 
-                            <?php if ($proof): ?>
-                            <img src="<?php echo esc_url($proof); ?>" alt="Proof of enrollment" class="proof">
+                            <?php if ($video): ?>
+                            <video class="video-review" controls>
+                                <source src="<?php echo esc_url($video); ?>" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -569,7 +577,12 @@ while ( have_posts() ) : the_post();
                             // Reviewer info
                             $reviewer_id = get_post_meta($review_id, '_reviewer', true);
                             $user        = $reviewer_id ? get_userdata($reviewer_id) : null;
-                            $reviewer    = $user ? $user->display_name : 'Anonymous';
+                            $statuses = (array) get_post_meta($review_id, '_review_status', true);
+                            if (in_array('anonymous', $statuses)) {
+                                $reviewer = 'Anonymous (User chose to stay private)';
+                            } else {
+                                $reviewer = $user ? $user->display_name : 'Guest (Verified by Admin)';
+                            }
                             $colors = ['#FFB3BA','#FFDFBA','#FFFFBA','#BAFFC9','#BAE1FF','#E0BBE4','#FFCCE5','#D5E8D4','#FEE1E8','#F6EAC2','#C2F0F7','#D4E6F1','#F9E79F','#ABEBC6','#F5CBA7','#E8DAEF','#FADBD8','#D6EAF8','#FCF3CF','#D1F2EB'];
                             if ($user) {
                                 $hash = crc32($user->ID);
@@ -597,7 +610,7 @@ while ( have_posts() ) : the_post();
                             $worth       = get_post_meta($review_id, '_review_worth', true);
                             $recommend   = get_post_meta($review_id, '_review_recommend', true);
                             $refund      = get_post_meta($review_id, '_review_refund', true);
-                            $proof       = get_post_meta($review_id, '_review_proof', true);
+                            $video       = get_post_meta($review_id, '_review_video', true);
                             $statuses = (array) get_post_meta($review_id, '_review_status', true);
                             $review['badges'] = array_intersect_key($statusBadges, array_flip($statuses));
                     ?>
@@ -713,8 +726,11 @@ while ( have_posts() ) : the_post();
                                 </p>
                                 <?php endif; ?>
 
-                                <?php if ($proof): ?>
-                                <img src="<?php echo esc_url($proof); ?>" alt="Proof of enrollment" class="proof">
+                                <?php if ($video): ?>
+                                <video class="video-review" controls>
+                                    <source src="<?php echo esc_url($video); ?>" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
                                 <?php endif; ?>
                             </div>
                         </div>

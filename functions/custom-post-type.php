@@ -489,7 +489,7 @@ function reviewmvp_render_review_meta_box($post) {
     echo '<p><label><strong>Recommend this course?</strong></label><br>';
     echo '<select name="review_recommend" style="width:100%;">';
     echo '<option value="">— Select Option —</option>';
-    $options_recommend = ['Yes, I’d recommend it','No, I would’t'];
+    $options_recommend = ['Yes, I’d recommend it','No, I wouldn’t'];
     foreach ($options_recommend as $opt) {
         echo '<option value="'.$opt.'" '.selected($meta['recommend'], $opt, false).'>'.$opt.'</option>';
     }

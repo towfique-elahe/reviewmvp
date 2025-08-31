@@ -121,32 +121,10 @@
 }
 
 /* Reviewer info */
-#featuredReviews .reviewer {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
 #featuredReviews .reviewer .name {
   font-weight: 400;
   font-size: 14px;
   margin: 0;
-}
-#featuredReviews .reviewer img {
-  width: 10px;
-  margin: 0;
-}
-#featuredReviews .reviewer .reviewer-badge {
-  padding: 0 8px;
-  font-weight: 400;
-  line-height: 0;
-}
-#featuredReviews .reviewer .reviewer-badge.verified {
-  padding: 0;
-}
-#featuredReviews .reviewer .reviewer-badge.verified img {
-  width: 14px;
 }
 
 /* Pros and cons */
@@ -230,14 +208,6 @@
 #featuredReviews .view-reviews:hover {
   background-color: var(--primary-color);
   color: var(--light-text-color);
-}
-
-/* Icon styling */
-#featuredReviews img {
-  width: 18px;
-  height: 18px;
-  vertical-align: middle;
-  margin-right: 5px;
 }
 
 /* Responsive design */
