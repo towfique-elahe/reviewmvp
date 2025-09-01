@@ -7,6 +7,11 @@
 
 // Shortcode: [add_review]
 function reviewmvp_add_review_form() {
+    
+    $linkedin_status = $_GET['linkedin'] ?? '';
+
+    $linkedin_client_id = esc_js( get_option('linkedin_client_id', '') );
+    
     ob_start(); ?>
 <form method="post" class="add-review" id="addReviewForm">
     <?php wp_nonce_field('reviewmvp_add_review_action', 'reviewmvp_add_review_nonce'); ?>
@@ -362,10 +367,21 @@ function reviewmvp_add_review_form() {
             <input type="hidden" name="review_linkedin" id="reviewLinkedin">
 
             <!-- OAuth connect -->
+            <?php if (!empty($linkedin_client_id)) : ?>
             <a href="#" id="connectLinkedin" class="connect-profile">
                 <ion-icon name="logo-linkedin"></ion-icon>
                 Connect your LinkedIn profile
             </a>
+            <?php else : ?>
+            <a href="#" id="connectLinkedin" class="connect-profile" style="display:none;">
+                <ion-icon name="logo-linkedin"></ion-icon>
+                Connect your LinkedIn profile
+            </a>
+            <p class="connect-profile">
+                <ion-icon name="close-circle-outline"></ion-icon>
+                LinkedIn connect not available
+            </p>
+            <?php endif; ?>
 
             <!-- fallback manual field (initially hidden) -->
             <div id="linkedinManual" style="display:none; margin-top:10px;">
@@ -524,7 +540,7 @@ document.querySelectorAll('.form-star-group').forEach(group => {
 document.getElementById("connectLinkedin").addEventListener("click", function(e) {
     e.preventDefault();
 
-    let clientId = "8619zvo75jvko7"; // LinkedIn Client ID
+    let clientId = "<?php echo $linkedin_client_id; ?>"; // from WP settings
     let redirectUri = "<?php echo site_url('/linkedin-callback/'); ?>";
     let state = Math.random().toString(36).substring(2);
 
@@ -538,6 +554,20 @@ document.getElementById("connectLinkedin").addEventListener("click", function(e)
         window.location.href = oauthUrl;
     } catch (err) {
         document.getElementById("linkedinManual").style.display = "block";
+    }
+});
+document.addEventListener("DOMContentLoaded", function() {
+    // Simple helper to get cookie
+    function getCookie(name) {
+        let value = "; " + document.cookie;
+        let parts = value.split("; " + name + "=");
+        if (parts.length === 2) return parts.pop().split(";").shift();
+    }
+
+    let linkedinProfile = getCookie("linkedin_profile");
+    if (linkedinProfile) {
+        document.getElementById("reviewLinkedin").value = linkedinProfile;
+        document.getElementById("linkedinConnected").style.display = "block";
     }
 });
 
@@ -702,7 +732,7 @@ jQuery(document).ready(function($) {
             return;
         }
 
-        // ✅ No errors → proceed AJAX
+        // No errors → proceed AJAX
         let form = $(this)[0];
         let formData = new FormData(form);
         formData.append('action', 'reviewmvp_submit_review');
@@ -746,14 +776,23 @@ add_action('init', function() {
     ) {
         $code = sanitize_text_field($_GET['code']);
 
+        // Fetch credentials from settings
+        $linkedin_client_id     = trim((string) get_option('linkedin_client_id', ''));
+        $linkedin_client_secret = trim((string) get_option('linkedin_client_secret', ''));
+
+        if (empty($linkedin_client_id) || empty($linkedin_client_secret)) {
+            wp_redirect(site_url('/write-a-review/?linkedin=error&reason=missing-creds'));
+            exit;
+        }
+
         // Exchange code for access token
         $response = wp_remote_post("https://www.linkedin.com/oauth/v2/accessToken", [
             'body' => [
                 'grant_type'    => 'authorization_code',
                 'code'          => $code,
                 'redirect_uri'  => site_url('/linkedin-callback/'),
-                'client_id'     => '8619zvo75jvko7',
-                'client_secret' => 'WPL_AP1.fyIbGk7LUs77imwB.Ul/W8A=='
+                'client_id'     => $linkedin_client_id,
+                'client_secret' => $linkedin_client_secret
             ]
         ]);
 
@@ -774,11 +813,9 @@ add_action('init', function() {
                 setcookie("linkedin_profile", $linkedinUrl, time()+3600, "/");
             }
 
-            // Always redirect back to review form
             wp_redirect(site_url('/write-a-review/?linkedin=success'));
             exit;
         } else {
-            // OAuth failed → fallback
             wp_redirect(site_url('/write-a-review/?linkedin=fallback'));
             exit;
         }
@@ -854,9 +891,27 @@ function reviewmvp_handle_review_submission() {
         update_post_meta($post_id, '_reviewer_name', sanitize_text_field($reviewer_name));
     }
 
-    // Handle anonymous (only if logged in reviewer)
+    // Status flags
+    $statuses = [];
+
+    // Anonymous (only if logged in reviewer)
     if ($reviewer_id && !empty($_POST['review_anonymously'])) {
-        update_post_meta($post_id, '_review_status', ['anonymous']);
+        $statuses[] = 'anonymous';
+    }
+
+    // LinkedIn verification
+    $linkedin = sanitize_text_field($_POST['review_linkedin'] ?? ($_COOKIE['linkedin_profile'] ?? ''));
+    if (empty($linkedin) && !empty($_POST['review_linkedin_manual'])) {
+        $linkedin = sanitize_text_field($_POST['review_linkedin_manual']);
+    }
+    if (!empty($linkedin)) {
+        update_post_meta($post_id, '_review_linkedin', esc_url_raw($linkedin));
+        $statuses[] = 'verified'; // ✅ mark as verified
+    }
+
+    // Save statuses if any
+    if (!empty($statuses)) {
+        update_post_meta($post_id, '_review_status', $statuses);
     }
 
     // LinkedIn profile (OAuth or manual)

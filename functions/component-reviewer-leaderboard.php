@@ -80,41 +80,60 @@ function reviewmvp_reviewer_leaderboard() {
     </aside>
 
     <main class="content">
+        <div class="menu-toggle" onclick="toggleSidebar()">
+            <ion-icon name="menu-outline"></ion-icon> Menu
+        </div>
+        <div class="overlay" onclick="toggleSidebar()"></div>
+
         <h2 class="heading">
             <ion-icon name="medal-outline"></ion-icon>
             Reviewer Leaderboard
         </h2>
-        <table class="leaderboard-table">
-            <thead>
-                <tr>
-                    <th>Rank</th>
-                    <th>Reviewer</th>
-                    <th>Reviews</th>
-                    <th>Courses</th>
-                    <th>Score</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php 
-      $rank = 1;
-      foreach ($leaderboard as $row): 
-          $is_current = ($row['id'] == $current_user->ID);
-    ?>
-                <tr class="<?php echo $is_current ? 'me' : ''; ?>">
-                    <td><?php echo $rank; ?></td>
-                    <td class="reviewer-cell">
-                        <?php echo esc_html($row['name']); ?> <?php echo $is_current ? '👈 (You)' : ''; ?>
-                    </td>
-                    <td><?php echo intval($row['reviews']); ?></td>
-                    <td><?php echo intval($row['courses']); ?></td>
-                    <td><?php echo intval($row['score']); ?></td>
-                </tr>
-                <?php $rank++; endforeach; ?>
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="leaderboard-table">
+
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Reviewer</th>
+                        <th>Reviews</th>
+                        <th>Courses</th>
+                        <th>Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php 
+                        $rank = 1;
+                        foreach ($leaderboard as $row): 
+                            $is_current = ($row['id'] == $current_user->ID);
+                    ?>
+                    <tr class="<?php echo $is_current ? 'me' : ''; ?>">
+                        <td><?php echo $rank; ?></td>
+                        <td class="reviewer-cell">
+                            <?php echo esc_html($row['name']); ?>
+                            <?php echo $is_current ? '<ion-icon name="caret-back-outline"></ion-icon>' : ''; ?>
+                        </td>
+                        <td><?php echo intval($row['reviews']); ?></td>
+                        <td><?php echo intval($row['courses']); ?></td>
+                        <td><?php echo intval($row['score']); ?></td>
+                    </tr>
+                    <?php $rank++; endforeach; ?>
+                </tbody>
+            </table>
+        </div>
 
     </main>
 </div>
+
+<script>
+function toggleSidebar() {
+    const sidebar = document.querySelector('#reviewerPortal .sidebar');
+    const overlay = document.querySelector('#reviewerPortal .overlay');
+    sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
+}
+</script>
+
 <?php
     return ob_get_clean();
 }

@@ -9,6 +9,14 @@
 function reviewmvp_register_styles() {
     $version = wp_get_theme()->get('Version');
 
+    // Enqueue Google Fonts
+    wp_enqueue_style(
+        'reviewmvp-google-fonts',
+        'https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Noto+Sans+Georgian:wght@100..900&display=swap',
+        [],
+        null
+    );
+
     // Enqueue Ionicons CSS
     wp_enqueue_style('ionicons', 'https://cdnjs.cloudflare.com/ajax/libs/ionicons/5.5.2/ionicons.min.css', [], null);
 

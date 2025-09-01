@@ -69,6 +69,11 @@ function reviewmvp_reviewer_profile_form() {
         </ul>
     </aside>
     <main class="content">
+        <div class="menu-toggle" onclick="toggleSidebar()">
+            <ion-icon name="menu-outline"></ion-icon> Menu
+        </div>
+        <div class="overlay" onclick="toggleSidebar()"></div>
+
         <h2 class="heading">
             <ion-icon name="person-outline"></ion-icon>
             My Profile
@@ -99,6 +104,16 @@ function reviewmvp_reviewer_profile_form() {
         </form>
     </main>
 </div>
+
+<script>
+function toggleSidebar() {
+    const sidebar = document.querySelector('#reviewerPortal .sidebar');
+    const overlay = document.querySelector('#reviewerPortal .overlay');
+    sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
+}
+</script>
+
 <?php
     return ob_get_clean();
 }

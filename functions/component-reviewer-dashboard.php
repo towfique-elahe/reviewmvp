@@ -58,6 +58,11 @@ function reviewmvp_reviewer_dashboard() {
         </ul>
     </aside>
     <main class="content">
+        <div class="menu-toggle" onclick="toggleSidebar()">
+            <ion-icon name="menu-outline"></ion-icon> Menu
+        </div>
+        <div class="overlay" onclick="toggleSidebar()"></div>
+
         <h2 class="heading">Welcome, <?php echo esc_html($user->display_name); ?> 👋</h2>
         <div class="dashboard-cards">
             <div class="card">
@@ -73,6 +78,16 @@ function reviewmvp_reviewer_dashboard() {
         </div>
     </main>
 </div>
+
+<script>
+function toggleSidebar() {
+    const sidebar = document.querySelector('#reviewerPortal .sidebar');
+    const overlay = document.querySelector('#reviewerPortal .overlay');
+    sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
+}
+</script>
+
 <?php
     return ob_get_clean();
 }

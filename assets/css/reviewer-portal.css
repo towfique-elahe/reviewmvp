@@ -1,3 +1,4 @@
+/* --- Base Layout (Desktop) --- */
 #reviewerPortal {
   width: 100%;
   max-width: 1200px;
@@ -7,7 +8,6 @@
   font-family: var(--text-font-family);
 }
 
-/* Sidebar */
 #reviewerPortal .sidebar {
   width: 240px;
   background: var(--white-background-color);
@@ -18,6 +18,8 @@
   flex-direction: column;
   justify-content: space-between;
   overflow: hidden;
+  transition: transform 0.3s ease;
+  z-index: 1000;
 }
 #reviewerPortal .sidebar ul {
   margin: 0;
@@ -54,6 +56,7 @@
   border: var(--border);
   border-radius: 10px;
   padding: 20px;
+  overflow: hidden;
 }
 #reviewerPortal .heading {
   color: var(--secondary-color);
@@ -128,10 +131,10 @@
 .leaderboard-table tr.me td {
   font-weight: 500;
 }
-.leaderboard-table .reviewer-cell {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.leaderboard-table tr.me ion-icon {
+  font-size: 20px;
+  margin-bottom: -4px;
+  margin-left: 5px;
 }
 .leaderboard-table img {
   border-radius: 50%;
@@ -180,4 +183,77 @@
 }
 .profile-form .btn:hover {
   background: var(--primary-color);
+}
+
+/* Make tables scrollable on smaller screens */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
+}
+
+.table-responsive table {
+  min-width: 600px; /* prevent columns from squishing too much */
+}
+
+#reviewerPortal .menu-toggle {
+  display: none;
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  /* Hide sidebar by default on mobile */
+  #reviewerPortal {
+    position: relative;
+  }
+  #reviewerPortal .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    max-width: 280px;
+    width: 80%;
+    transform: translateX(-100%);
+    border-radius: 0;
+  }
+  #reviewerPortal .sidebar.active {
+    transform: translateX(0);
+  }
+
+  /* Hamburger button */
+  #reviewerPortal .menu-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent-color);
+    color: var(--button-text-color);
+    padding: 10px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 15px;
+    width: fit-content;
+  }
+  #reviewerPortal .menu-toggle ion-icon {
+    font-size: 22px;
+  }
+
+  /* Dark overlay */
+  #reviewerPortal .overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 900;
+  }
+  #reviewerPortal .overlay.active {
+    display: block;
+  }
+}
+@media (max-width: 425px) {
+  #reviewerPortal .form-inline {
+    flex-direction: column;
+  }
 }
