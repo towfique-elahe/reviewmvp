@@ -358,6 +358,7 @@
 .select2-container--open .select2-dropdown--below {
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
+  overflow: hidden;
 }
 .select2-search--dropdown {
   padding: 10px;
@@ -393,7 +394,7 @@
   background-color: var(--accent-color);
   color: var(--dark-text-color);
 }
-.select2-add-missing {
+.select2-missing-course {
   display: flex;
   align-items: center;
   gap: 13px;
@@ -403,7 +404,7 @@
   font-size: 16px;
   text-decoration: none;
 }
-.select2-add-missing ion-icon {
+.select2-missing-course ion-icon {
   font-size: 24px;
   background-color: var(--gray-background-color);
   border: var(--border);

@@ -30,26 +30,118 @@ function reviewmvp_add_review_form() {
         <div class="form-group">
             <label for="reviewCourse" class="form-label">Course title <span class="required">*</span></label>
             <div class="custom-select-wrapper">
+                <?php
+                    $guest_pending_course = 0;
+                    if (!is_user_logged_in()) {
+                        if (!session_id()) {
+                            session_start();
+                        }
+                        $guest_pending_course = $_SESSION['guest_last_course_id'] ?? 0;
+                    }
+                ?>
                 <select name="review_course" id="reviewCourse">
                     <option value="" selected disabled>— Select Course —</option>
                     <?php 
                         $selected_course_id = isset($_GET['course_id']) ? intval($_GET['course_id']) : 0;
 
-                        $courses = get_posts([
+                        $args = [
                             'post_type'   => 'course',
                             'numberposts' => -1,
                             'orderby'     => 'title',
-                            'order'       => 'ASC'
-                        ]);
+                            'order'       => 'ASC',
+                            'post_status' => 'publish',
+                        ];
+
+                        // If logged in reviewer → include only THEIR pending courses
+                        if (is_user_logged_in()) {
+                            $user = wp_get_current_user();
+                            if (in_array('reviewer', (array) $user->roles)) {
+                                $args['post_status'] = ['publish','pending'];
+                                $args['meta_query'] = [
+                                    'relation' => 'OR',
+                                    // only this reviewer’s pending courses
+                                    [
+                                        'relation' => 'AND',
+                                        [
+                                            'key'     => '_course_reviewer',
+                                            'value'   => $user->ID,
+                                            'compare' => '='
+                                        ],
+                                        [
+                                            'key'     => '_course_status_flag', // optional helper meta if needed
+                                            'compare' => 'EXISTS'
+                                        ]
+                                    ],
+                                    // all published courses (ignore reviewer meta)
+                                    [
+                                        'key'     => '_course_reviewer',
+                                        'compare' => 'NOT EXISTS'
+                                    ],
+                                    [
+                                        'key'     => '_course_reviewer',
+                                        'compare' => 'EXISTS'
+                                    ]
+                                ];
+                            }
+                        }
+
+                        // If guest has a pending course → include it in query
+                        if (!is_user_logged_in() && $guest_pending_course) {
+                            $args['post_status'] = ['publish', 'pending'];
+                        }
+
+                        $courses = get_posts($args);
+
+                        // If reviewer has exactly one pending course → auto-select it
+                        if (is_user_logged_in()) {
+                            $user = wp_get_current_user();
+                            if (in_array('reviewer', (array) $user->roles) && !$selected_course_id) {
+                                $pending_courses = array_filter($courses, function($c) use ($user) {
+                                    return $c->post_status === 'pending' && get_post_meta($c->ID, '_course_reviewer', true) == $user->ID;
+                                });
+                                if (count($pending_courses) === 1) {
+                                    $selected_course_id = reset($pending_courses)->ID;
+                                }
+                            }
+                        }
+
+                        // Auto select guest's pending course
+                        if ($guest_pending_course && !$selected_course_id) {
+                            $selected_course_id = $guest_pending_course;
+                        }
 
                         foreach ($courses as $course) {
+                            // If it’s pending
+                            if ($course->post_status === 'pending') {
+                                $course_reviewer = get_post_meta($course->ID, '_course_reviewer', true);
+
+                                if (is_user_logged_in()) {
+                                    // Logged-in reviewer → only their pending
+                                    if ($course_reviewer != get_current_user_id()) {
+                                        continue;
+                                    }
+                                } else {
+                                    // Guest → only their last added pending
+                                    if ($course->ID != $guest_pending_course) {
+                                        continue;
+                                    }
+                                }
+                            }
+
                             $platform = get_post_meta($course->ID, '_course_provider', true); 
                             $selected = $selected_course_id === $course->ID ? 'selected' : '';
+
+                            $label = $course->post_title;
+                            if ($course->post_status === 'pending') {
+                                $label .= ' (Pending)';
+                            }
+
                             echo '<option value="'.$course->ID.'" data-platform="'.esc_attr($platform).'" '.$selected.'>'
-                                .esc_html($course->post_title).
+                                .esc_html($label).
                                 '</option>';
                         }
                     ?>
+                    <option value="custom_add_course" data-custom="true">Can’t find your course? click here</option>
                 </select>
             </div>
             <div class="error-message"></div>
@@ -331,29 +423,64 @@ jQuery(document).ready(function($) {
     });
 });
 
-// Show platform with course title in course selection
+// Course selection with select2
 jQuery(document).ready(function($) {
     $('#reviewCourse').select2({
         placeholder: "— Select Course —",
         allowClear: true,
         width: '100%',
         templateResult: function(state) {
-            if (!state.id) return state.text; // placeholder
+            if (!state.id) return state.text;
 
-            // get platform from data attribute
+            // Custom option with icon
+            if ($(state.element).data('custom')) {
+                return $(
+                    '<div class="select2-missing-course">' +
+                    '<ion-icon name="add-outline"></ion-icon>' +
+                    state.text +
+                    '</div>'
+                );
+            }
+
+            // Normal course option
             var platform = $(state.element).data('platform');
-
             if (platform) {
-                return $('<div class="selec2-course"><span class="select2-course-title">' + state
-                    .text + '</span><span class="select2-course-platform">' + platform +
-                    '</span></div>');
+                return $('<div class="select2-course">' +
+                    '<span class="select2-course-title">' + state.text + '</span>' +
+                    '<span class="select2-course-platform">' + platform + '</span>' +
+                    '</div>');
             }
             return state.text;
         },
         templateSelection: function(state) {
             if (!state.id) return state.text;
+
+            // Show icon in selection as well
+            if ($(state.element).data('custom')) {
+                return $(
+                    '<span><ion-icon name="add-outline"></ion-icon>' +
+                    state.text +
+                    '</span>'
+                );
+            }
+
             var platform = $(state.element).data('platform');
             return platform ? state.text + ' — ' + platform : state.text;
+        },
+        matcher: function(params, data) {
+            // Always show "custom" option
+            if ($(data.element).data('custom')) {
+                return data;
+            }
+            return $.fn.select2.defaults.defaults.matcher(params, data);
+        }
+    });
+
+    // Redirect if "custom" option selected
+    $('#reviewCourse').on('select2:select', function(e) {
+        var data = e.params.data;
+        if ($(data.element).data('custom')) {
+            window.location.href = "<?php echo site_url('/add-missing-course'); ?>";
         }
     });
 });

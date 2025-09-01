@@ -1,15 +1,16 @@
 #reviewerPortal {
   width: 100%;
   max-width: 1200px;
-  margin: 0 auto;
-}
-#reviewerPortal.portal-layout {
+  margin: 20px auto;
   display: flex;
+  gap: 20px;
   font-family: var(--text-font-family);
 }
+
+/* Sidebar */
 #reviewerPortal .sidebar {
-  width: 220px;
-  background-color: var(--gray-background-color);
+  width: 240px;
+  background: var(--white-background-color);
   border: var(--border);
   border-radius: 10px;
   min-height: 400px;
@@ -19,34 +20,164 @@
   overflow: hidden;
 }
 #reviewerPortal .sidebar ul {
-  width: 100%;
-  list-style: none;
-  padding: 0;
   margin: 0;
+  padding: 0;
+  list-style: none;
 }
 #reviewerPortal .sidebar a {
-  display: inline-block;
-  width: 100%;
-  padding: 10px 20px;
-  background-color: var(--white-background-color);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
   color: var(--secondary-color);
   font-weight: 500;
-  font-size: 16px;
   border-bottom: var(--border);
-  transition: ease 0.3s;
+  transition: all 0.2s;
 }
-#reviewerPortal .sidebar a:hover {
-  background-color: var(--accent-color);
+#reviewerPortal .sidebar a:hover,
+#reviewerPortal .sidebar li.active a {
+  background: var(--accent-color);
+  color: var(--button-text-color);
 }
 #reviewerPortal .sidebar a.logout {
-  background-color: rgb(255, 224, 230);
+  background: #ffe0e6;
 }
 #reviewerPortal .sidebar a.logout:hover {
-  background-color: crimson;
-  color: var(--light-text-color);
+  background: crimson;
+  color: white;
 }
 
+/* Content */
 #reviewerPortal .content {
   flex: 1;
+  background: var(--white-background-color);
+  border: var(--border);
+  border-radius: 10px;
   padding: 20px;
+}
+#reviewerPortal .heading {
+  color: var(--secondary-color);
+  font-family: var(--primary-font-family);
+  font-weight: 600;
+  font-size: 24px;
+  margin: 0;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+#reviewerPortal .heading ion-icon {
+  color: var(--primary-color);
+}
+
+/* Cards */
+.dashboard-cards {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.dashboard-cards .card {
+  flex: 1;
+  min-width: 200px;
+  background: var(--gray-background-color);
+  border: var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  transition: ease 0.2s;
+}
+.dashboard-cards .card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--box-shadow);
+}
+.dashboard-cards ion-icon {
+  font-size: 28px;
+  color: var(--accent-color);
+  margin-bottom: 8px;
+}
+.dashboard-cards h3 {
+  font-size: 32px;
+  margin: 0;
+  color: var(--secondary-color);
+}
+
+/* Table */
+.leaderboard-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.leaderboard-table th,
+.leaderboard-table td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+  font-family: var(--text-font-family);
+  color: var(--secondary-color);
+  font-size: 16px;
+  font-weight: 400;
+}
+.leaderboard-table thead {
+  background-color: var(--gray-background-color);
+}
+.leaderboard-table th {
+  font-weight: 500;
+}
+.leaderboard-table tr.me {
+  background: var(--accent-color);
+}
+.leaderboard-table tr.me td {
+  font-weight: 500;
+}
+.leaderboard-table .reviewer-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.leaderboard-table img {
+  border-radius: 50%;
+}
+
+/* Profile Form */
+.profile-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.profile-form label {
+  font-weight: 500;
+  font-size: 16px;
+  margin-bottom: 5px;
+  display: block;
+}
+.profile-form input {
+  width: 100%;
+  border: var(--border);
+  font-size: 16px;
+  outline: none;
+  color: var(--secondary-color) !important;
+}
+.profile-form input:hover,
+.profile-form input:focus {
+  border-color: var(--accent-color) !important;
+  background-color: var(--gray-background-color) !important;
+}
+.profile-form input:disabled {
+  border: var(--border) !important;
+  background-color: var(--gray-background-color) !important;
+}
+.profile-form .form-inline {
+  display: flex;
+  gap: 10px;
+}
+.profile-form .btn {
+  background: var(--accent-color);
+  color: var(--button-text-color);
+  cursor: pointer;
+  font-weight: 500;
+  margin-top: 20px;
+  transition: ease 0.3s;
+}
+.profile-form .btn:hover {
+  background: var(--primary-color);
 }

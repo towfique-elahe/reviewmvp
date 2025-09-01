@@ -33,11 +33,13 @@
     input.setAttribute("aria-activedescendant", "");
   }
 
-  function render(results) {
+  function render(results, term = "") {
     currentResults = results;
     list.innerHTML = "";
+
     if (results.length) {
       addMissing.style.display = "none";
+
       results.forEach((r, i) => {
         const li = document.createElement("li");
         li.className = "result-item";
@@ -52,6 +54,22 @@
         `;
         list.appendChild(li);
       });
+
+      // Add "search for term" option at bottom
+      if (term) {
+        const li = document.createElement("li");
+        li.className = "result-item search-option";
+        li.id = `cs-search-for`;
+        li.innerHTML = `
+          <a href="${window.location.origin}/courses/?c=${encodeURIComponent(
+          term
+        )}">
+            <div class="result-name"><ion-icon name="search-outline"></ion-icon> Search for "${term}"</div>
+            <div class="result-type">Search all courses</div>
+          </a>
+        `;
+        list.appendChild(li);
+      }
     } else {
       addMissing.style.display = "flex";
     }
@@ -69,13 +87,9 @@
       )
         .then((res) => res.json())
         .then((data) => {
-          if (data.length) {
-            render(data);
-          } else {
-            render([]); // show Add Missing button
-          }
+          render(data, search);
         })
-        .catch(() => render([]));
+        .catch(() => render([], search));
     }, 300);
   }
 
@@ -88,10 +102,12 @@
   }
 
   function move(delta) {
-    if (!currentResults.length) return;
-    activeIndex =
-      (activeIndex + delta + currentResults.length) % currentResults.length;
-    [...list.children].forEach((el, idx) => {
+    const items = [...list.children];
+    if (!items.length) return;
+
+    activeIndex = (activeIndex + delta + items.length) % items.length;
+
+    items.forEach((el, idx) => {
       el.setAttribute("aria-selected", String(idx === activeIndex));
       if (idx === activeIndex) {
         input.setAttribute("aria-activedescendant", el.id);
@@ -103,8 +119,9 @@
   // events
   input.addEventListener("focus", () => {
     open();
-    fetchResults(input.value); // will fetch empty q → latest 10
+    fetchResults(input.value); // initial fetch
   });
+
   input.addEventListener("input", () => {
     open();
     fetchResults(input.value);
@@ -118,20 +135,27 @@
       e.preventDefault();
       move(-1);
     } else if (e.key === "Enter") {
-      if (activeIndex >= 0 && currentResults[activeIndex]) {
-        e.preventDefault();
-        select(activeIndex);
-      } else if (!currentResults.length) {
-        e.preventDefault();
+      e.preventDefault();
+      const searchTerm = input.value.trim();
 
-        // Save term in session via AJAX, then redirect
+      if (activeIndex >= 0) {
+        // Go to selected result
+        const link = list.children[activeIndex]?.querySelector("a");
+        if (link) window.location.href = link.href;
+      } else if (currentResults.length) {
+        // No active selection but results exist → go to search results page
+        window.location.href = `${
+          window.location.origin
+        }/courses/?c=${encodeURIComponent(searchTerm)}`;
+      } else {
+        // No results → save term, redirect to no-course-found
         fetch(courseSearchData.ajaxUrl, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: new URLSearchParams({
             action: "reviewmvp_save_no_match_term",
             nonce: courseSearchData.nonce,
-            term: input.value.trim(),
+            term: searchTerm,
           }),
         }).then(() => {
           window.location.href = `${window.location.origin}/no-course-found/`;

@@ -189,3 +189,12 @@ function reviewmvp_widgets_init() {
     ) );
 }
 add_action( 'widgets_init', 'reviewmvp_widgets_init' );
+
+/**
+ * Allow JSON files
+ */
+function allow_json_uploads($mimes) {
+    $mimes['json'] = 'application/json';
+    return $mimes;
+}
+add_filter('upload_mimes', 'allow_json_uploads');

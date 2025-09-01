@@ -275,6 +275,18 @@
     // --- Render ---
     function render() {
       let arr = applyFilters(courses);
+
+      // Apply search term filter
+      if (searchTerm) {
+        const term = searchTerm.toLowerCase();
+        arr = arr.filter(
+          (c) =>
+            c.title.toLowerCase().includes(term) ||
+            (c.provider && c.provider.toLowerCase().includes(term)) ||
+            (c.shortDesc && c.shortDesc.toLowerCase().includes(term))
+        );
+      }
+
       arr = sortCourses(arr);
       const page = paginate(arr);
       state.pages = page.pages;
@@ -444,6 +456,18 @@
         resultsEl.innerHTML =
           '<div class="bc-muted">Unable to load courses.</div>';
       }
+    }
+
+    // --- Get search term from query string ---
+    function getSearchTerm() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("c") ? params.get("c").trim() : "";
+    }
+
+    const searchTerm = getSearchTerm();
+    const headingEl = root.querySelector(".bc-heading");
+    if (searchTerm && headingEl) {
+      headingEl.textContent = `Search results for "${searchTerm}"`;
     }
 
     fetchCourses();

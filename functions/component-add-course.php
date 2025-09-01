@@ -91,6 +91,7 @@ function reviewmvp_handle_course_submission() {
     $course_name       = sanitize_text_field($_POST['course_name'] ?? '');
     $course_url        = esc_url_raw($_POST['course_url'] ?? '');
     $course_instructor = sanitize_text_field($_POST['course_instructor'] ?? '');
+    $reviewer_value    = 'guest';
 
     if (empty($course_name) || empty($course_url) || empty($course_instructor)) {
         wp_send_json_error('All fields are required.');
@@ -102,11 +103,28 @@ function reviewmvp_handle_course_submission() {
         'post_status'  => 'pending',
     ));
 
+    // If user logged in and has reviewer role, assign them
+    if (is_user_logged_in()) {
+        $user = wp_get_current_user();
+        if (in_array('reviewer', (array) $user->roles)) {
+            $reviewer_value = $user->ID;
+        }
+    }
+
     if ($post_id) {
+        update_post_meta($post_id, '_course_reviewer', $reviewer_value);
         update_post_meta($post_id, '_course_link', $course_url);
         update_post_meta($post_id, '_course_instructor', array(
             'name' => $course_instructor,
         ));
+
+        // Store last added course ID for guest
+        if ($reviewer_value === 'guest') {
+            if (!session_id()) {
+                session_start();
+            }
+            $_SESSION['guest_last_course_id'] = $post_id;
+        }
 
         wp_send_json_success('Course submitted successfully.');
     }

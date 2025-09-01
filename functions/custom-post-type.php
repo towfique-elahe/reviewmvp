@@ -119,20 +119,23 @@ function reviewmvp_render_course_meta_box($post) {
         'course_level'       => get_post_meta($post->ID, '_course_level', true),
         'course_language'    => (array) get_post_meta($post->ID, '_course_language', true),
         'course_instructor'  => get_post_meta($post->ID, '_course_instructor', true),
+        'course_reviewer'    => get_post_meta($post->ID, '_course_reviewer', true),
     ];
 
-    if (!is_array($meta['course_instructor'])) {
-        $meta['course_instructor'] = [
-            'name' => '',
-            'position' => '',
-            'details' => '',
-            'facebook' => '',
-            'instagram' => '',
-            'linkedin' => '',
-            'twitter' => '',
-            'youtube' => '',
-        ];
-    }
+    $meta['course_instructor'] = is_array($meta['course_instructor']) ? $meta['course_instructor'] : [];
+
+    $defaults = [
+        'name'     => '',
+        'position' => '',
+        'details'  => '',
+        'facebook' => '',
+        'instagram'=> '',
+        'linkedin' => '',
+        'twitter'  => '',
+        'youtube'  => '',
+    ];
+
+    $meta['course_instructor'] = array_merge($defaults, $meta['course_instructor']);
 
     ?>
 <p>
@@ -259,6 +262,24 @@ function reviewmvp_render_course_meta_box($post) {
         placeholder="https://youtube.com/@instructor" style="width:100%;">
 </p>
 
+
+<hr>
+<h3>Suggestion Details</h3>
+<p>
+    <label><strong>Suggested by</strong></label><br>
+    <select name="course_reviewer" style="width:100%;">
+        <option value="">— Select Reviewer —</option>
+        <?php
+            $selected_reviewer = $meta['course_reviewer'];
+            $reviewers = get_users(['role' => 'reviewer']);
+            foreach ($reviewers as $rev) {
+            echo '<option value="'.$rev->ID.'" '.selected($selected_reviewer, $rev->ID, false).'>
+                '.esc_html($rev->display_name).'</option>';
+            }
+        ?>
+    </select>
+</p>
+
 <hr>
 <p><em>Course Description uses the post content (main editor).</em></p>
 <?php
@@ -271,6 +292,14 @@ function reviewmvp_save_course_meta_box($post_id) {
     if (!isset($_POST['reviewmvp_course_meta_box_nonce']) ||
         !wp_verify_nonce($_POST['reviewmvp_course_meta_box_nonce'], 'reviewmvp_save_course_meta_box')) {
         return;
+    }
+
+    // Reviewer (always save something)
+    if (isset($_POST['course_reviewer']) && $_POST['course_reviewer'] !== '') {
+        update_post_meta($post_id, '_course_reviewer', intval($_POST['course_reviewer']));
+    } else {
+        // fallback if admin leaves empty
+        update_post_meta($post_id, '_course_reviewer', 'guest');
     }
 
     if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
