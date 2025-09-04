@@ -461,6 +461,9 @@
     align-items: flex-start;
     gap: 19px;
   }
+  .bc-fbody.open {
+    max-height: 350px;
+  }
 }
 
 @media (max-width: 424px) {

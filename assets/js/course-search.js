@@ -37,42 +37,77 @@
     currentResults = results;
     list.innerHTML = "";
 
-    if (results.length) {
-      addMissing.style.display = "none";
+    // Limit the courses to a maximum of 4
+    const maxCourses = 4;
+    const courses = results
+      .filter((r) => r.type === "course")
+      .slice(0, maxCourses);
+    const categories = results.filter((r) => r.type === "category");
 
-      results.forEach((r, i) => {
+    if (courses.length) {
+      addMissing.style.display = "none"; // Hide the "Add missing" button if courses are found.
+
+      // Display courses
+      courses.forEach((r, i) => {
         const li = document.createElement("li");
         li.className = "result-item";
         li.id = `cs-opt-${i}`;
         li.setAttribute("role", "option");
         li.setAttribute("aria-selected", "false");
         li.innerHTML = `
-          <a href="${r.url}">
-            <div class="result-name">${r.name}</div>
-            <div class="result-type">${labels[r.type] || ""}</div>
-          </a>
-        `;
+        <a href="${r.url}">
+          <div class="result-name">${r.name}</div>
+          <div class="result-type">${labels[r.type] || ""}</div>
+        </a>
+      `;
         list.appendChild(li);
       });
-
-      // Add "search for term" option at bottom
-      if (term) {
-        const li = document.createElement("li");
-        li.className = "result-item search-option";
-        li.id = `cs-search-for`;
-        li.innerHTML = `
-          <a href="${window.location.origin}/courses/?c=${encodeURIComponent(
-          term
-        )}">
-            <div class="result-name"><ion-icon name="search-outline"></ion-icon> Search for "${term}"</div>
-            <div class="result-type">Search all courses</div>
-          </a>
-        `;
-        list.appendChild(li);
-      }
-    } else {
-      addMissing.style.display = "flex";
     }
+
+    // Display categories
+    categories.forEach((r, i) => {
+      const li = document.createElement("li");
+      li.className = "result-item";
+      li.id = `cs-opt-cat-${i}`;
+      li.setAttribute("role", "option");
+      li.setAttribute("aria-selected", "false");
+      li.innerHTML = `
+      <a href="${r.url}">
+        <div class="result-name">${r.name}</div>
+        <div class="result-type">${labels[r.type] || ""}</div>
+      </a>
+    `;
+      list.appendChild(li);
+    });
+
+    // Add "search for term" option at bottom if there's a term entered
+    if (term) {
+      const li = document.createElement("li");
+      li.className = "result-item search-option";
+      li.id = `cs-search-for`;
+      li.innerHTML = `
+      <a href="${window.location.origin}/courses/?c=${encodeURIComponent(
+        term
+      )}">
+        <div class="result-name"><ion-icon name="search-outline"></ion-icon> Search for "${term}"</div>
+        <div class="result-type">Search all courses</div>
+      </a>
+    `;
+      list.appendChild(li);
+    }
+
+    // Always add the "Add missing" button at the bottom
+    const addMissingItem = document.createElement("li");
+    addMissingItem.className = "result-item add-missing-item";
+    addMissingItem.innerHTML = `
+    <button class="add-missing" type="button">
+      <span class="plus">
+        <ion-icon name="add-outline"></ion-icon>
+      </span>
+      <span class="add-missing-text">${labels.noMatch}</span>
+    </button>
+  `;
+    list.appendChild(addMissingItem); // Append the "Add missing" button at the bottom.
   }
 
   function fetchResults(q) {

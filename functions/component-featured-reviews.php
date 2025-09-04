@@ -42,7 +42,7 @@ function featured_reviews_shortcode() {
                 // Reviewer info
                 $reviewer_id = get_post_meta($review_id, '_reviewer', true);
                 $user        = $reviewer_id ? get_userdata($reviewer_id) : null;
-                $reviewer    = $user ? $user->display_name : 'Guest (Verified by Admin)';
+                $reviewer    = $user ? $user->display_name : 'Guest <span style="color: #11b981">(Verified by Admin)</span>';
 
                 // Meta fields
                 $good        = get_post_meta($review_id, '_review_good', true);
@@ -82,9 +82,15 @@ function featured_reviews_shortcode() {
                 </span>
                 <span class="reviews-count"><?php echo esc_html($reviews_count); ?> reviews</span>
             </div>
+            <?php
+                if (!empty($course_provider)):
+            ?>
             <div class="right-col">
                 <span class="platform"><?php echo esc_html($course_provider); ?></span>
             </div>
+            <?php
+                endif;
+            ?>
         </div>
         <div class="course-info">
             <a href="<?= esc_attr($course_link) ?>">
@@ -102,7 +108,7 @@ function featured_reviews_shortcode() {
         </div>
         <div class="reviewer">
             <p class="name">
-                Reviewed by <?php echo esc_html($reviewer); ?>
+                Reviewed by <?php echo $reviewer; ?>
             </p>
             <?php
                 if (!empty($review['badges'])):
