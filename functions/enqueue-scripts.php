@@ -13,8 +13,8 @@ function reviewmvp_register_styles() {
     wp_enqueue_style(
         'reviewmvp-google-fonts',
         'https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Noto+Sans+Georgian:wght@100..900&display=swap',
-        [],
-        null
+        [],  // No dependencies
+        null  // No version specified
     );
 
     // Enqueue Ionicons CSS
