@@ -301,7 +301,7 @@ while ( have_posts() ) : the_post();
                         if (in_array('anonymous', $statuses)) {
                             $reviewer = 'Anonymous (User chose to stay private)';
                         } else {
-                            $reviewer = $user ? $user->display_name : 'Guest (Verified by Admin)';
+                            $reviewer = $user ? $user->display_name : 'Guest <span style="color: #11b981">(Verified by Admin)</span>';
                         }
                         $colors = ['#FFB3BA','#FFDFBA','#FFFFBA','#BAFFC9','#BAE1FF','#E0BBE4','#FFCCE5','#D5E8D4','#FEE1E8','#F6EAC2','#C2F0F7','#D4E6F1','#F9E79F','#ABEBC6','#F5CBA7','#E8DAEF','#FADBD8','#D6EAF8','#FCF3CF','#D1F2EB'];
                         if ($user) {
@@ -345,7 +345,7 @@ while ( have_posts() ) : the_post();
                         <div class="col">
                             <div class="reviewer">
                                 <span class="reviewer-name">
-                                    <?php echo esc_html($reviewer); ?>
+                                    <?php echo $reviewer; ?>
                                 </span>
                                 <?php
                                 if (!empty($review['badges'])):
@@ -581,7 +581,7 @@ while ( have_posts() ) : the_post();
                             if (in_array('anonymous', $statuses)) {
                                 $reviewer = 'Anonymous (User chose to stay private)';
                             } else {
-                                $reviewer = $user ? $user->display_name : 'Guest (Verified by Admin)';
+                                $reviewer = $user ? $user->display_name : 'Guest <span style="color: #11b981">(Verified by Admin)</span>';
                             }
                             $colors = ['#FFB3BA','#FFDFBA','#FFFFBA','#BAFFC9','#BAE1FF','#E0BBE4','#FFCCE5','#D5E8D4','#FEE1E8','#F6EAC2','#C2F0F7','#D4E6F1','#F9E79F','#ABEBC6','#F5CBA7','#E8DAEF','#FADBD8','#D6EAF8','#FCF3CF','#D1F2EB'];
                             if ($user) {
@@ -624,7 +624,7 @@ while ( have_posts() ) : the_post();
                             <div class="col">
                                 <div class="reviewer">
                                     <span class="reviewer-name">
-                                        <?php echo esc_html($reviewer); ?>
+                                        <?php echo $reviewer; ?>
                                     </span>
                                     <?php
                                 if (!empty($review['badges'])):
