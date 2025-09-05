@@ -473,3 +473,21 @@
     fetchCourses();
   });
 })();
+
+// courses-search.js
+document.addEventListener("DOMContentLoaded", function () {
+  const form = document.querySelector("#bcSearchForm");
+  const input = document.querySelector("#bcSearchInput");
+
+  if (!form || !input) return; // If the form or input doesn't exist, exit
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault(); // Prevent default form submission (no page reload)
+    const term = input.value.trim(); // Get the search term
+    if (term) {
+      window.location.href = `${
+        window.location.origin
+      }/courses/?c=${encodeURIComponent(term)}`; // Redirect to the courses page with the search term
+    }
+  });
+});

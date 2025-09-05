@@ -1,7 +1,6 @@
 .bc-container {
   max-width: 1200px;
   margin: 50px auto;
-  padding: 0 15px;
 }
 .bc-container img {
   border-radius: 0 !important;
@@ -11,13 +10,43 @@
   grid-template-columns: 280px 1fr;
   gap: 40px;
 }
+.bc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 19px;
+  margin-bottom: 68px;
+}
 .bc-heading {
   color: var(--secondary-color) !important;
   font-family: var(--primary-font-family) !important;
   font-weight: 700;
   font-size: 35px;
   margin: 0;
-  margin-bottom: 71px;
+}
+.bc-searchbar {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+}
+.bc-searchbar input {
+  width: 100%;
+  outline: none;
+}
+.bc-searchbar input:focus {
+  border-color: var(--accent-color) !important;
+}
+.bc-searchbar button {
+  font-size: 24px !important;
+  padding: 5px !important;
+  border-radius: 10px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  right: 10px;
+  top: 8px;
+  cursor: pointer;
 }
 .bc-sidebar-heading {
   color: var(--secondary-color) !important;
@@ -395,9 +424,11 @@
 }
 
 @media (max-width: 1024px) {
+  .bc-head {
+    margin-bottom: 30px;
+  }
   .bc-heading {
     font-size: 28px;
-    margin-bottom: 30px;
   }
   .bc-grid {
     gap: 20px;
@@ -453,6 +484,9 @@
 }
 
 @media (max-width: 767px) {
+  .bc-head {
+    flex-direction: column;
+  }
   .bc-heading {
     font-size: 24px;
   }

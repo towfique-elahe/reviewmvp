@@ -12,7 +12,18 @@ function browse_courses_shortcode() {
   ob_start(); ?>
 <div id="<?php echo esc_attr($uid); ?>" class="bc-wrap">
     <div class="bc-container">
-        <h3 class="bc-heading">Browse all courses</h3>
+        <div class="bc-head">
+            <h3 class="bc-heading">Browse all courses</h3>
+            <div class="bc-searchbar">
+                <form id="bcSearchForm" action="<?php echo esc_url( site_url('/courses/') ); ?>" method="get">
+                    <input type="text" name="c" id="bcSearchInput" placeholder="Search courses..."
+                        value="<?php echo isset($_GET['c']) ? esc_attr($_GET['c']) : ''; ?>" />
+                    <button type="submit">
+                        <ion-icon name="search-outline"></ion-icon>
+                    </button>
+                </form>
+            </div>
+        </div>
         <div class="bc-grid">
             <!-- Sidebar -->
             <aside class="bc-sidebar">
