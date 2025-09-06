@@ -223,13 +223,25 @@ add_action('init', function() {
             ]);
             $profileData = json_decode(wp_remote_retrieve_body($profile), true);
 
-            $email = sanitize_email($profileData['email'] ?? '');
-            $name  = sanitize_text_field($profileData['name'] ?? ($profileData['given_name'] ?? ''));
+            // pull fields safely
+            $sub   = isset($profileData['sub'])   ? sanitize_text_field($profileData['sub']) : '';
+            $email = isset($profileData['email']) ? sanitize_email($profileData['email']) : '';
+            $name  = isset($profileData['name'])  ? sanitize_text_field($profileData['name'])
+                    : trim(
+                        (isset($profileData['given_name'])  ? sanitize_text_field($profileData['given_name'])  : '') . ' ' .
+                        (isset($profileData['family_name']) ? sanitize_text_field($profileData['family_name']) : '')
+                    );
+            $linkedinUrl = $sub ? 'https://www.linkedin.com/openid/id/' . rawurlencode($sub) : '';
 
             if ($email) {
                 // If user already exists, log them in
                 $user = get_user_by('email', $email);
                 if ($user) {
+                    // Save LinkedIn connect flags/meta
+                    if ($linkedinUrl) update_user_meta($user->ID, '_linkedin_profile', esc_url_raw($linkedinUrl));
+                    update_user_meta($user->ID, '_linkedin_connected', 'yes');
+                    if ($name) update_user_meta($user->ID, '_linkedin_name', $name);
+
                     wp_set_current_user($user->ID);
                     wp_set_auth_cookie($user->ID, true);
                     wp_redirect(site_url('/reviewer-dashboard/'));
@@ -246,13 +258,18 @@ add_action('init', function() {
                 $user_id = wp_create_user($username, $password, $email);
 
                 if (!is_wp_error($user_id)) {
-                    $user = new WP_User($user_id);
-                    $user->set_role('reviewer');
+                    $user_obj = new WP_User($user_id);
+                    $user_obj->set_role('reviewer');
 
                     wp_update_user([
                         'ID' => $user_id,
                         'display_name' => $name ?: $username
                     ]);
+
+                    // Save LinkedIn connect flags/meta
+                    if ($linkedinUrl) update_user_meta($user_id, '_linkedin_profile', esc_url_raw($linkedinUrl));
+                    update_user_meta($user_id, '_linkedin_connected', 'yes');
+                    if ($name) update_user_meta($user_id, '_linkedin_name', $name);
 
                     // Auto-login new user
                     wp_set_current_user($user_id);

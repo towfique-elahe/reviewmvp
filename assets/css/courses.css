@@ -32,6 +32,7 @@
 .bc-searchbar input {
   width: 100%;
   outline: none;
+  border-radius: 12px !important;
 }
 .bc-searchbar input:focus {
   border-color: var(--accent-color) !important;
@@ -39,7 +40,7 @@
 .bc-searchbar button {
   font-size: 24px !important;
   padding: 5px !important;
-  border-radius: 10px !important;
+  border-radius: 7px !important;
   display: flex;
   align-items: center;
   justify-content: center;

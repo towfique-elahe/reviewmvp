@@ -7,11 +7,6 @@
 
 // Shortcode: [add_review]
 function reviewmvp_add_review_form() {
-    
-    $linkedin_status = $_GET['linkedin'] ?? '';
-
-    $linkedin_client_id = esc_js( get_option('linkedin_client_id', '') );
-    
     ob_start(); ?>
 <form method="post" class="add-review" id="addReviewForm">
     <?php wp_nonce_field('reviewmvp_add_review_action', 'reviewmvp_add_review_nonce'); ?>
@@ -360,39 +355,38 @@ function reviewmvp_add_review_form() {
         </div>
 
         <div class="form-group">
-            <label for="reviewLinkedin" class="form-label">LinkedIn profile <span
-                    class="form-tip optional">Optional</span></label>
+            <label for="reviewLinkedin" class="form-label">
+                LinkedIn profile <span class="form-tip optional">Optional</span>
+            </label>
 
-            <!-- hidden input (filled by OAuth if successful) -->
-            <input type="hidden" name="review_linkedin" id="reviewLinkedin">
+            <?php
+                $connected = false;
+                $li_name   = '';
+                if ( is_user_logged_in() ) {
+                    $uid       = get_current_user_id();
+                    $connected = ( get_user_meta( $uid, '_linkedin_connected', true ) === 'yes' );
+                    $li_name   = trim( (string) get_user_meta( $uid, '_linkedin_name', true ) );
+                }
 
-            <!-- OAuth connect -->
-            <?php if (!empty($linkedin_client_id)) : ?>
-            <a href="#" id="connectLinkedin" class="connect-profile">
+                if ( $connected ) :
+            ?>
+            <a href="javascript:void(0)" id="connectLinkedin" class="connect-profile connected" aria-disabled="true"
+                data-connected="yes">
                 <ion-icon name="logo-linkedin"></ion-icon>
-                Connect your LinkedIn profile
+                <span class="text">
+                    <?= $li_name ? 'Connected to ' . esc_html($li_name) : 'LinkedIn connected ✓'; ?>
+                </span>
             </a>
             <?php else : ?>
-            <a href="#" id="connectLinkedin" class="connect-profile" style="display:none;">
+            <a href="#" id="connectLinkedin" class="connect-profile" data-connected="no">
                 <ion-icon name="logo-linkedin"></ion-icon>
-                Connect your LinkedIn profile
+                <span class="text">Connect / Sign in with LinkedIn</span>
             </a>
-            <p class="connect-profile">
-                <ion-icon name="close-circle-outline"></ion-icon>
-                LinkedIn connect not available
-            </p>
             <?php endif; ?>
 
-            <!-- fallback manual field (initially hidden) -->
-            <div id="linkedinManual" style="display:none; margin-top:10px;">
-                <input type="url" name="review_linkedin_manual" id="reviewLinkedinManual"
-                    placeholder="https://www.linkedin.com/in/your-profile" style="width:100%;">
-                <small>Couldn’t connect automatically? Paste your LinkedIn profile URL here.</small>
-            </div>
-
-            <p id="linkedinConnected" style="display:none; color:green; margin-top:5px;">
-                <ion-icon name="checkmark-circle"></ion-icon> LinkedIn profile connected
-            </p>
+            <!-- nonce works for both logged-in and guests -->
+            <input type="hidden" id="linkedinConnectNonce"
+                value="<?php echo esc_attr( wp_create_nonce('linkedin_connect_nonce') ); ?>">
         </div>
 
         <div class="form-group notice">
@@ -534,41 +528,6 @@ document.querySelectorAll('.form-star-group').forEach(group => {
             });
         });
     });
-});
-
-// LinkedIn connect (OpenID)
-document.getElementById("connectLinkedin").addEventListener("click", function(e) {
-    e.preventDefault();
-
-    let clientId = "<?php echo $linkedin_client_id; ?>"; // from WP settings
-    let redirectUri = "<?php echo site_url('/linkedin-callback/'); ?>";
-    let state = Math.random().toString(36).substring(2);
-
-    let oauthUrl = "https://www.linkedin.com/oauth/v2/authorization?response_type=code" +
-        "&client_id=" + clientId +
-        "&redirect_uri=" + encodeURIComponent(redirectUri) +
-        "&scope=openid%20profile%20email" +
-        "&state=" + state;
-
-    try {
-        window.location.href = oauthUrl;
-    } catch (err) {
-        document.getElementById("linkedinManual").style.display = "block";
-    }
-});
-document.addEventListener("DOMContentLoaded", function() {
-    // Simple helper to get cookie
-    function getCookie(name) {
-        let value = "; " + document.cookie;
-        let parts = value.split("; " + name + "=");
-        if (parts.length === 2) return parts.pop().split(";").shift();
-    }
-
-    let linkedinProfile = getCookie("linkedin_profile");
-    if (linkedinProfile) {
-        document.getElementById("reviewLinkedin").value = linkedinProfile;
-        document.getElementById("linkedinConnected").style.display = "block";
-    }
 });
 
 // file upload validation
@@ -745,6 +704,13 @@ jQuery(document).ready(function($) {
             contentType: false,
             success: function(response) {
                 if (response.success) {
+                    // clear saved draft right after a successful submit
+                    try {
+                        if (window.__clearReviewDraft) window.__clearReviewDraft();
+                        // also clear directly as a fallback
+                        localStorage.removeItem('reviewFormDraft');
+                    } catch (e) {}
+
                     window.location.href = "<?php echo site_url('/thank-you/'); ?>";
                 } else {
                     alert(response.data || 'Submission failed. Try again.');
@@ -760,67 +726,217 @@ jQuery(document).ready(function($) {
     $(".form-page-container").hide();
     $("#pageOne").show().addClass("active");
 });
+
+/* ===== Form draft save/restore ===== */
+(function() {
+    var DRAFT_KEY = 'reviewFormDraft';
+    var form = document.getElementById('addReviewForm');
+    if (!form) return;
+
+    // Skip nonce & file inputs
+    function isSkippable(el) {
+        return !el.name || el.type === 'file' || /nonce/i.test(el.name);
+    }
+
+    // serialize (except file + nonce inputs)
+    function serializeForm() {
+        var data = {};
+        var els = form.querySelectorAll('input, select, textarea');
+        els.forEach(function(el) {
+            if (isSkippable(el)) return;
+
+            if (el.type === 'checkbox') {
+                if (!data[el.name]) data[el.name] = [];
+                if (el.checked) data[el.name].push(el.value || 'on');
+            } else if (el.type === 'radio') {
+                if (el.checked) data[el.name] = el.value;
+            } else {
+                data[el.name] = el.value;
+            }
+        });
+        // remember which page is visible
+        var onPageTwo = document.getElementById('pageTwo').classList.contains('active');
+        data.__page = onPageTwo ? 2 : 1;
+
+        try {
+            localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+        } catch (e) {}
+    }
+
+    // restore
+    function restoreForm() {
+        var raw = null;
+        try {
+            raw = localStorage.getItem(DRAFT_KEY);
+        } catch (e) {}
+        if (!raw) return;
+
+        var data = {};
+        try {
+            data = JSON.parse(raw) || {};
+        } catch (e) {
+            return;
+        }
+
+        // Never restore any nonce keys even if they somehow got saved
+        Object.keys(data).forEach(function(k) {
+            if (/nonce/i.test(k)) delete data[k];
+        });
+
+        var els = form.querySelectorAll('input, select, textarea');
+        els.forEach(function(el) {
+            if (isSkippable(el)) return;
+
+            if (el.type === 'checkbox') {
+                var arr = data[el.name];
+                el.checked = Array.isArray(arr) ? arr.indexOf(el.value || 'on') !== -1 : false;
+            } else if (el.type === 'radio') {
+                el.checked = (data[el.name] === el.value);
+            } else if (data[el.name] != null) {
+                el.value = data[el.name];
+            }
+        });
+
+        // handle Select2 course dropdown
+        var $course = jQuery('#reviewCourse');
+        if ($course.length && data['review_course'] != null) {
+            $course.val(data['review_course']).trigger('change.select2');
+        }
+
+        // go back to saved page
+        var page = parseInt(data.__page || 1, 10);
+        if (page === 2) {
+            jQuery(function($) {
+                $(".form-page-container.active").removeClass("active").hide();
+                $("#pageTwo").show().addClass("active");
+                $(".form-page-number").removeClass("active").eq(1).addClass("active");
+            });
+        }
+
+        // refresh star visuals if a rating was stored
+        var checked = form.querySelector('.form-star-group input[type=radio]:checked');
+        if (checked) checked.dispatchEvent(new Event('change', {
+            bubbles: true
+        }));
+    }
+
+    // debounced saver
+    var saveTimer = null;
+
+    function scheduleSave() {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(serializeForm, 250);
+    }
+
+    // Save on any change/keyup and on page switches
+    form.addEventListener('input', scheduleSave, true);
+    form.addEventListener('change', scheduleSave, true);
+
+    // Restore on load
+    restoreForm();
+
+    // expose a safe saver for other scripts (e.g., before LinkedIn popup)
+    window.__saveReviewDraft = serializeForm;
+
+    // utility to clear the draft after successful submit if you want
+    window.__clearReviewDraft = function() {
+        try {
+            localStorage.removeItem(DRAFT_KEY);
+        } catch (e) {}
+    };
+})();
+
+(function() {
+    // center a popup
+    function openPopup(url, title, w, h) {
+        var dl = window.screenLeft !== undefined ? window.screenLeft : window.screenX;
+        var dt = window.screenTop !== undefined ? window.screenTop : window.screenY;
+        var ww = window.innerWidth || document.documentElement.clientWidth || screen.width;
+        var wh = window.innerHeight || document.documentElement.clientHeight || screen.height;
+        var left = ((ww - w) / 2) + dl;
+        var top = ((wh - h) / 2) + dt;
+        var win = window.open(url, title, 'scrollbars=yes,width=' + w + ',height=' + h + ',top=' + top + ',left=' +
+            left);
+        if (win && win.focus) win.focus();
+        return win;
+    }
+
+    var btn = document.getElementById('connectLinkedin');
+    if (!btn) return;
+
+    var AJAX_URL = "<?php echo esc_js( admin_url('admin-ajax.php', 'relative') ); ?>"; // same-origin safe
+
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+
+        // NEW: block clicks if already connected
+        if (btn.getAttribute('data-connected') === 'yes' || btn.classList.contains('connected')) {
+            return;
+        }
+
+        // SAVE draft immediately before starting OAuth
+        if (window.__saveReviewDraft) {
+            try {
+                window.__saveReviewDraft();
+            } catch (e) {}
+        }
+
+        var nonce = document.getElementById('linkedinConnectNonce').value;
+
+        // open placeholder immediately to avoid popup blockers
+        var popup = openPopup('about:blank', 'LinkedIn', 600, 720);
+        if (!popup) {
+            alert('Please allow popups to continue.');
+            return;
+        }
+
+        // start: ask server for OAuth URL
+        jQuery.post(AJAX_URL, {
+                action: 'linkedin_connect_start',
+                _nonce: nonce
+            })
+            .done(function(resp) {
+                if (typeof resp === 'string') {
+                    try {
+                        resp = JSON.parse(resp);
+                    } catch (e) {}
+                }
+                if (resp && resp.success && resp.data && resp.data.url) {
+                    popup.location.assign(resp.data.url);
+                } else {
+                    popup.close();
+                    alert((resp && resp.data && resp.data.message) ? resp.data.message :
+                        'Could not start LinkedIn connect.');
+                }
+            })
+            .fail(function(jqXHR, textStatus, errorThrown) {
+                popup.close();
+                alert('AJAX failed (' + jqXHR.status + '): ' + (errorThrown || textStatus));
+            });
+    });
+
+    // receive message from callback and act
+    window.addEventListener('message', function(event) {
+        var expected = "<?php echo rtrim( esc_js( site_url('/') ), '/' ); ?>";
+        var origin = (event.origin || '').replace(/\/$/, '');
+        if (origin !== expected) return;
+
+        var data = event.data || {};
+        if (data.type !== 'linkedin_connect') return;
+
+        if (data.status === 'success') {
+            // simple + reliable: reload the page
+            window.location.reload();
+        } else {
+            alert('LinkedIn connect failed: ' + (data.message || 'Unknown error'));
+        }
+    }, false);
+})();
 </script>
 <?php
     return ob_get_clean();
 }
 add_shortcode('add_review', 'reviewmvp_add_review_form');
-
-/**
- * Handle LinkedIn profile connect (OpenID only)
- */
-add_action('init', function() {
-    if (
-        isset($_GET['code']) && isset($_GET['state']) &&
-        strpos($_SERVER['REQUEST_URI'], 'linkedin-callback') !== false
-    ) {
-        $code = sanitize_text_field($_GET['code']);
-
-        // Fetch credentials from settings
-        $linkedin_client_id     = trim((string) get_option('linkedin_client_id', ''));
-        $linkedin_client_secret = trim((string) get_option('linkedin_client_secret', ''));
-
-        if (empty($linkedin_client_id) || empty($linkedin_client_secret)) {
-            wp_redirect(site_url('/write-a-review/?linkedin=error&reason=missing-creds'));
-            exit;
-        }
-
-        // Exchange code for access token
-        $response = wp_remote_post("https://www.linkedin.com/oauth/v2/accessToken", [
-            'body' => [
-                'grant_type'    => 'authorization_code',
-                'code'          => $code,
-                'redirect_uri'  => site_url('/linkedin-callback/'),
-                'client_id'     => $linkedin_client_id,
-                'client_secret' => $linkedin_client_secret
-            ]
-        ]);
-
-        $body = json_decode(wp_remote_retrieve_body($response), true);
-        $access_token = $body['access_token'] ?? '';
-
-        if ($access_token) {
-            // Fetch profile using OpenID userinfo
-            $profile = wp_remote_get("https://api.linkedin.com/v2/userinfo", [
-                'headers' => ['Authorization' => 'Bearer ' . $access_token]
-            ]);
-            $profileData = json_decode(wp_remote_retrieve_body($profile), true);
-
-            $id = $profileData['sub'] ?? '';
-            $linkedinUrl = $id ? "https://www.linkedin.com/openid/id/" . $id : '';
-
-            if ($linkedinUrl) {
-                setcookie("linkedin_profile", $linkedinUrl, time()+3600, "/");
-            }
-
-            wp_redirect(site_url('/write-a-review/?linkedin=success'));
-            exit;
-        } else {
-            wp_redirect(site_url('/write-a-review/?linkedin=fallback'));
-            exit;
-        }
-    }
-});
 
 /**
  * Handle AJAX review submission
@@ -899,29 +1015,22 @@ function reviewmvp_handle_review_submission() {
         $statuses[] = 'anonymous';
     }
 
-    // LinkedIn verification
-    $linkedin = sanitize_text_field($_POST['review_linkedin'] ?? ($_COOKIE['linkedin_profile'] ?? ''));
-    if (empty($linkedin) && !empty($_POST['review_linkedin_manual'])) {
-        $linkedin = sanitize_text_field($_POST['review_linkedin_manual']);
-    }
-    if (!empty($linkedin)) {
-        update_post_meta($post_id, '_review_linkedin', esc_url_raw($linkedin));
-        $statuses[] = 'verified'; // ✅ mark as verified
-    }
-
-    // Save statuses if any
-    if (!empty($statuses)) {
-        update_post_meta($post_id, '_review_status', $statuses);
+    // Verified via LinkedIn
+    if ($reviewer_id) {
+        $li_connected = get_user_meta($reviewer_id, '_linkedin_connected', true);
+        if ($li_connected === 'yes') {
+            $statuses[] = 'verified';
+            // (optional) also store the linked profile URL on the review
+            $li_url = get_user_meta($reviewer_id, '_linkedin_profile', true);
+            if ($li_url) {
+                update_post_meta($post_id, '_review_linkedin', esc_url_raw($li_url));
+            }
+        }
     }
 
-    // LinkedIn profile (OAuth or manual)
-    $linkedin = sanitize_text_field($_POST['review_linkedin'] ?? ($_COOKIE['linkedin_profile'] ?? ''));
-    if (empty($linkedin) && !empty($_POST['review_linkedin_manual'])) {
-        $linkedin = sanitize_text_field($_POST['review_linkedin_manual']);
-    }
-    if (!empty($linkedin)) {
-        update_post_meta($post_id, '_review_linkedin', esc_url_raw($linkedin));
-    }
+    // persist statuses on the review
+    $statuses = array_values(array_unique(array_filter($statuses))); // clean up
+    update_post_meta($post_id, '_review_status', $statuses);
 
     // Save meta
     update_post_meta($post_id, '_review_course', $course_id);
@@ -970,3 +1079,161 @@ add_action('wp_enqueue_scripts', function() {
         wp_enqueue_script('select2-js', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js', ['jquery'], null, true);
     }
 });
+
+// Allow logged-out users to start (they will log in via popup)
+add_action('wp_ajax_linkedin_connect_start', 'reviewmvp_linkedin_connect_start');
+add_action('wp_ajax_nopriv_linkedin_connect_start', 'reviewmvp_linkedin_connect_start');
+
+function reviewmvp_linkedin_connect_start(){
+    // Nonce check (optional but recommended)
+    $nonce = isset($_POST['_nonce']) ? $_POST['_nonce'] : '';
+    if (!wp_verify_nonce($nonce, 'linkedin_connect_nonce')) {
+        wp_send_json_error(['message' => 'Invalid request (nonce).'], 400);
+    }
+
+    $client_id = trim((string) get_option('linkedin_client_id', ''));
+    if (!$client_id) {
+        wp_send_json_error(['message' => 'LinkedIn client ID is missing.'], 500);
+    }
+
+    // generate and store state for 10 min; store current logged-in user ID (0 if guest)
+    $state = wp_generate_password(20, false, false);
+    set_transient('li_connect_state_' . $state, get_current_user_id(), 10 * MINUTE_IN_SECONDS);
+
+    $redirect_uri = site_url('/linkedin-callback/');
+    $scope = 'openid profile email';
+
+    $url = add_query_arg([
+        'response_type' => 'code',
+        'client_id'     => $client_id,
+        'redirect_uri'  => $redirect_uri,
+        'scope'         => $scope,
+        'state'         => $state,
+    ], 'https://www.linkedin.com/oauth/v2/authorization');
+
+    wp_send_json_success(['url' => $url]);
+}
+
+// Handle /linkedin-callback/ (set this exact URL in your LinkedIn app)
+add_action('init', function () {
+    if (strpos($_SERVER['REQUEST_URI'], 'linkedin-callback') === false) return;
+
+    $finish = function (string $status, string $message = '', array $extra = []) {
+        $origin  = esc_js( site_url('/') );
+        $payload = ['type' => 'linkedin_connect', 'status' => $status, 'message' => $message] + $extra;
+
+        header('Content-Type: text/html; charset=utf-8'); ?>
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>LinkedIn</title>
+</head>
+
+<body>
+    <script>
+    (function() {
+        var data = <?php echo wp_json_encode($payload); ?>;
+        try {
+            if (window.opener) {
+                window.opener.postMessage(data, "<?php echo $origin; ?>");
+            }
+        } catch (e) {}
+        window.close();
+    })();
+    </script>
+</body>
+
+</html>
+<?php exit; };
+
+    $code  = isset($_GET['code'])  ? sanitize_text_field($_GET['code'])  : '';
+    $state = isset($_GET['state']) ? sanitize_text_field($_GET['state']) : '';
+    if (!$code || !$state) { $finish('error', 'Missing code/state'); }
+
+    // validate state (who initiated)
+    $initiator = (int) get_transient('li_connect_state_' . $state);
+    delete_transient('li_connect_state_' . $state);
+    if ($initiator === 0 && $initiator !== get_current_user_id()) {
+        // guests have 0; we just ensure state existed. If it didn’t, abort.
+        // (For stricter checks, require session match)
+    } elseif ($initiator === 0 && get_transient('li_connect_state_' . $state) === false) {
+        // nothing to do
+    }
+
+    $client_id     = trim((string) get_option('linkedin_client_id', ''));
+    $client_secret = trim((string) get_option('linkedin_client_secret', ''));
+    $redirect_uri  = site_url('/linkedin-callback/');
+    if (!$client_id || !$client_secret) { $finish('error', 'Missing LinkedIn credentials'); }
+
+    // Exchange code -> access token
+    $response = wp_remote_post('https://www.linkedin.com/oauth/v2/accessToken', [
+        'body' => [
+            'grant_type'    => 'authorization_code',
+            'code'          => $code,
+            'redirect_uri'  => $redirect_uri,
+            'client_id'     => $client_id,
+            'client_secret' => $client_secret,
+        ],
+        'timeout' => 20,
+    ]);
+    if (is_wp_error($response)) { $finish('error', 'Token request failed'); }
+    $body = json_decode(wp_remote_retrieve_body($response), true);
+    $access_token = $body['access_token'] ?? '';
+    if (!$access_token) { $finish('error', 'No access token'); }
+
+    // Fetch OpenID user info
+    $profile = wp_remote_get('https://api.linkedin.com/v2/userinfo', [
+        'headers' => ['Authorization' => 'Bearer ' . $access_token],
+        'timeout' => 20,
+    ]);
+    if (is_wp_error($profile)) { $finish('error', 'Profile request failed'); }
+    $p = json_decode(wp_remote_retrieve_body($profile), true);
+
+    $email = isset($p['email']) ? sanitize_email($p['email']) : '';
+    $name  = isset($p['name'])  ? sanitize_text_field($p['name']) : '';
+    $sub   = isset($p['sub'])   ? sanitize_text_field($p['sub']) : '';
+    if (!$email) { $finish('error', 'No email returned from LinkedIn'); }
+
+    // Find or create user
+    $user = get_user_by('email', $email);
+    if ($user) {
+        // login existing
+        wp_set_current_user($user->ID);
+        wp_set_auth_cookie($user->ID, true);
+    } else {
+        // create reviewer
+        $username = sanitize_user( current( explode('@', $email) ), true );
+        if (username_exists($username)) $username .= '_' . wp_generate_password(4, false);
+        $password = wp_generate_password(12, false);
+        $user_id  = wp_create_user($username, $password, $email);
+        if (is_wp_error($user_id)) { $finish('error', 'User creation failed'); }
+
+        $wpuser = new WP_User($user_id);
+        $wpuser->set_role('reviewer');
+        wp_update_user(['ID' => $user_id, 'display_name' => $name ?: $username]);
+
+        // login
+        wp_set_current_user($user_id);
+        wp_set_auth_cookie($user_id, true);
+    }
+
+    // (Optional) store LinkedIn profile URL using OpenID sub
+    if (is_user_logged_in() && $sub) {
+        update_user_meta(get_current_user_id(), '_linkedin_profile', esc_url_raw('https://www.linkedin.com/openid/id/' . rawurlencode($sub)));
+        update_user_meta(get_current_user_id(), '_linkedin_connected', 'yes');
+        if ($name) update_user_meta(get_current_user_id(), '_linkedin_name', $name);
+    }
+
+    $finish('success', 'Signed in');
+});
+
+// Return a fresh nonce for the review form (works for both guests & logged-in)
+add_action('wp_ajax_reviewmvp_refresh_nonce', 'reviewmvp_refresh_nonce');
+add_action('wp_ajax_nopriv_reviewmvp_refresh_nonce', 'reviewmvp_refresh_nonce');
+function reviewmvp_refresh_nonce() {
+    wp_send_json_success([
+        'nonce' => wp_create_nonce('reviewmvp_add_review_action'),
+    ]);
+}

@@ -193,10 +193,12 @@ add_action('init', function() {
             ]);
             $profileData = json_decode(wp_remote_retrieve_body($profile), true);
 
-            $id    = $profileData['sub'] ?? '';
-            $email = $profileData['email'] ?? '';
-            $name  = $profileData['name'] ?? ($profileData['given_name'] ?? '') . ' ' . ($profileData['family_name'] ?? '');
-            $linkedinUrl = $id ? "https://www.linkedin.com/openid/id/" . $id : '';
+            $id    = isset($profileData['sub']) ? sanitize_text_field($profileData['sub']) : '';
+            $email = isset($profileData['email']) ? sanitize_email($profileData['email']) : '';
+            $name  = isset($profileData['name'])  ? sanitize_text_field($profileData['name']) :
+                    trim( (isset($profileData['given_name']) ? sanitize_text_field($profileData['given_name']) : '') . ' ' .
+                        (isset($profileData['family_name']) ? sanitize_text_field($profileData['family_name']) : '') );
+            $linkedinUrl = $id ? "https://www.linkedin.com/openid/id/" . rawurlencode($id) : '';
 
             if ($email) {
                 // Check if user exists
@@ -207,8 +209,10 @@ add_action('init', function() {
                     wp_set_current_user($user->ID);
                     wp_set_auth_cookie($user->ID, true);
 
-                    // Add verified status
-                    update_user_meta($user->ID, '_linkedin_profile', esc_url_raw($linkedinUrl));
+                    // Save LinkedIn info + connected flag
+                    if ($linkedinUrl) update_user_meta($user->ID, '_linkedin_profile', esc_url_raw($linkedinUrl));
+                    update_user_meta($user->ID, '_linkedin_connected', 'yes');
+                    if ($name) update_user_meta($user->ID, '_linkedin_name', $name);
 
                 } else {
                     // Create new reviewer user
@@ -229,8 +233,10 @@ add_action('init', function() {
                             'display_name' => $name ?: $username
                         ]);
 
-                        // Save LinkedIn info
-                        update_user_meta($user_id, '_linkedin_profile', esc_url_raw($linkedinUrl));
+                        // Save LinkedIn info + connected flag
+                        if ($linkedinUrl) update_user_meta($user_id, '_linkedin_profile', esc_url_raw($linkedinUrl));
+                        update_user_meta($user_id, '_linkedin_connected', 'yes');
+                        if ($name) update_user_meta($user_id, '_linkedin_name', $name);
 
                         // Login new user
                         wp_set_current_user($user_id);
