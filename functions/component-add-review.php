@@ -1049,9 +1049,7 @@ add_action('init', function () {
     (function() {
         var data = <?php echo wp_json_encode($payload); ?>;
         try {
-            if (window.opener) {
-                window.opener.postMessage(data, "<?php echo $origin; ?>");
-            }
+            if (window.opener) window.opener.postMessage(data, "<?php echo $origin; ?>");
         } catch (e) {}
         window.close();
     })();
@@ -1061,23 +1059,24 @@ add_action('init', function () {
 </html>
 <?php exit; };
 
+    // --- Basic checks ---
     $code  = isset($_GET['code'])  ? sanitize_text_field($_GET['code'])  : '';
     $state = isset($_GET['state']) ? sanitize_text_field($_GET['state']) : '';
     if (!$code || !$state) { $finish('error', 'Missing code/state'); }
 
-    $initiator = (int) get_transient('li_connect_state_' . $state);
+    // Retrieve and clear initiator
+    $initiator   = get_transient('li_connect_state_' . $state);
     delete_transient('li_connect_state_' . $state);
-    if ($initiator === 0 && $initiator !== get_current_user_id()) {
-    } elseif ($initiator === 0 && get_transient('li_connect_state_' . $state) === false) {
-    }
+    $initiator_id = is_numeric($initiator) ? (int) $initiator : 0;
 
     $client_id     = trim((string) get_option('linkedin_client_id', ''));
     $client_secret = trim((string) get_option('linkedin_client_secret', ''));
     $redirect_uri  = site_url('/linkedin-callback/');
     if (!$client_id || !$client_secret) { $finish('error', 'Missing LinkedIn credentials'); }
 
+    // --- Exchange code for token ---
     $response = wp_remote_post('https://www.linkedin.com/oauth/v2/accessToken', [
-        'body' => [
+        'body'    => [
             'grant_type'    => 'authorization_code',
             'code'          => $code,
             'redirect_uri'  => $redirect_uri,
@@ -1087,46 +1086,123 @@ add_action('init', function () {
         'timeout' => 20,
     ]);
     if (is_wp_error($response)) { $finish('error', 'Token request failed'); }
-    $body = json_decode(wp_remote_retrieve_body($response), true);
+    $body         = json_decode(wp_remote_retrieve_body($response), true);
     $access_token = $body['access_token'] ?? '';
     if (!$access_token) { $finish('error', 'No access token'); }
 
+    // --- Fetch OpenID userinfo ---
     $profile = wp_remote_get('https://api.linkedin.com/v2/userinfo', [
         'headers' => ['Authorization' => 'Bearer ' . $access_token],
         'timeout' => 20,
     ]);
     if (is_wp_error($profile)) { $finish('error', 'Profile request failed'); }
-    $p = json_decode(wp_remote_retrieve_body($profile), true);
+    $p      = json_decode(wp_remote_retrieve_body($profile), true);
 
     $email = isset($p['email']) ? sanitize_email($p['email']) : '';
-    $name  = isset($p['name'])  ? sanitize_text_field($p['name']) : '';
-    $sub   = isset($p['sub'])   ? sanitize_text_field($p['sub']) : '';
+    $name  = isset($p['name'])  ? sanitize_text_field($p['name'])  : '';
+    $sub   = isset($p['sub'])   ? sanitize_text_field($p['sub'])   : '';
     if (!$email) { $finish('error', 'No email returned from LinkedIn'); }
 
-    $user = get_user_by('email', $email);
-    if ($user) {
-        wp_set_current_user($user->ID);
-        wp_set_auth_cookie($user->ID, true);
-    } else {
-        $username = sanitize_user( current( explode('@', $email) ), true );
-        if (username_exists($username)) $username .= '_' . wp_generate_password(4, false);
-        $password = wp_generate_password(12, false);
-        $user_id  = wp_create_user($username, $password, $email);
-        if (is_wp_error($user_id)) { $finish('error', 'User creation failed'); }
+    // Helper: find user already linked to this LinkedIn sub
+    $find_user_by_linkedin_sub = function(string $sub) {
+        if (!$sub) return null;
+        $query = new WP_User_Query([
+            'meta_key'   => '_linkedin_profile',
+            'meta_value' => 'https://www.linkedin.com/openid/id/' . rawurlencode($sub),
+            'number'     => 1,
+            'count_total'=> false,
+            'fields'     => 'all',
+        ]);
+        $results = $query->get_results();
+        return $results ? $results[0] : null;
+    };
 
-        $wpuser = new WP_User($user_id);
-        $wpuser->set_role('reviewer');
-        wp_update_user(['ID' => $user_id, 'display_name' => $name ?: $username]);
+    $existing_user_with_email = $email ? get_user_by('email', $email) : null;
+    $existing_user_with_sub   = $sub ? $find_user_by_linkedin_sub($sub) : null;
 
-        wp_set_current_user($user_id);
-        wp_set_auth_cookie($user_id, true);
+    // =========================
+    // LOGGED-IN INITIATOR FLOW
+    // =========================
+    if ($initiator_id > 0) {
+        // Force session to the initiator (User A) to avoid account switching
+        if (get_current_user_id() !== $initiator_id) {
+            wp_set_current_user($initiator_id);
+            wp_set_auth_cookie($initiator_id, true);
+        }
+        $user_a = get_user_by('id', $initiator_id);
+        if (!$user_a) { $finish('error', 'Session expired. Please try again.'); }
+
+        // Rule 1: LinkedIn email equals A's email -> verify A
+        if (strcasecmp($email, $user_a->user_email) === 0) {
+            update_user_meta($user_a->ID, '_linkedin_profile', esc_url_raw('https://www.linkedin.com/openid/id/' . rawurlencode($sub)));
+            update_user_meta($user_a->ID, '_linkedin_connected', 'yes');
+            if ($name) update_user_meta($user_a->ID, '_linkedin_name', $name);
+            update_user_meta($user_a->ID, '_linkedin_email', $email);
+            $finish('success', 'LinkedIn connected');
+        }
+
+        // Rule 2: LinkedIn email belongs to some other WP account (B) -> error (do not switch/link)
+        if ($existing_user_with_email && (int)$existing_user_with_email->ID !== (int)$user_a->ID) {
+            $finish('error', 'This LinkedIn email is already connected to a different account. Please sign in as that account or use a different LinkedIn profile.');
+        }
+
+        // Rule 3: LinkedIn email not used in WP -> link to A anyway
+        update_user_meta($user_a->ID, '_linkedin_profile', esc_url_raw('https://www.linkedin.com/openid/id/' . rawurlencode($sub)));
+        update_user_meta($user_a->ID, '_linkedin_connected', 'yes');
+        if ($name) update_user_meta($user_a->ID, '_linkedin_name', $name);
+        update_user_meta($user_a->ID, '_linkedin_email', $email);
+        $finish('success', 'LinkedIn connected');
     }
 
-    if (is_user_logged_in() && $sub) {
-        update_user_meta(get_current_user_id(), '_linkedin_profile', esc_url_raw('https://www.linkedin.com/openid/id/' . rawurlencode($sub)));
-        update_user_meta(get_current_user_id(), '_linkedin_connected', 'yes');
-        if ($name) update_user_meta(get_current_user_id(), '_linkedin_name', $name);
+    // ==============
+    // GUEST FLOW
+    // ==============
+    // 1) If some WP account is already linked to this exact LinkedIn user (same `sub`), log the guest into THAT account.
+    if ($existing_user_with_sub) {
+        wp_set_current_user($existing_user_with_sub->ID);
+        wp_set_auth_cookie($existing_user_with_sub->ID, true);
+
+        // Make sure core fields are up-to-date
+        update_user_meta($existing_user_with_sub->ID, '_linkedin_connected', 'yes');
+        if ($name) update_user_meta($existing_user_with_sub->ID, '_linkedin_name', $name);
+        if ($email) update_user_meta($existing_user_with_sub->ID, '_linkedin_email', $email);
+
+        $finish('success', 'Signed in');
     }
+
+    // 2) Else, if there’s an account with the same email, log into it and mark as connected.
+    if ($existing_user_with_email) {
+        wp_set_current_user($existing_user_with_email->ID);
+        wp_set_auth_cookie($existing_user_with_email->ID, true);
+
+        update_user_meta($existing_user_with_email->ID, '_linkedin_profile', esc_url_raw('https://www.linkedin.com/openid/id/' . rawurlencode($sub)));
+        update_user_meta($existing_user_with_email->ID, '_linkedin_connected', 'yes');
+        if ($name) update_user_meta($existing_user_with_email->ID, '_linkedin_name', $name);
+        if ($email) update_user_meta($existing_user_with_email->ID, '_linkedin_email', $email);
+
+        $finish('success', 'Signed in');
+    }
+
+    // 3) Otherwise, create a fresh reviewer and log in.
+    $username = sanitize_user( current( explode('@', $email) ), true );
+    if (username_exists($username)) $username .= '_' . wp_generate_password(4, false);
+    $password = wp_generate_password(12, false);
+    $user_id  = wp_create_user($username, $password, $email);
+    if (is_wp_error($user_id)) { $finish('error', 'User creation failed'); }
+
+    $wpuser = new WP_User($user_id);
+    $wpuser->set_role('reviewer');
+    wp_update_user(['ID' => $user_id, 'display_name' => $name ?: $username]);
+
+    wp_set_current_user($user_id);
+    wp_set_auth_cookie($user_id, true);
+
+    if ($sub) {
+        update_user_meta($user_id, '_linkedin_profile', esc_url_raw('https://www.linkedin.com/openid/id/' . rawurlencode($sub)));
+        update_user_meta($user_id, '_linkedin_connected', 'yes');
+    }
+    if ($name) update_user_meta($user_id, '_linkedin_name', $name);
+    if ($email) update_user_meta($user_id, '_linkedin_email', $email);
 
     $finish('success', 'Signed in');
 });
