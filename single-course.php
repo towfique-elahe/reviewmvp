@@ -90,6 +90,8 @@ while ( have_posts() ) : the_post();
         <div class="course-info-container">
             <div class="main">
                 <div class="course-head">
+                    <img src="<?= get_theme_media_url('real-review-badge.svg') ?>" alt="Real review badge"
+                        class="real-rating-mobile">
                     <?php if (!empty($provider)) : ?>
                     <span class="tag">
                         <?php echo esc_html($provider); ?>

@@ -117,7 +117,7 @@
   transition: ease 0.3s;
 }
 #auth .btn-submit:hover {
-  background-color: var(--primary-color);
+  background-color: var(--secondary-color);
   color: var(--light-text-color);
 }
 #auth .divider {

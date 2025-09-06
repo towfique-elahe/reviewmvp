@@ -432,9 +432,14 @@
   background-color: #04d380 !important;
   color: var(--button-text-color) !important;
 }
-#scDetails .course-info-container .real-rating {
+#scDetails .course-info-container .real-rating,
+#scDetails .course-info-container .real-rating-mobile {
   border-radius: 0;
   margin: 0;
+  width: 100%;
+}
+#scDetails .course-info-container .real-rating-mobile {
+  display: none;
 }
 #scDetails .course-info-container .course-details {
   border: var(--border);
@@ -780,7 +785,7 @@
   #scDetails .course-info-container .sidebar {
     padding-top: 20px;
   }
-  #scDetails .course-info-container .real-rating {
+  #scDetails .course-info-container .real-rating-mobile {
     display: block;
   }
   #scDetails .course-info-container .course-details {

@@ -305,6 +305,9 @@
   font-weight: 400;
   font-size: 14px !important;
 }
+.bc-author span {
+  font-weight: 600;
+}
 .bc-description {
   color: var(--secondary-color);
   font-family: var(--text-font-family);

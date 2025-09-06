@@ -241,7 +241,7 @@
           <a href="${c.link}" class="bc-title">${c.title}</a>
           ${
             c.instructor
-              ? `<div class="bc-author">By ${c.instructor}</div>`
+              ? `<div class="bc-author">By <span>${c.instructor}</span></div>`
               : ""
           }
           <div class="bc-description">${c.shortDesc}</div>
