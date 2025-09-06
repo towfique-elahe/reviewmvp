@@ -1,8 +1,5 @@
 <?php
 
-/**
- * Icon Helper
- */
 function get_theme_icon_url($icon_name) {
     $icon_path = get_template_directory() . '/assets/media/' . $icon_name;
     $icon_url  = get_template_directory_uri() . '/assets/media/' . $icon_name;
@@ -11,9 +8,6 @@ function get_theme_icon_url($icon_name) {
     return file_exists($icon_path) ? $icon_url : $icon_fallback;
 }
 
-/**
- * Media Helper
- */
 function get_theme_media_url($media_name) {
     $media_path = get_template_directory() . '/assets/media/' . $media_name;
     $media_url  = get_template_directory_uri() . '/assets/media/' . $media_name;
@@ -22,9 +16,6 @@ function get_theme_media_url($media_name) {
     return file_exists($media_path) ? $media_url : $media_fallback;
 }
 
-/**
- * Helper function to display rating stars
- */
 function get_rating_stars($rating) {
     $stars = "";
     for ($i = 1; $i <= 5; $i++) {
@@ -39,7 +30,6 @@ function get_rating_stars($rating) {
     return $stars;
 }
 
-// Helper function to get rating data
 function reviewmvp_get_course_rating_data($course_id) {
     global $wpdb;
 
@@ -72,10 +62,8 @@ function reviewmvp_get_course_rating_data($course_id) {
     $count   = count($ratings);
     $average = round(array_sum($ratings) / $count, 1);
 
-    // Count each star
     $counts = array_count_values($ratings);
 
-    // Initialize breakdown (percentages)
     $breakdown = [];
     for ($i = 5; $i >= 1; $i--) {
         $starCount = $counts[$i] ?? 0;
@@ -89,11 +77,9 @@ function reviewmvp_get_course_rating_data($course_id) {
     ];
 }
 
-// Helper function to get overall outcomes data
 function reviewmvp_get_course_outcomes($course_id) {
     global $wpdb;
 
-    // fetch all outcomes for reviews of this course
     $query = $wpdb->prepare("
         SELECT pm.meta_value
         FROM {$wpdb->postmeta} pm
@@ -115,9 +101,8 @@ function reviewmvp_get_course_outcomes($course_id) {
         return [];
     }
 
-    $reviewCount = count($rawOutcomes); // number of reviews for denominator
+    $reviewCount = count($rawOutcomes);
 
-    // Flatten arrays (stored as serialized arrays in DB)
     $outcomes = [];
     foreach ($rawOutcomes as $val) {
         $arr = maybe_unserialize($val);
@@ -136,7 +121,6 @@ function reviewmvp_get_course_outcomes($course_id) {
 
     $counts = array_count_values($outcomes);
 
-    // map to icons
     $icons = [
         "Improved Skill"    => "icon-improved-skill.svg",
         "Built Project"     => "icon-built-project.svg",
@@ -148,7 +132,6 @@ function reviewmvp_get_course_outcomes($course_id) {
 
     $overall = [];
     foreach ($counts as $label => $count) {
-        // percentage is outcome count divided by total reviews
         $percent = $reviewCount > 0 ? round(($count / $reviewCount) * 100) : 0;
         $key = sprintf("%s (%d%%)", $label, $percent);
         $overall[$key] = $icons[$label] ?? 'icon-default.svg';
@@ -157,11 +140,9 @@ function reviewmvp_get_course_outcomes($course_id) {
     return $overall;
 }
 
-// Helper function to get overall recommendation & worth data
 function reviewmvp_get_course_review_stats($course_id) {
     global $wpdb;
 
-    // Get recommendations
     $recommendQuery = $wpdb->prepare("
         SELECT pm.meta_value
         FROM {$wpdb->postmeta} pm
@@ -191,7 +172,6 @@ function reviewmvp_get_course_review_stats($course_id) {
         $recommendPercent = $totalReviews > 0 ? round(($yesCount / $totalReviews) * 100) : 0;
     }
 
-    // Get worth responses
     $worthQuery = $wpdb->prepare("
         SELECT pm.meta_value
         FROM {$wpdb->postmeta} pm

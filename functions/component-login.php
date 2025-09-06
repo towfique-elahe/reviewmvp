@@ -1,6 +1,5 @@
 <?php
 
-// Handle login submission before headers are sent
 add_action('template_redirect', function() {
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['custom_login_nonce'])) {
         if (wp_verify_nonce($_POST['custom_login_nonce'], 'custom_login_action')) {
@@ -30,12 +29,7 @@ add_action('template_redirect', function() {
     }
 });
 
-/**
- * Shortcode: [custom_login_form]
- * Displays a login form that only allows "reviewer" role users to login
- */
 function reviewmvp_custom_login_form() {
-    // If already logged in, show message
     if (is_user_logged_in()) {
         return '<p style="text-align:center;">You are already logged in.</p>';
     }
@@ -66,7 +60,6 @@ function reviewmvp_custom_login_form() {
         }
     ?>
 
-        <!-- Email login form -->
         <form method="post" action="">
             <?php wp_nonce_field('custom_login_action', 'custom_login_nonce'); ?>
 
@@ -153,9 +146,6 @@ function googleLogin() {
 }
 add_shortcode('custom_login_form', 'reviewmvp_custom_login_form');
 
-/**
- * LinkedIn Login (OpenID Connect)
- */
 add_action('init', function() {
     if (
         isset($_GET['code']) && isset($_GET['state']) &&
@@ -163,7 +153,6 @@ add_action('init', function() {
     ) {
         $code = sanitize_text_field($_GET['code']);
 
-        // Get credentials
         $linkedin_client_id     = trim((string) get_option('linkedin_client_id', ''));
         $linkedin_client_secret = trim((string) get_option('linkedin_client_secret', ''));
 
@@ -172,7 +161,6 @@ add_action('init', function() {
             exit;
         }
 
-        // Exchange code for token
         $response = wp_remote_post("https://www.linkedin.com/oauth/v2/accessToken", [
             'body' => [
                 'grant_type'    => 'authorization_code',
@@ -187,7 +175,6 @@ add_action('init', function() {
         $access_token = $body['access_token'] ?? '';
 
         if ($access_token) {
-            // Fetch LinkedIn profile
             $profile = wp_remote_get("https://api.linkedin.com/v2/userinfo", [
                 'headers' => ['Authorization' => 'Bearer ' . $access_token]
             ]);
@@ -201,21 +188,17 @@ add_action('init', function() {
             $linkedinUrl = $id ? "https://www.linkedin.com/openid/id/" . rawurlencode($id) : '';
 
             if ($email) {
-                // Check if user exists
                 $user = get_user_by('email', $email);
 
                 if ($user) {
-                    // Login existing
                     wp_set_current_user($user->ID);
                     wp_set_auth_cookie($user->ID, true);
 
-                    // Save LinkedIn info + connected flag
                     if ($linkedinUrl) update_user_meta($user->ID, '_linkedin_profile', esc_url_raw($linkedinUrl));
                     update_user_meta($user->ID, '_linkedin_connected', 'yes');
                     if ($name) update_user_meta($user->ID, '_linkedin_name', $name);
 
                 } else {
-                    // Create new reviewer user
                     $username = sanitize_user(current(explode('@', $email)), true);
                     if (username_exists($username)) {
                         $username .= '_' . wp_generate_password(4, false);
@@ -233,18 +216,15 @@ add_action('init', function() {
                             'display_name' => $name ?: $username
                         ]);
 
-                        // Save LinkedIn info + connected flag
                         if ($linkedinUrl) update_user_meta($user_id, '_linkedin_profile', esc_url_raw($linkedinUrl));
                         update_user_meta($user_id, '_linkedin_connected', 'yes');
                         if ($name) update_user_meta($user_id, '_linkedin_name', $name);
 
-                        // Login new user
                         wp_set_current_user($user_id);
                         wp_set_auth_cookie($user_id, true);
                     }
                 }
 
-                // Redirect after login
                 wp_redirect(site_url('/reviewer-dashboard/'));
                 exit;
             }
@@ -255,9 +235,6 @@ add_action('init', function() {
     }
 });
 
-/**
- * Google Login
- */
 add_action('init', function() {
     if (isset($_GET['code']) && strpos($_SERVER['REQUEST_URI'], 'google-login-callback') !== false) {
         $code = sanitize_text_field($_GET['code']);
@@ -265,7 +242,6 @@ add_action('init', function() {
         $client_secret = get_option('google_client_secret', '');
         $redirect_uri  = site_url('/google-login-callback/');
 
-        // Exchange code for token
         $response = wp_remote_post("https://oauth2.googleapis.com/token", [
             'body' => [
                 'code'          => $code,

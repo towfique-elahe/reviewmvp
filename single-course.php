@@ -8,7 +8,6 @@ get_header();
 global $post; 
 $course_id = $post->ID;
 
-// Status badges
 $statusBadges = [
     "verified"          => ["text" => "", "icon" => "icon-verified-badge.svg"],
     "verified_purchase" => ["text" => "Verified Purchase", "icon" => "icon-verified-purchase.svg"],
@@ -16,7 +15,6 @@ $statusBadges = [
     "top_voice"         => ["text" => "Top Voice", "icon" => "icon-top-voice-badge.svg"]
 ];
 
-// Outcome badges
 $outcomeBadges = [
     "Earned Income" => "icon-income.svg",
     "Career Boost" => "icon-career.svg",
@@ -26,7 +24,6 @@ $outcomeBadges = [
     "No Impact" => "icon-no-impact.svg"
 ];
 
-// Course data
 $title = get_the_title();
 $provider = get_post_meta( get_the_ID(), '_course_provider', true );
 $price = get_post_meta( get_the_ID(), '_course_price', true );
@@ -44,14 +41,12 @@ $languages = (array) get_post_meta( get_the_ID(), '_course_language', true );
 $instructor  = get_post_meta( get_the_ID(), '_course_instructor', true );
 $course_description = apply_filters( 'the_content', get_the_content() );
 
-// Course overall stats
 $stats = reviewmvp_get_course_rating_data($course_id);
 $overallRating = $stats['average'];
 $reviews_count = $stats['count'];
 $rating_breakdown = $stats['breakdown'];
 $overallOutcomes = reviewmvp_get_course_outcomes($course_id);
 
-// Reviews data (recent 3)
 $reviewArgs = [
     'post_type'      => 'course_review',
     'posts_per_page' => 3,
@@ -67,7 +62,6 @@ $reviewArgs = [
 ];
 $reviews = get_posts($reviewArgs);
 
-// All reviews data (from recent)
 $allReviewArgs = [
     'post_type'      => 'course_review',
     'posts_per_page' => -1,
@@ -91,12 +85,9 @@ while ( have_posts() ) : the_post();
 
 <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
     <div id="scDetails" class="course-info">
-        <!-- background -->
         <img src="<?= get_theme_media_url('background-1.svg') ?>" alt="background" class="bg">
 
-        <!-- course info/details -->
         <div class="course-info-container">
-            <!-- main -->
             <div class="main">
                 <div class="course-head">
                     <?php if (!empty($provider)) : ?>
@@ -145,14 +136,12 @@ while ( have_posts() ) : the_post();
                     </a>
                 </div>
 
-                <!-- Tabs -->
                 <div class="tabs" id="tabs">
                     <a href="#overview" class="tab-button active">Course Overview</a>
                     <a href="#allReviews" class="tab-button">Reviews</a>
                     <a href="#instructor" class="tab-button">About the Instructor</a>
                 </div>
 
-                <!-- Overview -->
                 <div class="overview-container" id="overview">
                     <div class="course-description">
                         <div class="course-description-content" style="--clamp:6" data-clamp="6" id="course-desc">
@@ -174,7 +163,6 @@ while ( have_posts() ) : the_post();
 
             </div>
 
-            <!-- sidebar -->
             <div class="sidebar">
                 <img src="<?= get_theme_media_url('real-review-badge.svg') ?>" alt="Real review badge"
                     class="real-rating">
@@ -268,7 +256,7 @@ while ( have_posts() ) : the_post();
                         <?php endif; ?>
 
                         <?php 
-                            $clean_languages = array_filter((array) $languages); // remove empty values
+                            $clean_languages = array_filter((array) $languages);
                             if (!empty($clean_languages)):
                         ?>
                         <div class="cd-list-item">
@@ -284,7 +272,6 @@ while ( have_posts() ) : the_post();
             </div>
         </div>
 
-        <!-- course reviews -->
         <div class="course-reviews-container" id="reviews">
             <h3 class="section-heading">See what reviewers are saying</h3>
 
@@ -294,7 +281,6 @@ while ( have_posts() ) : the_post();
                     foreach ($reviews as $review_post): 
                         $review_id   = $review_post->ID;
 
-                        // Reviewer info
                         $reviewer_id = get_post_meta($review_id, '_reviewer', true);
                         $user        = $reviewer_id ? get_userdata($reviewer_id) : null;
                         $statuses = (array) get_post_meta($review_id, '_review_status', true);
@@ -311,7 +297,6 @@ while ( have_posts() ) : the_post();
                             $bg = '#ccc';
                         }
 
-                        // Meta fields
                         $date_raw = get_post_meta($review_id, '_review_date', true);
                         if ($date_raw) {
                             $timestamp = strtotime($date_raw);
@@ -479,7 +464,6 @@ while ( have_posts() ) : the_post();
         </div>
 
 
-        <!-- course instructor -->
         <div class="course-instructor-container" id="instructor">
             <h3 class="section-heading">Instructor details</h3>
 
@@ -533,12 +517,10 @@ while ( have_posts() ) : the_post();
         </div>
 
 
-        <!-- course all reviews -->
         <?php if ($reviews) : ?>
         <div class="all-reviews-container" id="allReviews">
             <h3 class="section-heading">All reviews</h3>
             <div class="all-reviews-layout">
-                <!-- overall rating sidebar -->
                 <div class="course-rating-overall">
                     <div class="col">
                         <h2 class="cro-rating">
@@ -565,7 +547,6 @@ while ( have_posts() ) : the_post();
                     </div>
                 </div>
 
-                <!-- all reviews -->
                 <div class="reviews" id="all-reviews-list">
                     <?php 
                         if ($allReviews) :
@@ -574,7 +555,6 @@ while ( have_posts() ) : the_post();
                             $review_id   = $review_post->ID;
                             $hiddenClass = $reviewIndex >= 3 ? 'hidden-review' : '';
 
-                            // Reviewer info
                             $reviewer_id = get_post_meta($review_id, '_reviewer', true);
                             $user        = $reviewer_id ? get_userdata($reviewer_id) : null;
                             $statuses = (array) get_post_meta($review_id, '_review_status', true);
@@ -591,7 +571,6 @@ while ( have_posts() ) : the_post();
                                 $bg = '#ccc';
                             }
 
-                            // Meta fields
                             $date_raw = get_post_meta($review_id, '_review_date', true);
                             if ($date_raw) {
                                 $timestamp = strtotime($date_raw);
@@ -747,7 +726,6 @@ while ( have_posts() ) : the_post();
                         <a href="#" class="load-more-btn">Load more</a>
                     </div>
                     <?php endif; ?>
-                    <!-- Back to top button -->
                     <button type="button" class="back-to-top-btn" aria-label="Back to top">
                         <ion-icon name="arrow-up-outline"></ion-icon>
                     </button>

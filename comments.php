@@ -37,10 +37,9 @@ if (post_password_required()) {
     <?php
         the_comments_navigation();
 
-    endif; // Check for have_comments()
-
+    endif; 
     if (comments_open() || get_comments_number()) :
         comment_form();
     endif;
     ?>
-</div><!-- #comments -->
+</div>

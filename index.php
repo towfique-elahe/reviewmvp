@@ -7,7 +7,7 @@
  * @package ReviewMVP
  */
 
-get_header(); // Include header.php
+get_header();
 
 if ( have_posts() ) :
     while ( have_posts() ) : the_post();
@@ -15,12 +15,10 @@ if ( have_posts() ) :
 <main id="main-content" class="site-main">
     <div class="container">
         <?php
-                // Check if the content is built with Elementor and display it
-                if ( Elementor\Plugin::$instance->documents->get( get_the_ID() )->is_built_with_elementor() ) {
-                    the_content(); // Render Elementor content
-                } else {
-                    // Fallback for standard content
-                ?>
+            if ( Elementor\Plugin::$instance->documents->get( get_the_ID() )->is_built_with_elementor() ) {
+                the_content();
+            } else {
+        ?>
         <article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
             <h2 class="entry-title"><?php the_title(); ?></h2>
             <div class="entry-content">
@@ -34,5 +32,5 @@ if ( have_posts() ) :
     endwhile;
 endif;
 
-get_footer(); // Include footer.php
+get_footer();
 ?>

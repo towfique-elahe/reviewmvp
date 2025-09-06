@@ -1,6 +1,5 @@
 <?php
 
-// Create menu in admin
 add_action('admin_menu', function() {
     add_options_page(
         'API Credentials',
@@ -11,7 +10,6 @@ add_action('admin_menu', function() {
     );
 });
 
-// Register settings
 add_action('admin_init', function() {
     register_setting('reviewmvp_api_settings', 'linkedin_client_id');
     register_setting('reviewmvp_api_settings', 'linkedin_client_secret');
@@ -19,7 +17,6 @@ add_action('admin_init', function() {
     register_setting('reviewmvp_api_settings', 'google_client_secret');
 });
 
-// Render page
 function reviewmvp_api_credentials_page() { ?>
 <div class="wrap">
     <h1>API Credentials</h1>

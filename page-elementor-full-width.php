@@ -7,7 +7,7 @@
  * @package ReviewMVP
  */
 
-get_header(); // Include header.php
+get_header();
 ?>
 
 <main id="main-content" class="site-main full-width">

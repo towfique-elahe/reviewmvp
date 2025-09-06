@@ -1,8 +1,5 @@
 <?php
-/**
- * Shortcode: [reviewer_dashboard]
- * Reviewer dashboard with stats
- */
+
 function reviewmvp_reviewer_dashboard() {
     if (!is_user_logged_in()) {
         wp_redirect(site_url('/login/'));
@@ -11,13 +8,10 @@ function reviewmvp_reviewer_dashboard() {
 
     $user = wp_get_current_user();
 
-    // Allow only reviewers
     if (!in_array('reviewer', (array) $user->roles)) {
         return '<p style="color:crimson; text-align:center;">You do not have access to this dashboard.</p>';
     }
 
-    // --- Stats ---
-    // 1. Count reviews authored by this reviewer
     $review_count = new WP_Query([
         'post_type'      => 'course_review',
         'post_status'    => 'publish',
@@ -31,7 +25,6 @@ function reviewmvp_reviewer_dashboard() {
     ]);
     $total_reviews = $review_count->found_posts;
 
-    // 2. Count courses suggested by this reviewer
     $course_count = new WP_Query([
         'post_type'      => 'course',
         'post_status'    => ['publish','pending','draft'],

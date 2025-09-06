@@ -1,8 +1,5 @@
 <?php
 
-/**
- * Handle registration safely before page render
- */
 add_action('init', function() {
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['custom_register_nonce'])) {
         if (wp_verify_nonce($_POST['custom_register_nonce'], 'custom_register_action')) {
@@ -35,11 +32,9 @@ add_action('init', function() {
                     'display_name' => $name
                 ]);
 
-                // Auto-login
                 wp_set_current_user($user_id);
                 wp_set_auth_cookie($user_id, $remember);
 
-                // Redirect
                 wp_redirect(site_url('/reviewer-dashboard/')); 
                 exit;
             } else {
@@ -50,16 +45,11 @@ add_action('init', function() {
     }
 });
 
-
-/**
- * Shortcode: [custom_register_form]
- */
 function reviewmvp_custom_register_form() {
     if (is_user_logged_in()) {
         return '<p style="text-align:center;">You are already registered and logged in.</p>';
     }
 
-    // Pull error message if any
     $message = get_transient('custom_register_error');
     if ($message) {
         delete_transient('custom_register_error');
@@ -189,9 +179,6 @@ function googleRegister() {
 }
 add_shortcode('custom_register_form', 'reviewmvp_custom_register_form');
 
-/**
- * LinkedIn Register (OpenID Connect)
- */
 add_action('init', function() {
     if (
         isset($_GET['code'], $_GET['state']) &&
@@ -203,7 +190,6 @@ add_action('init', function() {
         $client_secret = get_option('linkedin_client_secret', '');
         $redirect_uri  = site_url('/linkedin-register-callback/');
 
-        // Exchange code for token
         $response = wp_remote_post("https://www.linkedin.com/oauth/v2/accessToken", [
             'body' => [
                 'grant_type'    => 'authorization_code',
@@ -217,13 +203,11 @@ add_action('init', function() {
         $access_token = $body['access_token'] ?? '';
 
         if ($access_token) {
-            // Fetch profile
             $profile = wp_remote_get("https://api.linkedin.com/v2/userinfo", [
                 'headers' => ['Authorization' => 'Bearer ' . $access_token]
             ]);
             $profileData = json_decode(wp_remote_retrieve_body($profile), true);
 
-            // pull fields safely
             $sub   = isset($profileData['sub'])   ? sanitize_text_field($profileData['sub']) : '';
             $email = isset($profileData['email']) ? sanitize_email($profileData['email']) : '';
             $name  = isset($profileData['name'])  ? sanitize_text_field($profileData['name'])
@@ -234,10 +218,8 @@ add_action('init', function() {
             $linkedinUrl = $sub ? 'https://www.linkedin.com/openid/id/' . rawurlencode($sub) : '';
 
             if ($email) {
-                // If user already exists, log them in
                 $user = get_user_by('email', $email);
                 if ($user) {
-                    // Save LinkedIn connect flags/meta
                     if ($linkedinUrl) update_user_meta($user->ID, '_linkedin_profile', esc_url_raw($linkedinUrl));
                     update_user_meta($user->ID, '_linkedin_connected', 'yes');
                     if ($name) update_user_meta($user->ID, '_linkedin_name', $name);
@@ -248,7 +230,6 @@ add_action('init', function() {
                     exit;
                 }
 
-                // Otherwise, register a new one
                 $username = sanitize_user(current(explode('@', $email)), true);
                 if (username_exists($username)) {
                     $username .= '_' . wp_generate_password(4, false);
@@ -266,12 +247,10 @@ add_action('init', function() {
                         'display_name' => $name ?: $username
                     ]);
 
-                    // Save LinkedIn connect flags/meta
                     if ($linkedinUrl) update_user_meta($user_id, '_linkedin_profile', esc_url_raw($linkedinUrl));
                     update_user_meta($user_id, '_linkedin_connected', 'yes');
                     if ($name) update_user_meta($user_id, '_linkedin_name', $name);
 
-                    // Auto-login new user
                     wp_set_current_user($user_id);
                     wp_set_auth_cookie($user_id, true);
 
@@ -281,15 +260,11 @@ add_action('init', function() {
             }
         }
 
-        // Fallback: registration failed
         wp_redirect(site_url('/sign-up/?linkedin=error'));
         exit;
     }
 });
 
-/**
- * Google Register
- */
 add_action('init', function() {
     if (isset($_GET['code']) && strpos($_SERVER['REQUEST_URI'], 'google-register-callback') !== false) {
         $code = sanitize_text_field($_GET['code']);

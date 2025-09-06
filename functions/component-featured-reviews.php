@@ -1,15 +1,7 @@
 <?php
-/**
- * Function File Name: Featured Reviews
- * 
- * The file for custom featured reviews of courses.
- */
-
-// Shortcode: [featured_reviews]
 
 function featured_reviews_shortcode() {
 
-    // Status badges
     $statusBadges = [
         "verified"          => ["text" => "", "icon" => "icon-verified-badge.svg"],
         "verified_purchase" => ["text" => "Verified Purchase", "icon" => "icon-verified-purchase.svg"],
@@ -17,7 +9,6 @@ function featured_reviews_shortcode() {
         "top_voice"         => ["text" => "Top Voice", "icon" => "icon-top-voice-badge.svg"]
     ];
 
-    // Reviews data (recent 3)
     $reviewArgs = [
         'post_type'      => 'course_review',
         'posts_per_page' => 3,
@@ -39,12 +30,10 @@ function featured_reviews_shortcode() {
             foreach ($reviews as $review_post):
                 $review_id   = $review_post->ID;
 
-                // Reviewer info
                 $reviewer_id = get_post_meta($review_id, '_reviewer', true);
                 $user        = $reviewer_id ? get_userdata($reviewer_id) : null;
                 $reviewer    = $user ? $user->display_name : 'Guest <span style="color: #11b981">(Verified by Admin)</span>';
 
-                // Meta fields
                 $good        = get_post_meta($review_id, '_review_good', true);
                 $bad         = get_post_meta($review_id, '_review_bad', true);
                 $statuses = (array) get_post_meta($review_id, '_review_status', true);
@@ -52,7 +41,6 @@ function featured_reviews_shortcode() {
                     ? array_intersect_key($statusBadges, array_flip($statuses)) 
                     : [];
 
-                // Course data
                 $course_id   = get_post_meta($review_id, '_review_course', true);
                 $course_post = $course_id ? get_post($course_id) : null;
                 if ($course_post) {

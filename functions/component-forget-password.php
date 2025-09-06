@@ -1,9 +1,5 @@
 <?php
 
-/**
- * Shortcode: [custom_forgot_password]
- * Displays a "forgot password" form and triggers WP's password reset email
- */
 function reviewmvp_custom_forgot_password() {
     if (is_user_logged_in()) {
         return '<p style="text-align:center;">You are already logged in.</p>';
@@ -11,7 +7,6 @@ function reviewmvp_custom_forgot_password() {
 
     $message = '';
 
-    // Handle submission
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['custom_forgot_nonce'])) {
         if (wp_verify_nonce($_POST['custom_forgot_nonce'], 'custom_forgot_action')) {
             $email = sanitize_email($_POST['user_email']);
@@ -23,13 +18,11 @@ function reviewmvp_custom_forgot_password() {
             } else {
                 $user = get_user_by('email', $email);
 
-                // Generate reset key
                 $reset_key = get_password_reset_key($user);
 
                 if (is_wp_error($reset_key)) {
                     $message = '<p style="color:crimson; text-align:center;">Could not generate reset link. Try again.</p>';
                 } else {
-                    // Custom reset password page (where [custom_reset_password] shortcode is used)
                     $reset_page = site_url('/reset-password/'); 
 
                     $reset_url = add_query_arg([
@@ -37,7 +30,6 @@ function reviewmvp_custom_forgot_password() {
                         'login' => rawurlencode($user->user_login)
                     ], $reset_page);
 
-                    // Send email
                     $subject = "Password Reset Request";
                     $body    = "Hi " . $user->display_name . ",\n\n";
                     $body   .= "Click the link below to reset your password:\n\n";

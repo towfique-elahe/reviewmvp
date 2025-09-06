@@ -1,14 +1,7 @@
 <?php
-/**
- * Function File Name: Component Courses
- * 
- * The file for custom courses list section.
- */
-
-// Shortcode: [browse_courses]
 
 function browse_courses_shortcode() {
-  $uid = uniqid('bc_'); // keep multiple shortcodes on one page from colliding
+  $uid = uniqid('bc_');
   ob_start(); ?>
 <div id="<?php echo esc_attr($uid); ?>" class="bc-wrap">
     <div class="bc-container">
@@ -25,7 +18,6 @@ function browse_courses_shortcode() {
             </div>
         </div>
         <div class="bc-grid">
-            <!-- Sidebar -->
             <aside class="bc-sidebar">
                 <h4 class="bc-sidebar-heading">
                     <span>
@@ -66,7 +58,7 @@ function browse_courses_shortcode() {
                                 <ion-icon name="chevron-down-outline" class="open"></ion-icon>
                             </span></div>
                         <div class="bc-fbody open" data-role="category-options">
-                            <!-- JS will inject categories here -->
+
                         </div>
                     </div>
 
@@ -135,7 +127,6 @@ function browse_courses_shortcode() {
                 </div>
             </aside>
 
-            <!-- Main -->
             <main class="bc-main">
                 <div class="bc-toolbar">
                     <div class="bc-count-wrapper">
@@ -171,9 +162,6 @@ function browse_courses_shortcode() {
 }
 add_shortcode('browse_courses','browse_courses_shortcode');
 
-/**
- * Helper: Get average rating + count for a course
- */
 function reviewmvp_get_course_overall_rating_data( $course_id ) {
     global $wpdb;
 
@@ -211,9 +199,6 @@ function reviewmvp_get_course_overall_rating_data( $course_id ) {
     ];
 }
 
-/**
- * Add custom meta fields to REST API for 'course'
- */
 function reviewmvp_register_course_rest_fields() {
     $fields = [
         'course_provider'    => '_course_provider',
@@ -236,7 +221,6 @@ function reviewmvp_register_course_rest_fields() {
 add_action('rest_api_init', 'reviewmvp_register_course_rest_fields');
 
 add_action('rest_api_init', function () {
-    // Add rating data in REST API for 'course'
     register_rest_field('course', 'rating_data', [
         'get_callback' => function ($object) {
             $course_id = $object['id'];
@@ -251,20 +235,18 @@ add_action('rest_api_init', function () {
             'type'        => 'object',
         ],
     ]);
-    // Add outcomes data in REST API for 'course'
     register_rest_field('course', 'outcomes_data', [
         'get_callback' => function ($object) {
             $course_id = $object['id'];
             $outcomes = reviewmvp_get_course_outcomes($course_id);
 
-            return $outcomes; // already formatted as ["Improved skill (20%)" => "icon.svg", ...]
+            return $outcomes;
         },
         'schema' => [
             'description' => 'Course outcomes data',
             'type'        => 'object',
         ],
     ]);
-    // Add worth % and recommend % to REST API for 'course'
     register_rest_field('course', 'review_stats', [
         'get_callback' => function ($object) {
             $course_id = $object['id'];
@@ -279,7 +261,6 @@ add_action('rest_api_init', function () {
             'type'        => 'object',
         ],
     ]);
-    // Add categories to REST API for 'course'
     register_rest_field('course', 'course_categories', [
         'get_callback' => function ($object) {
             $terms = get_the_terms($object['id'], 'course_category');
@@ -299,7 +280,6 @@ add_action('rest_api_init', function () {
             'type'        => 'array',
         ],
     ]);
-    // Add rating stars to REST API for 'course'
     register_rest_field('course', 'rating_html', [
         'get_callback' => function ($object) {
             $course_id = $object['id'];

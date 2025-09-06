@@ -1,8 +1,5 @@
 <?php
-/**
- * Shortcode: [reviewer_profile_form]
- * Reviewer profile edit form with dashboard sidebar
- */
+
 function reviewmvp_reviewer_profile_form() {
     if (!is_user_logged_in()) {
         wp_redirect(site_url('/login/'));
@@ -11,20 +8,17 @@ function reviewmvp_reviewer_profile_form() {
 
     $user = wp_get_current_user();
 
-    // Allow only reviewers
     if (!in_array('reviewer', (array) $user->roles)) {
         return '<p style="color:crimson; text-align:center;">You do not have access to this page.</p>';
     }
 
     $message = '';
 
-    // Handle form submit
     if (isset($_POST['reviewer_profile_nonce']) &&
         wp_verify_nonce($_POST['reviewer_profile_nonce'], 'reviewer_profile_update')) {
 
         $errors = [];
 
-        // Update display name
         $display_name = sanitize_text_field($_POST['display_name'] ?? '');
         if (!empty($display_name)) {
             wp_update_user([
@@ -33,7 +27,6 @@ function reviewmvp_reviewer_profile_form() {
             ]);
         }
 
-        // Change password
         $pass1 = $_POST['password'] ?? '';
         $pass2 = $_POST['password_confirm'] ?? '';
         if (!empty($pass1) || !empty($pass2)) {
@@ -43,7 +36,6 @@ function reviewmvp_reviewer_profile_form() {
                 $errors[] = "Password must be at least 6 characters.";
             } else {
                 wp_set_password($pass1, $user->ID);
-                // Re-login after password change
                 wp_set_current_user($user->ID);
                 wp_set_auth_cookie($user->ID);
             }

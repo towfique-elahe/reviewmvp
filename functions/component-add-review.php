@@ -1,11 +1,5 @@
 <?php
-/**
- * Function File Name: Component Add Review
- * 
- * A front-end form to submit a new review (status: pending).
- */
 
-// Shortcode: [add_review]
 function reviewmvp_add_review_form() {
     ob_start(); ?>
 <form method="post" class="add-review" id="addReviewForm">
@@ -52,14 +46,12 @@ function reviewmvp_add_review_form() {
                             'post_status' => 'publish',
                         ];
 
-                        // If logged in reviewer → include only THEIR pending courses
                         if (is_user_logged_in()) {
                             $user = wp_get_current_user();
                             if (in_array('reviewer', (array) $user->roles)) {
                                 $args['post_status'] = ['publish','pending'];
                                 $args['meta_query'] = [
                                     'relation' => 'OR',
-                                    // only this reviewer’s pending courses
                                     [
                                         'relation' => 'AND',
                                         [
@@ -68,11 +60,10 @@ function reviewmvp_add_review_form() {
                                             'compare' => '='
                                         ],
                                         [
-                                            'key'     => '_course_status_flag', // optional helper meta if needed
+                                            'key'     => '_course_status_flag',
                                             'compare' => 'EXISTS'
                                         ]
                                     ],
-                                    // all published courses (ignore reviewer meta)
                                     [
                                         'key'     => '_course_reviewer',
                                         'compare' => 'NOT EXISTS'
@@ -85,14 +76,12 @@ function reviewmvp_add_review_form() {
                             }
                         }
 
-                        // If guest has a pending course → include it in query
                         if (!is_user_logged_in() && $guest_pending_course) {
                             $args['post_status'] = ['publish', 'pending'];
                         }
 
                         $courses = get_posts($args);
 
-                        // If reviewer has exactly one pending course → auto-select it
                         if (is_user_logged_in()) {
                             $user = wp_get_current_user();
                             if (in_array('reviewer', (array) $user->roles) && !$selected_course_id) {
@@ -105,23 +94,19 @@ function reviewmvp_add_review_form() {
                             }
                         }
 
-                        // Auto select guest's pending course
                         if ($guest_pending_course && !$selected_course_id) {
                             $selected_course_id = $guest_pending_course;
                         }
 
                         foreach ($courses as $course) {
-                            // If it’s pending
                             if ($course->post_status === 'pending') {
                                 $course_reviewer = get_post_meta($course->ID, '_course_reviewer', true);
 
                                 if (is_user_logged_in()) {
-                                    // Logged-in reviewer → only their pending
                                     if ($course_reviewer != get_current_user_id()) {
                                         continue;
                                     }
                                 } else {
-                                    // Guest → only their last added pending
                                     if ($course->ID != $guest_pending_course) {
                                         continue;
                                     }
@@ -384,7 +369,6 @@ function reviewmvp_add_review_form() {
             </a>
             <?php endif; ?>
 
-            <!-- nonce works for both logged-in and guests -->
             <input type="hidden" id="linkedinConnectNonce"
                 value="<?php echo esc_attr( wp_create_nonce('linkedin_connect_nonce') ); ?>">
         </div>
@@ -424,7 +408,6 @@ function reviewmvp_add_review_form() {
 </form>
 
 <script>
-// Initialize Select2 for course selection
 jQuery(document).ready(function($) {
     $('#reviewCourse').select2({
         placeholder: "— Select Course —",
@@ -433,7 +416,6 @@ jQuery(document).ready(function($) {
     });
 });
 
-// Course selection with select2
 jQuery(document).ready(function($) {
     $('#reviewCourse').select2({
         placeholder: "— Select Course —",
@@ -442,7 +424,6 @@ jQuery(document).ready(function($) {
         templateResult: function(state) {
             if (!state.id) return state.text;
 
-            // Custom option with icon
             if ($(state.element).data('custom')) {
                 return $(
                     '<div class="select2-missing-course">' +
@@ -452,7 +433,6 @@ jQuery(document).ready(function($) {
                 );
             }
 
-            // Normal course option
             var platform = $(state.element).data('platform');
             if (platform) {
                 return $('<div class="select2-course">' +
@@ -465,7 +445,6 @@ jQuery(document).ready(function($) {
         templateSelection: function(state) {
             if (!state.id) return state.text;
 
-            // Show icon in selection as well
             if ($(state.element).data('custom')) {
                 return $(
                     '<span><ion-icon name="add-outline"></ion-icon>' +
@@ -478,7 +457,6 @@ jQuery(document).ready(function($) {
             return platform ? state.text + ' — ' + platform : state.text;
         },
         matcher: function(params, data) {
-            // Always show "custom" option
             if ($(data.element).data('custom')) {
                 return data;
             }
@@ -486,7 +464,6 @@ jQuery(document).ready(function($) {
         }
     });
 
-    // Redirect if "custom" option selected
     $('#reviewCourse').on('select2:select', function(e) {
         var data = e.params.data;
         if ($(data.element).data('custom')) {
@@ -495,7 +472,6 @@ jQuery(document).ready(function($) {
     });
 });
 
-// star behaviour
 document.querySelectorAll('.form-star-group').forEach(group => {
     const stars = group.querySelectorAll('.form-star');
     let selected = 0;
@@ -503,7 +479,6 @@ document.querySelectorAll('.form-star-group').forEach(group => {
     stars.forEach((star, index) => {
         const input = star.querySelector('input');
 
-        // Hover effect
         star.addEventListener('mouseenter', () => {
             stars.forEach((s, i) => {
                 s.querySelector('ion-icon').setAttribute('name', i <= index ? 'star' :
@@ -511,7 +486,6 @@ document.querySelectorAll('.form-star-group').forEach(group => {
             });
         });
 
-        // Restore selection on mouse leave
         star.addEventListener('mouseleave', () => {
             stars.forEach((s, i) => {
                 s.querySelector('ion-icon').setAttribute('name', i < selected ? 'star' :
@@ -519,7 +493,6 @@ document.querySelectorAll('.form-star-group').forEach(group => {
             });
         });
 
-        // Lock in selection
         input.addEventListener('change', () => {
             selected = index + 1;
             stars.forEach((s, i) => {
@@ -530,10 +503,9 @@ document.querySelectorAll('.form-star-group').forEach(group => {
     });
 });
 
-// file upload validation
 function validateFile(input, allowedTypes, maxSizeMB, infoId) {
     const info = document.getElementById(infoId);
-    info.innerHTML = ""; // reset
+    info.innerHTML = "";
     info.classList.remove("error");
 
     if (!input.files.length) return;
@@ -542,36 +514,31 @@ function validateFile(input, allowedTypes, maxSizeMB, infoId) {
     const fileType = file.type;
     const fileSizeMB = file.size / (1024 * 1024);
 
-    // Check type
     const validType = allowedTypes.some(type => fileType.includes(type));
     if (!validType) {
         info.innerHTML = "<ion-icon name='close-circle-outline'></ion-icon> Invalid file type. Allowed: " +
             allowedTypes.join(", ");
         info.classList.add("error");
-        input.value = ""; // reset file
+        input.value = "";
         return;
     }
 
-    // Check size
     if (fileSizeMB > maxSizeMB) {
         info.innerHTML =
             `<ion-icon name="close-circle-outline"></ion-icon> File is too large. Max allowed: ${maxSizeMB} MB`;
         info.classList.add("error");
-        input.value = ""; // reset file
+        input.value = "";
         return;
     }
 
-    // Success
     info.innerHTML =
         `<ion-icon name="checkmark-circle-outline"></ion-icon> Selected: ${file.name} (${fileSizeMB.toFixed(2)} MB)`;
 }
 
-// Enrollment proof (jpg, png, pdf, max 5 MB)
 document.getElementById("attachementBox").addEventListener("change", function() {
     validateFile(this, ["jpeg", "jpg", "png", "pdf"], 5, "attachementInfo");
 });
 
-// Video review (mp4, max 20 MB)
 document.getElementById("videoBox").addEventListener("change", function() {
     validateFile(this, ["mp4"], 20, "videoInfo");
 });
@@ -584,7 +551,6 @@ jQuery(document).ready(function($) {
             let target = (page === 1) ? "#pageOne" : "#pageTwo";
             $(target).fadeIn(300).addClass("active");
 
-            // Instant scroll to top of form
             $(window).scrollTop($("#addReviewForm").offset().top - 40);
         });
 
@@ -592,7 +558,6 @@ jQuery(document).ready(function($) {
         $(".form-page-number").eq(page - 1).addClass("active");
     }
 
-    // Validation: Page One
     function validatePageOne() {
         let hasError = false;
         let firstError = null;
@@ -603,7 +568,7 @@ jQuery(document).ready(function($) {
             group.find('.error-message').html(
                 "<ion-icon name='alert-circle-outline'></ion-icon> " + message
             );
-            if (!firstError) firstError = group; // capture first invalid group
+            if (!firstError) firstError = group;
             hasError = true;
         }
 
@@ -621,7 +586,6 @@ jQuery(document).ready(function($) {
         if (!$('input[name="review_worth"]:checked').val()) showError('input[name="review_worth"]',
             'Please select an option.');
 
-        // Scroll to first error if found
         if (firstError) {
             $('html, body').scrollTop(firstError.offset().top - 50);
         }
@@ -629,7 +593,6 @@ jQuery(document).ready(function($) {
         return !hasError;
     }
 
-    // Validation: Page Two
     function validatePageTwo() {
         let hasError = false;
         let firstError = null;
@@ -640,7 +603,7 @@ jQuery(document).ready(function($) {
             group.find('.error-message').html(
                 "<ion-icon name='alert-circle-outline'></ion-icon> " + message
             );
-            if (!firstError) firstError = group; // capture first invalid group
+            if (!firstError) firstError = group;
             hasError = true;
         }
 
@@ -654,7 +617,6 @@ jQuery(document).ready(function($) {
         if (!$('#reviewConsent').is(':checked')) showError('#reviewConsent',
             'You must agree before submitting.');
 
-        // Scroll to first error if found
         if (firstError) {
             $('html, body').scrollTop(firstError.offset().top - 50);
         }
@@ -662,7 +624,6 @@ jQuery(document).ready(function($) {
         return !hasError;
     }
 
-    // Next button → validate Page 1 before moving
     $("#pageOne .form-button").on("click", function(e) {
         e.preventDefault();
         if (validatePageOne()) {
@@ -671,18 +632,15 @@ jQuery(document).ready(function($) {
         }
     });
 
-    // Previous button
     $("#pageTwo .form-button").first().on("click", function(e) {
         e.preventDefault();
         currentPage = 1;
         showPage(currentPage);
     });
 
-    // Submit → validate Page 2
     $('#addReviewForm').on('submit', function(e) {
         e.preventDefault();
         if (!validatePageTwo()) {
-            // Scroll to first error on Page 2
             let firstError = $("#pageTwo .error-message:contains('ion-icon')").first().closest(
                 ".form-group");
             if (firstError.length) {
@@ -691,7 +649,6 @@ jQuery(document).ready(function($) {
             return;
         }
 
-        // No errors → proceed AJAX
         let form = $(this)[0];
         let formData = new FormData(form);
         formData.append('action', 'reviewmvp_submit_review');
@@ -704,10 +661,8 @@ jQuery(document).ready(function($) {
             contentType: false,
             success: function(response) {
                 if (response.success) {
-                    // clear saved draft right after a successful submit
                     try {
                         if (window.__clearReviewDraft) window.__clearReviewDraft();
-                        // also clear directly as a fallback
                         localStorage.removeItem('reviewFormDraft');
                     } catch (e) {}
 
@@ -722,23 +677,19 @@ jQuery(document).ready(function($) {
         });
     });
 
-    // Init
     $(".form-page-container").hide();
     $("#pageOne").show().addClass("active");
 });
 
-/* ===== Form draft save/restore ===== */
 (function() {
     var DRAFT_KEY = 'reviewFormDraft';
     var form = document.getElementById('addReviewForm');
     if (!form) return;
 
-    // Skip nonce & file inputs
     function isSkippable(el) {
         return !el.name || el.type === 'file' || /nonce/i.test(el.name);
     }
 
-    // serialize (except file + nonce inputs)
     function serializeForm() {
         var data = {};
         var els = form.querySelectorAll('input, select, textarea');
@@ -754,7 +705,6 @@ jQuery(document).ready(function($) {
                 data[el.name] = el.value;
             }
         });
-        // remember which page is visible
         var onPageTwo = document.getElementById('pageTwo').classList.contains('active');
         data.__page = onPageTwo ? 2 : 1;
 
@@ -763,7 +713,6 @@ jQuery(document).ready(function($) {
         } catch (e) {}
     }
 
-    // restore
     function restoreForm() {
         var raw = null;
         try {
@@ -778,7 +727,6 @@ jQuery(document).ready(function($) {
             return;
         }
 
-        // Never restore any nonce keys even if they somehow got saved
         Object.keys(data).forEach(function(k) {
             if (/nonce/i.test(k)) delete data[k];
         });
@@ -797,13 +745,11 @@ jQuery(document).ready(function($) {
             }
         });
 
-        // handle Select2 course dropdown
         var $course = jQuery('#reviewCourse');
         if ($course.length && data['review_course'] != null) {
             $course.val(data['review_course']).trigger('change.select2');
         }
 
-        // go back to saved page
         var page = parseInt(data.__page || 1, 10);
         if (page === 2) {
             jQuery(function($) {
@@ -813,14 +759,12 @@ jQuery(document).ready(function($) {
             });
         }
 
-        // refresh star visuals if a rating was stored
         var checked = form.querySelector('.form-star-group input[type=radio]:checked');
         if (checked) checked.dispatchEvent(new Event('change', {
             bubbles: true
         }));
     }
 
-    // debounced saver
     var saveTimer = null;
 
     function scheduleSave() {
@@ -828,17 +772,13 @@ jQuery(document).ready(function($) {
         saveTimer = setTimeout(serializeForm, 250);
     }
 
-    // Save on any change/keyup and on page switches
     form.addEventListener('input', scheduleSave, true);
     form.addEventListener('change', scheduleSave, true);
 
-    // Restore on load
     restoreForm();
 
-    // expose a safe saver for other scripts (e.g., before LinkedIn popup)
     window.__saveReviewDraft = serializeForm;
 
-    // utility to clear the draft after successful submit if you want
     window.__clearReviewDraft = function() {
         try {
             localStorage.removeItem(DRAFT_KEY);
@@ -847,7 +787,6 @@ jQuery(document).ready(function($) {
 })();
 
 (function() {
-    // center a popup
     function openPopup(url, title, w, h) {
         var dl = window.screenLeft !== undefined ? window.screenLeft : window.screenX;
         var dt = window.screenTop !== undefined ? window.screenTop : window.screenY;
@@ -869,12 +808,10 @@ jQuery(document).ready(function($) {
     btn.addEventListener('click', function(e) {
         e.preventDefault();
 
-        // NEW: block clicks if already connected
         if (btn.getAttribute('data-connected') === 'yes' || btn.classList.contains('connected')) {
             return;
         }
 
-        // SAVE draft immediately before starting OAuth
         if (window.__saveReviewDraft) {
             try {
                 window.__saveReviewDraft();
@@ -883,14 +820,12 @@ jQuery(document).ready(function($) {
 
         var nonce = document.getElementById('linkedinConnectNonce').value;
 
-        // open placeholder immediately to avoid popup blockers
         var popup = openPopup('about:blank', 'LinkedIn', 600, 720);
         if (!popup) {
             alert('Please allow popups to continue.');
             return;
         }
 
-        // start: ask server for OAuth URL
         jQuery.post(AJAX_URL, {
                 action: 'linkedin_connect_start',
                 _nonce: nonce
@@ -915,7 +850,6 @@ jQuery(document).ready(function($) {
             });
     });
 
-    // receive message from callback and act
     window.addEventListener('message', function(event) {
         var expected = "<?php echo rtrim( esc_js( site_url('/') ), '/' ); ?>";
         var origin = (event.origin || '').replace(/\/$/, '');
@@ -925,7 +859,6 @@ jQuery(document).ready(function($) {
         if (data.type !== 'linkedin_connect') return;
 
         if (data.status === 'success') {
-            // simple + reliable: reload the page
             window.location.reload();
         } else {
             alert('LinkedIn connect failed: ' + (data.message || 'Unknown error'));
@@ -938,9 +871,6 @@ jQuery(document).ready(function($) {
 }
 add_shortcode('add_review', 'reviewmvp_add_review_form');
 
-/**
- * Handle AJAX review submission
- */
 function reviewmvp_handle_review_submission() {
     if (
         !isset($_POST['reviewmvp_add_review_nonce']) || 
@@ -949,7 +879,6 @@ function reviewmvp_handle_review_submission() {
         wp_send_json_error('Security check failed.');
     }
 
-    // Collect inputs
     $course_id = intval($_POST['review_course'] ?? 0);
     $rating    = intval($_POST['review_rating'] ?? 0);
     $message   = sanitize_textarea_field($_POST['review_message'] ?? '');
@@ -972,7 +901,6 @@ function reviewmvp_handle_review_submission() {
         wp_send_json_error('Please complete all required fields.');
     }
 
-    // Reviewer info (only for logged in users)
     $reviewer_id   = 0;
     $reviewer_name = '';
     if (is_user_logged_in()) {
@@ -981,7 +909,6 @@ function reviewmvp_handle_review_submission() {
         $reviewer_name = $current_user->display_name;
     }
 
-    // Create review post
     $course_title = get_the_title($course_id);
 
     if ($reviewer_id) {
@@ -994,33 +921,28 @@ function reviewmvp_handle_review_submission() {
         'post_title'   => 'Course [ID:'.$course_id.' | Title: '.$course_title.']'.$title_extra,
         'post_type'    => 'course_review',
         'post_status'  => 'pending',
-        'post_author'  => $reviewer_id ?: 0, // assign logged-in user as author
+        'post_author'  => $reviewer_id ?: 0,
     ]);
 
     if (!$post_id) {
         wp_send_json_error('Something went wrong while saving review.');
     }
 
-    // Save reviewer meta (only if logged in)
     if ($reviewer_id) {
         update_post_meta($post_id, '_reviewer', $reviewer_id);
         update_post_meta($post_id, '_reviewer_name', sanitize_text_field($reviewer_name));
     }
 
-    // Status flags
     $statuses = [];
 
-    // Anonymous (only if logged in reviewer)
     if ($reviewer_id && !empty($_POST['review_anonymously'])) {
         $statuses[] = 'anonymous';
     }
 
-    // Verified via LinkedIn
     if ($reviewer_id) {
         $li_connected = get_user_meta($reviewer_id, '_linkedin_connected', true);
         if ($li_connected === 'yes') {
             $statuses[] = 'verified';
-            // (optional) also store the linked profile URL on the review
             $li_url = get_user_meta($reviewer_id, '_linkedin_profile', true);
             if ($li_url) {
                 update_post_meta($post_id, '_review_linkedin', esc_url_raw($li_url));
@@ -1028,11 +950,9 @@ function reviewmvp_handle_review_submission() {
         }
     }
 
-    // persist statuses on the review
-    $statuses = array_values(array_unique(array_filter($statuses))); // clean up
+    $statuses = array_values(array_unique(array_filter($statuses)));
     update_post_meta($post_id, '_review_status', $statuses);
 
-    // Save meta
     update_post_meta($post_id, '_review_course', $course_id);
     update_post_meta($post_id, '_review_rating', $rating);
     update_post_meta($post_id, '_review_message', $message);
@@ -1047,7 +967,6 @@ function reviewmvp_handle_review_submission() {
     update_post_meta($post_id, '_review_outcome', $outcomes);
     update_post_meta($post_id, '_review_date', current_time('Y-m-d'));
 
-    // Handle file uploads
     if (!function_exists('wp_handle_upload')) {
         require_once(ABSPATH . 'wp-admin/includes/file.php');
     }
@@ -1071,21 +990,17 @@ function reviewmvp_handle_review_submission() {
 add_action('wp_ajax_reviewmvp_submit_review', 'reviewmvp_handle_review_submission');
 add_action('wp_ajax_nopriv_reviewmvp_submit_review', 'reviewmvp_handle_review_submission');
 
-// enqueue select2
 add_action('wp_enqueue_scripts', function() {
-    // Only enqueue on pages with the form
     if (is_page('write-a-review')) { 
         wp_enqueue_style('select2-css', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css');
         wp_enqueue_script('select2-js', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js', ['jquery'], null, true);
     }
 });
 
-// Allow logged-out users to start (they will log in via popup)
 add_action('wp_ajax_linkedin_connect_start', 'reviewmvp_linkedin_connect_start');
 add_action('wp_ajax_nopriv_linkedin_connect_start', 'reviewmvp_linkedin_connect_start');
 
 function reviewmvp_linkedin_connect_start(){
-    // Nonce check (optional but recommended)
     $nonce = isset($_POST['_nonce']) ? $_POST['_nonce'] : '';
     if (!wp_verify_nonce($nonce, 'linkedin_connect_nonce')) {
         wp_send_json_error(['message' => 'Invalid request (nonce).'], 400);
@@ -1096,7 +1011,6 @@ function reviewmvp_linkedin_connect_start(){
         wp_send_json_error(['message' => 'LinkedIn client ID is missing.'], 500);
     }
 
-    // generate and store state for 10 min; store current logged-in user ID (0 if guest)
     $state = wp_generate_password(20, false, false);
     set_transient('li_connect_state_' . $state, get_current_user_id(), 10 * MINUTE_IN_SECONDS);
 
@@ -1114,7 +1028,6 @@ function reviewmvp_linkedin_connect_start(){
     wp_send_json_success(['url' => $url]);
 }
 
-// Handle /linkedin-callback/ (set this exact URL in your LinkedIn app)
 add_action('init', function () {
     if (strpos($_SERVER['REQUEST_URI'], 'linkedin-callback') === false) return;
 
@@ -1152,14 +1065,10 @@ add_action('init', function () {
     $state = isset($_GET['state']) ? sanitize_text_field($_GET['state']) : '';
     if (!$code || !$state) { $finish('error', 'Missing code/state'); }
 
-    // validate state (who initiated)
     $initiator = (int) get_transient('li_connect_state_' . $state);
     delete_transient('li_connect_state_' . $state);
     if ($initiator === 0 && $initiator !== get_current_user_id()) {
-        // guests have 0; we just ensure state existed. If it didn’t, abort.
-        // (For stricter checks, require session match)
     } elseif ($initiator === 0 && get_transient('li_connect_state_' . $state) === false) {
-        // nothing to do
     }
 
     $client_id     = trim((string) get_option('linkedin_client_id', ''));
@@ -1167,7 +1076,6 @@ add_action('init', function () {
     $redirect_uri  = site_url('/linkedin-callback/');
     if (!$client_id || !$client_secret) { $finish('error', 'Missing LinkedIn credentials'); }
 
-    // Exchange code -> access token
     $response = wp_remote_post('https://www.linkedin.com/oauth/v2/accessToken', [
         'body' => [
             'grant_type'    => 'authorization_code',
@@ -1183,7 +1091,6 @@ add_action('init', function () {
     $access_token = $body['access_token'] ?? '';
     if (!$access_token) { $finish('error', 'No access token'); }
 
-    // Fetch OpenID user info
     $profile = wp_remote_get('https://api.linkedin.com/v2/userinfo', [
         'headers' => ['Authorization' => 'Bearer ' . $access_token],
         'timeout' => 20,
@@ -1196,14 +1103,11 @@ add_action('init', function () {
     $sub   = isset($p['sub'])   ? sanitize_text_field($p['sub']) : '';
     if (!$email) { $finish('error', 'No email returned from LinkedIn'); }
 
-    // Find or create user
     $user = get_user_by('email', $email);
     if ($user) {
-        // login existing
         wp_set_current_user($user->ID);
         wp_set_auth_cookie($user->ID, true);
     } else {
-        // create reviewer
         $username = sanitize_user( current( explode('@', $email) ), true );
         if (username_exists($username)) $username .= '_' . wp_generate_password(4, false);
         $password = wp_generate_password(12, false);
@@ -1214,12 +1118,10 @@ add_action('init', function () {
         $wpuser->set_role('reviewer');
         wp_update_user(['ID' => $user_id, 'display_name' => $name ?: $username]);
 
-        // login
         wp_set_current_user($user_id);
         wp_set_auth_cookie($user_id, true);
     }
 
-    // (Optional) store LinkedIn profile URL using OpenID sub
     if (is_user_logged_in() && $sub) {
         update_user_meta(get_current_user_id(), '_linkedin_profile', esc_url_raw('https://www.linkedin.com/openid/id/' . rawurlencode($sub)));
         update_user_meta(get_current_user_id(), '_linkedin_connected', 'yes');
@@ -1229,7 +1131,6 @@ add_action('init', function () {
     $finish('success', 'Signed in');
 });
 
-// Return a fresh nonce for the review form (works for both guests & logged-in)
 add_action('wp_ajax_reviewmvp_refresh_nonce', 'reviewmvp_refresh_nonce');
 add_action('wp_ajax_nopriv_reviewmvp_refresh_nonce', 'reviewmvp_refresh_nonce');
 function reviewmvp_refresh_nonce() {

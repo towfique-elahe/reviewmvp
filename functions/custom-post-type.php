@@ -1,13 +1,5 @@
 <?php
-/**
- * Function File Name: Custom Post Type
- * 
- * The file for custom post type 'course' and additional meta fields.
- */
 
-/**
- * Register Custom Post Type: Course
- */
 function reviewmvp_register_course_post_type() {
     $labels = array(
         'name'                  => _x('Courses', 'Post Type General Name', 'reviewmvp'),
@@ -54,9 +46,6 @@ function reviewmvp_register_course_post_type() {
 }
 add_action('init', 'reviewmvp_register_course_post_type');
 
-/**
- * Register Custom Taxonomy: Course Category
- */
 function reviewmvp_register_course_category_taxonomy() {
     $labels = array(
         'name'              => _x('Course Categories', 'taxonomy general name', 'reviewmvp'),
@@ -86,9 +75,6 @@ function reviewmvp_register_course_category_taxonomy() {
 }
 add_action('init', 'reviewmvp_register_course_category_taxonomy');
 
-/**
- * Add custom meta box for 'course' post type.
- */
 function reviewmvp_add_course_meta_box() {
     add_meta_box(
         'course_details_meta_box',
@@ -101,13 +87,9 @@ function reviewmvp_add_course_meta_box() {
 }
 add_action('add_meta_boxes', 'reviewmvp_add_course_meta_box');
 
-/**
- * Render the meta box content.
- */
 function reviewmvp_render_course_meta_box($post) {
     wp_nonce_field('reviewmvp_save_course_meta_box', 'reviewmvp_course_meta_box_nonce');
 
-    // Get meta
     $meta = [
         'course_provider'    => get_post_meta($post->ID, '_course_provider', true),
         'course_short_desc'  => get_post_meta($post->ID, '_course_short_desc', true),
@@ -285,27 +267,21 @@ function reviewmvp_render_course_meta_box($post) {
 <?php
 }
 
-/**
- * Save course meta box fields.
- */
 function reviewmvp_save_course_meta_box($post_id) {
     if (!isset($_POST['reviewmvp_course_meta_box_nonce']) ||
         !wp_verify_nonce($_POST['reviewmvp_course_meta_box_nonce'], 'reviewmvp_save_course_meta_box')) {
         return;
     }
 
-    // Reviewer (always save something)
     if (isset($_POST['course_reviewer']) && $_POST['course_reviewer'] !== '') {
         update_post_meta($post_id, '_course_reviewer', intval($_POST['course_reviewer']));
     } else {
-        // fallback if admin leaves empty
         update_post_meta($post_id, '_course_reviewer', 'guest');
     }
 
     if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
     if (!current_user_can('edit_post', $post_id)) return;
 
-    // Basic text fields
     $fields = ['course_provider','course_short_desc','course_price','course_duration','course_certificate','course_refundable','course_link','course_level'];
 
     foreach ($fields as $field) {
@@ -322,7 +298,6 @@ function reviewmvp_save_course_meta_box($post_id) {
         }
     }
 
-    // Languages (multi)
     if (isset($_POST['course_language'])) {
         $langs = array_map('sanitize_text_field', (array)$_POST['course_language']);
         update_post_meta($post_id, '_course_language', $langs);
@@ -330,7 +305,6 @@ function reviewmvp_save_course_meta_box($post_id) {
         delete_post_meta($post_id, '_course_language');
     }
 
-    // Instructor (array)
     if (isset($_POST['course_instructor']) && is_array($_POST['course_instructor'])) {
         $instructor = [
             'name'     => sanitize_text_field($_POST['course_instructor']['name'] ?? ''),
@@ -347,9 +321,6 @@ function reviewmvp_save_course_meta_box($post_id) {
 }
 add_action('save_post_course', 'reviewmvp_save_course_meta_box');
 
-/**
- * Add "Course base" field to Permalinks settings page.
- */
 function reviewmvp_add_course_permalink_setting() {
     add_settings_field(
         'course_permalink_base',
@@ -369,9 +340,6 @@ function reviewmvp_course_permalink_field_html() {
     echo '<p class="description">' . __('Custom base for Course URLs (e.g., course → yoursite.com/course/course-title).', 'reviewmvp') . '</p>';
 }
 
-/**
- * Register Custom Post Type: Review (as a submenu under Courses)
- */
 function reviewmvp_register_review_post_type() {
     $labels = array(
         'name'               => _x('Reviews', 'Post Type General Name', 'reviewmvp'),
@@ -402,9 +370,6 @@ function reviewmvp_register_review_post_type() {
 }
 add_action('init', 'reviewmvp_register_review_post_type');
 
-/**
- * Add Review Meta Box
- */
 function reviewmvp_add_review_meta_box() {
     add_meta_box(
         'review_details_meta_box',
@@ -441,7 +406,6 @@ function reviewmvp_render_review_meta_box($post) {
         'linkedin'    => get_post_meta($post->ID, '_review_linkedin', true),
     ];
 
-    // Status checkboxes
     $statuses = ['verified','verified_purchase','rising_voice','top_voice','anonymous'];
     echo '<p><strong>Status:</strong><br>';
     foreach ($statuses as $status) {
@@ -449,11 +413,9 @@ function reviewmvp_render_review_meta_box($post) {
     }
     echo '</p>';
 
-    // Review Date
     echo '<p><label><strong>Review Date</strong></label><br>';
     echo '<input type="date" name="review_date" value="'.esc_attr($meta['review_date']).'" style="width:200px;"></p>';
 
-    // Reviewer (select WP user)
     $users = get_users(['role__not_in'=>['Administrator']]);
     echo '<p><label><strong>Reviewer</strong></label><br>';
     echo '<select name="reviewer" style="width:100%;">';
@@ -463,7 +425,6 @@ function reviewmvp_render_review_meta_box($post) {
     }
     echo '</select></p>';
 
-    // Course
     $courses = get_posts(['post_type'=>'course','numberposts'=>-1]);
     echo '<p><label><strong>Which Course</strong></label><br>';
     echo '<select name="review_course" style="width:100%;">';
@@ -473,14 +434,12 @@ function reviewmvp_render_review_meta_box($post) {
     }
     echo '</select></p>';
 
-    // Rating (stars)
     echo '<p><label><strong>Rating</strong></label><br>';
     for ($i=1;$i<=5;$i++) {
         echo '<label><input type="radio" name="review_rating" value="'.$i.'" '.checked($meta['rating'],$i,false).'> '.$i.'★</label> ';
     }
     echo '</p>';
 
-    // Textareas
     $fields = [
         'message'   => 'Review Message',
         'good'      => 'What was good?',
@@ -494,7 +453,6 @@ function reviewmvp_render_review_meta_box($post) {
         echo '<textarea name="review_'.$key.'" rows="3" style="width:100%;" placeholder="Enter '.$label.'">'.esc_textarea($meta[$key]).'</textarea></p>';
     }
 
-    // Course Level (dropdown)
     echo '<p><label><strong>What level did this course feel like to you?</strong></label><br>';
     echo '<select name="review_level" style="width:100%;">';
     echo '<option value="">— Select Level —</option>';
@@ -504,7 +462,6 @@ function reviewmvp_render_review_meta_box($post) {
     }
     echo '</select></p>';
 
-    // Worth (dropdown)
     echo '<p><label><strong>Worth Money?</strong></label><br>';
     echo '<select name="review_worth" style="width:100%;">';
     echo '<option value="">— Select Option —</option>';
@@ -514,7 +471,6 @@ function reviewmvp_render_review_meta_box($post) {
     }
     echo '</select></p>';
 
-    // Recommend (dropdown)
     echo '<p><label><strong>Recommend this course?</strong></label><br>';
     echo '<select name="review_recommend" style="width:100%;">';
     echo '<option value="">— Select Option —</option>';
@@ -524,7 +480,6 @@ function reviewmvp_render_review_meta_box($post) {
     }
     echo '</select></p>';
 
-    // Course Outcomes (multi-select)
     $outcomes = [
         'Earned Income',
         'Career Boost',
@@ -534,7 +489,7 @@ function reviewmvp_render_review_meta_box($post) {
         'No Impact'
     ];
 
-    $current_outcomes = (array) $meta['outcome']; // ensure it's always array
+    $current_outcomes = (array) $meta['outcome'];
 
     echo '<p><label><strong>Course Outcomes</strong></label><br>';
     echo '<select name="review_outcome[]" multiple style="width:100%; height:120px;">';
@@ -543,22 +498,18 @@ function reviewmvp_render_review_meta_box($post) {
     }
     echo '</select><br><small>Hold Ctrl (Windows) or Cmd (Mac) to select multiple</small></p>';
 
-    // Proof of enrollment (image upload)
     echo '<p><label><strong>Proof of Enrollment</strong></label><br>';
     echo '<input type="text" name="review_proof" value="'.esc_attr($meta['proof']).'" placeholder="Enter media URL of proof" style="width:80%;"> ';
     echo '<button class="button upload_review_proof">Upload</button></p>';
 
-    // Video review (video upload)
     echo '<p><label><strong>Video Review</strong></label><br>';
     echo '<input type="text" name="review_video" value="'.esc_attr($meta['video']).'" placeholder="Enter media URL of video"  style="width:80%;"> ';
     echo '<button class="button upload_review_video">Upload</button></p>';
 
-    // Linkedin profile connect
     echo '<p><label><strong>LinkedIn Profile</strong></label><br>';
     echo '<input type="url" name="review_linkedin" value="'.esc_attr($meta['linkedin']).'" style="width:100%;" placeholder="https://linkedin.com/in/...">';
     echo '</p>';
 
-    // JS uploader
     ?>
 <script>
 jQuery(document).ready(function($) {

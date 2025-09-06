@@ -1,11 +1,4 @@
 <?php
-/**
- * Function File Name: Course Search
- * 
- * The file for custom search box for course.
- */
-
-// Shortcode: [course_search_box]
 
 function course_search_box_shortcode() {
     wp_localize_script('reviewmvp-course-search', 'courseSearchData', [
@@ -46,16 +39,12 @@ function course_search_box_shortcode() {
 }
 add_shortcode('course_search_box', 'course_search_box_shortcode');
 
-/**
- * AJAX: Search courses + categories
- */
 function reviewmvp_course_search_ajax() {
     check_ajax_referer('reviewmvp_course_search', 'nonce');
 
     $term = isset($_GET['q']) ? sanitize_text_field($_GET['q']) : '';
     $results = [];
 
-    // If empty search, return 10 latest courses
     if (empty($term)) {
         $courses = get_posts([
             'post_type'      => 'course',
@@ -76,7 +65,6 @@ function reviewmvp_course_search_ajax() {
         wp_send_json($results);
     }
 
-    // Search Courses
     $courses = get_posts([
         'post_type'      => 'course',
         's'              => $term,
@@ -92,7 +80,6 @@ function reviewmvp_course_search_ajax() {
         ];
     }
 
-    // Search Categories
     $cats = get_terms([
         'taxonomy'   => 'category',
         'name__like' => $term,
@@ -114,9 +101,6 @@ function reviewmvp_course_search_ajax() {
 add_action('wp_ajax_reviewmvp_course_search', 'reviewmvp_course_search_ajax');
 add_action('wp_ajax_nopriv_reviewmvp_course_search', 'reviewmvp_course_search_ajax');
 
-/**
- * AJAX: Save no-match search term to session
- */
 function reviewmvp_save_no_match_term() {
     check_ajax_referer('reviewmvp_course_search', 'nonce');
 
@@ -131,11 +115,9 @@ function reviewmvp_save_no_match_term() {
 add_action('wp_ajax_reviewmvp_save_no_match_term', 'reviewmvp_save_no_match_term');
 add_action('wp_ajax_nopriv_reviewmvp_save_no_match_term', 'reviewmvp_save_no_match_term');
 
-// Shortcode: [no_course_term]
 function reviewmvp_no_course_term_shortcode() {
     $term = $_SESSION['no_course_term'] ?? '';
     if ($term) {
-        // optionally clear after showing
         unset($_SESSION['no_course_term']);
         return '<h2>Sorry, no results were found for your search "' . esc_html($term) . '"<h2>';
     }

@@ -1,11 +1,5 @@
 <?php
-/**
- * Function File Name: Component Add Course
- * 
- * A front-end form to submit a new course (status: pending).
- */
 
-// Shortcode: [add_course]
 function reviewmvp_add_course_form() {
     ob_start(); ?>
 <form method="post" class="reviewmvp-add-course" id="reviewmvpAddCourseForm">
@@ -43,7 +37,6 @@ function reviewmvp_add_course_form() {
         let messageBox = $('#reviewmvpFormMessage');
         messageBox.html('').css('color', '');
 
-        // simple validation
         let name = $('#course_name').val().trim();
         let url = $('#course_url').val().trim();
         let instructor = $('#course_instructor').val().trim();
@@ -53,7 +46,6 @@ function reviewmvp_add_course_form() {
             return;
         }
 
-        // AJAX submit
         $.ajax({
             type: 'POST',
             url: '<?php echo admin_url('admin-ajax.php'); ?>',
@@ -78,10 +70,6 @@ function reviewmvp_add_course_form() {
 }
 add_shortcode('add_course', 'reviewmvp_add_course_form');
 
-
-/**
- * Handle AJAX submission
- */
 function reviewmvp_handle_course_submission() {
     if (!isset($_POST['reviewmvp_add_course_nonce']) || 
         !wp_verify_nonce($_POST['reviewmvp_add_course_nonce'], 'reviewmvp_add_course_action')) {
@@ -103,7 +91,6 @@ function reviewmvp_handle_course_submission() {
         'post_status'  => 'pending',
     ));
 
-    // If user logged in and has reviewer role, assign them
     if (is_user_logged_in()) {
         $user = wp_get_current_user();
         if (in_array('reviewer', (array) $user->roles)) {
@@ -118,7 +105,6 @@ function reviewmvp_handle_course_submission() {
             'name' => $course_instructor,
         ));
 
-        // Store last added course ID for guest
         if ($reviewer_value === 'guest') {
             if (!session_id()) {
                 session_start();

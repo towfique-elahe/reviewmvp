@@ -1,8 +1,5 @@
 <?php
-/**
- * Shortcode: [reviewer_leaderboard]
- * Show leaderboard of reviewers with reviews & course counts
- */
+
 function reviewmvp_reviewer_leaderboard() {
     if (!is_user_logged_in()) {
         wp_redirect(site_url('/login/'));
@@ -11,18 +8,15 @@ function reviewmvp_reviewer_leaderboard() {
 
     $current_user = wp_get_current_user();
 
-    // Allow only reviewers
     if (!in_array('reviewer', (array) $current_user->roles)) {
         return '<p style="color:crimson; text-align:center;">You do not have access to this page.</p>';
     }
 
-    // Get all reviewers
     $reviewers = get_users(['role' => 'reviewer']);
 
     $leaderboard = [];
 
     foreach ($reviewers as $user) {
-        // Count reviews
         $reviews = new WP_Query([
             'post_type'      => 'course_review',
             'post_status'    => 'publish',
@@ -36,7 +30,6 @@ function reviewmvp_reviewer_leaderboard() {
         ]);
         $review_count = $reviews->found_posts;
 
-        // Count suggested courses
         $courses = new WP_Query([
             'post_type'      => 'course',
             'post_status'    => ['publish','pending','draft'],
@@ -61,7 +54,6 @@ function reviewmvp_reviewer_leaderboard() {
         ];
     }
 
-    // Sort leaderboard by score DESC
     usort($leaderboard, function($a, $b) {
         return $b['score'] <=> $a['score'];
     });

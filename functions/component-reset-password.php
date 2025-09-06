@@ -1,9 +1,5 @@
 <?php
 
-/**
- * Shortcode: [custom_reset_password]
- * Custom reset password form
- */
 function reviewmvp_custom_reset_password() {
     if (is_user_logged_in()) {
         return '<p style="text-align:center;">You are already logged in.</p>';
@@ -12,7 +8,6 @@ function reviewmvp_custom_reset_password() {
     $message = '';
     $error   = '';
 
-    // Get key + login from reset email link
     $key   = isset($_GET['key']) ? sanitize_text_field($_GET['key']) : '';
     $login = isset($_GET['login']) ? sanitize_text_field($_GET['login']) : '';
 
@@ -25,7 +20,6 @@ function reviewmvp_custom_reset_password() {
         return '<p style="color:crimson; text-align:center;">' . $user->get_error_message() . '</p>';
     }
 
-    // Handle form submission
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['custom_reset_nonce'])) {
         if (wp_verify_nonce($_POST['custom_reset_nonce'], 'custom_reset_action')) {
             $pass1 = sanitize_text_field($_POST['pass1']);

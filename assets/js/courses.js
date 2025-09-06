@@ -1,10 +1,7 @@
-// courses.js — fetch real CPT data, mix with demo fields
 (function () {
-  // init every block on the page
   document.querySelectorAll(".bc-wrap").forEach(function (root) {
     if (!root) return;
 
-    // ---- Elements (scoped) ----
     const resultsEl =
       root.querySelector('[id$="_results"]') ||
       root.querySelector('[data-role="results"]');
@@ -19,10 +16,9 @@
 
     if (!resultsEl || !sortEl || !pagEl || !sidebar) return;
 
-    let courses = []; // will fill via API
+    let courses = [];
     const state = { page: 1, perPage: 8, sort: "relevance", pages: 1 };
 
-    // --- Helpers ---
     const $$ = (sel, parent = sidebar) =>
       Array.from(parent.querySelectorAll(sel));
 
@@ -66,7 +62,6 @@
       }
     }
 
-    // --- Filters ---
     function getFilters() {
       const decodeHTML = (str) => {
         const txt = document.createElement("textarea");
@@ -115,7 +110,6 @@
       });
     }
 
-    // --- Sorting ---
     function sortCourses(arr) {
       const v = state.sort,
         cp = [...arr];
@@ -125,17 +119,16 @@
           a[k] > b[k] ? dir : a[k] < b[k] ? -dir : 0;
 
       switch (v) {
-        case "rating_desc": // highest rated
+        case "rating_desc":
           return cp.sort(by("rating", -1));
-        case "newest": // most recently added
-          return cp.sort(by("id", -1)); // higher ID = newer (WP style)
-        case "relevance": // just return as-is
+        case "newest":
+          return cp.sort(by("id", -1));
+        case "relevance":
         default:
           return cp;
       }
     }
 
-    // --- Pagination ---
     function paginate(arr) {
       const total = arr.length,
         pages = Math.max(1, Math.ceil(total / state.perPage));
@@ -190,12 +183,10 @@
         .join("");
     }
 
-    // --- Card ---
     function cardHTML(c) {
       const yesPct = c.worthYes,
         recPct = c.recommend;
 
-      // worth percentage color
       let worthColor = "#DC2625";
       if (yesPct >= 70) {
         worthColor = "#11B981";
@@ -203,7 +194,6 @@
         worthColor = "#F6C701";
       }
 
-      // recommend ribbon colors
       let recColor = "#DC2625";
       let recBg = "#FEF1F2";
       if (recPct >= 70) {
@@ -217,7 +207,6 @@
       const themeDirectory = "/wp-content/themes/reviewmvp";
       const iconPath = `${themeDirectory}/assets/media/`;
 
-      // --- Metas (duration + level) ---
       let metasHTML = "";
       if (c.durationHours) {
         metasHTML += `<span class="bc-meta"><img src="${iconPath}icon-duration.svg" alt="Duration Icon"> ${formatDuration(
@@ -231,7 +220,6 @@
         ? `<div class="bc-metas">${metasHTML}</div>`
         : "";
 
-      // --- Outcomes ---
       let outcomesBlock = "";
       if (c.outcomes && Object.keys(c.outcomes).length > 0) {
         outcomesBlock = `<div class="bc-kpis">
@@ -272,11 +260,9 @@
     </article>`;
     }
 
-    // --- Render ---
     function render() {
       let arr = applyFilters(courses);
 
-      // Apply search term filter
       if (searchTerm) {
         const term = searchTerm.toLowerCase();
         arr = arr.filter(
@@ -300,13 +286,11 @@
       renderPagination(page);
     }
 
-    // --- Events ---
     sortEl.addEventListener("change", function () {
       state.sort = this.value;
       state.page = 1;
       render();
     });
-    // Auto-resize sort <select> width to fit selected option
     (function (select) {
       function resize() {
         const temp = document.createElement("span");
@@ -316,13 +300,12 @@
         temp.textContent = select.options[select.selectedIndex].text;
         document.body.appendChild(temp);
 
-        // Add ~40px padding for the dropdown arrow
         select.style.width = temp.offsetWidth + 60 + "px";
 
         temp.remove();
       }
 
-      resize(); // run once at start
+      resize();
       select.addEventListener("change", resize);
     })(sortEl);
     sidebar.addEventListener("change", function (e) {
@@ -349,7 +332,6 @@
       }
     });
 
-    // Toggle on click
     root.querySelectorAll(".bc-fhead").forEach((h) => {
       h.addEventListener("click", () => {
         const body = h.parentElement.querySelector(".bc-fbody");
@@ -362,7 +344,6 @@
       });
     });
 
-    // --- Mobile sidebar toggle ---
     const backdrop = root.querySelector(".bc-backdrop");
     const filterToggle = root.querySelector(".bc-filter-toggle");
 
@@ -378,19 +359,16 @@
       });
     }
 
-    // map stored level slug to display label
     const levelLabels = {
       beginner: "Beginner",
       intermediate: "Intermediate",
       advance: "Advance",
     };
 
-    // --- Fetch real data from REST API ---
     async function fetchCourses() {
       try {
         const res = await fetch("/wp-json/wp/v2/course?per_page=50");
         const data = await res.json();
-        // map stored level slug to display label
         const levelLabels = {
           beginner: "Beginner",
           intermediate: "Intermediate",
@@ -403,13 +381,11 @@
           const rawPrice = parseFloat(c.course_price) || 0;
           const isFree = rawPrice <= 0;
 
-          // outcomes
           const outcomesObj = c.outcomes_data || {};
           const outcomeLabels = Object.keys(outcomesObj).map((k) =>
             k.replace(/\s*\(\d+%?\)/, "").trim()
           );
 
-          // categories
           const categories = (c.course_categories || []).map((cat) => cat.name);
           categories.forEach((cat) => allCategories.add(cat));
 
@@ -435,7 +411,6 @@
             categories: categories,
           };
         });
-        // Inject categories dynamically
         const catContainer = root.querySelector(
           '[data-role="category-options"]'
         );
@@ -458,7 +433,6 @@
       }
     }
 
-    // --- Get search term from query string ---
     function getSearchTerm() {
       const params = new URLSearchParams(window.location.search);
       return params.get("c") ? params.get("c").trim() : "";
@@ -474,20 +448,19 @@
   });
 })();
 
-// courses-search.js
 document.addEventListener("DOMContentLoaded", function () {
   const form = document.querySelector("#bcSearchForm");
   const input = document.querySelector("#bcSearchInput");
 
-  if (!form || !input) return; // If the form or input doesn't exist, exit
+  if (!form || !input) return;
 
   form.addEventListener("submit", (e) => {
-    e.preventDefault(); // Prevent default form submission (no page reload)
-    const term = input.value.trim(); // Get the search term
+    e.preventDefault();
+    const term = input.value.trim();
     if (term) {
       window.location.href = `${
         window.location.origin
-      }/courses/?c=${encodeURIComponent(term)}`; // Redirect to the courses page with the search term
+      }/courses/?c=${encodeURIComponent(term)}`;
     }
   });
 });

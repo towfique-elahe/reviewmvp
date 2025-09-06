@@ -37,7 +37,6 @@
     currentResults = results;
     list.innerHTML = "";
 
-    // Limit the courses to a maximum of 4
     const maxCourses = 4;
     const courses = results
       .filter((r) => r.type === "course")
@@ -45,9 +44,8 @@
     const categories = results.filter((r) => r.type === "category");
 
     if (courses.length) {
-      addMissing.style.display = "none"; // Hide the "Add missing" button if courses are found.
+      addMissing.style.display = "none";
 
-      // Display courses
       courses.forEach((r, i) => {
         const li = document.createElement("li");
         li.className = "result-item";
@@ -64,7 +62,6 @@
       });
     }
 
-    // Display categories
     categories.forEach((r, i) => {
       const li = document.createElement("li");
       li.className = "result-item";
@@ -80,7 +77,6 @@
       list.appendChild(li);
     });
 
-    // Add "search for term" option at bottom if there's a term entered
     if (term) {
       const li = document.createElement("li");
       li.className = "result-item search-option";
@@ -96,7 +92,6 @@
       list.appendChild(li);
     }
 
-    // Always add the "Add missing" button at the bottom
     const addMissingItem = document.createElement("li");
     addMissingItem.className = "result-item add-missing-item";
     addMissingItem.innerHTML = `
@@ -107,7 +102,7 @@
       <span class="add-missing-text">${labels.noMatch}</span>
     </button>
   `;
-    list.appendChild(addMissingItem); // Append the "Add missing" button at the bottom.
+    list.appendChild(addMissingItem);
   }
 
   function fetchResults(q) {
@@ -151,10 +146,9 @@
     });
   }
 
-  // events
   input.addEventListener("focus", () => {
     open();
-    fetchResults(input.value); // initial fetch
+    fetchResults(input.value);
   });
 
   input.addEventListener("input", () => {
@@ -174,16 +168,13 @@
       const searchTerm = input.value.trim();
 
       if (activeIndex >= 0) {
-        // Go to selected result
         const link = list.children[activeIndex]?.querySelector("a");
         if (link) window.location.href = link.href;
       } else if (currentResults.length) {
-        // No active selection but results exist → go to search results page
         window.location.href = `${
           window.location.origin
         }/courses/?c=${encodeURIComponent(searchTerm)}`;
       } else {
-        // No results → save term, redirect to no-course-found
         fetch(courseSearchData.ajaxUrl, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
