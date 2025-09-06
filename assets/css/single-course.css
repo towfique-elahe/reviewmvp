@@ -1,6 +1,3 @@
-/* ------------ global styles starts ------------ */
-
-/* background styles */
 .bg {
   position: absolute;
   width: 100%;
@@ -11,7 +8,6 @@
   margin: 0 !important;
 }
 
-/* section heading */
 .section-heading {
   color: var(--secondary-color) !important;
   font-family: var(--primary-font-family) !important;
@@ -20,7 +16,6 @@
   margin-bottom: 20px;
 }
 
-/* overall rating */
 .course-rating-overall {
   border: var(--border);
   border-radius: 16px;
@@ -83,7 +78,6 @@
   background-color: var(--accent-color);
 }
 
-/* reviews section */
 .reviews {
   display: flex;
   flex-direction: column;
@@ -295,7 +289,6 @@
   color: #ffffff !important;
 }
 
-/* hidden reviews */
 .hidden-review {
   display: none;
 }
@@ -306,11 +299,6 @@
   border-radius: 2px;
 }
 
-/* ------------ global styles ends ------------ */
-
-/* ------------ single course details page starts ------------ */
-
-/* course info/details section */
 #scDetails.course-info {
   box-sizing: border-box;
   width: 100%;
@@ -602,13 +590,11 @@
   display: none;
 }
 
-/* course reviews section */
 #scDetails .course-reviews-container .section-heading {
   margin-top: 40px;
   margin-bottom: 30px;
 }
 
-/* course instructor section */
 #scDetails .course-instructor-container .section-heading {
   margin-top: 100px;
 }
@@ -645,7 +631,6 @@
   color: var(--primary-color);
 }
 
-/* course all reviews section */
 #scDetails .all-reviews-container .section-heading {
   margin-top: 100px;
 }
@@ -658,7 +643,7 @@
 }
 #scDetails .all-reviews-container .course-rating-overall {
   flex: 1;
-  position: -webkit-sticky; /* For Safari */
+  position: -webkit-sticky;
   position: sticky;
   top: 20px;
   align-self: flex-start;
@@ -697,7 +682,7 @@
   border-radius: 50%;
   padding: 12px;
   cursor: pointer;
-  display: none; /* hidden by default */
+  display: none;
   z-index: 1000;
   transition: ease 0.3s;
 }
@@ -711,8 +696,6 @@
 #scDetails .all-reviews-container .back-to-top-btn.show {
   display: inline-flex;
 }
-
-/* ------------ single course details page ends ------------ */
 
 @media (max-width: 1024px) {
   #scDetails .course-info-container {
@@ -796,6 +779,9 @@
   }
   #scDetails .course-info-container .sidebar {
     padding-top: 20px;
+  }
+  #scDetails .course-info-container .real-rating {
+    display: block;
   }
   #scDetails .course-info-container .course-details {
     box-sizing: border-box;

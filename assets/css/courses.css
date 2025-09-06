@@ -27,7 +27,7 @@
 .bc-searchbar {
   position: relative;
   width: 100%;
-  max-width: 300px;
+  max-width: 320px;
 }
 .bc-searchbar input {
   width: 100%;
@@ -490,6 +490,9 @@
   }
   .bc-heading {
     font-size: 24px;
+  }
+  .bc-searchbar {
+    max-width: none;
   }
   .bc-bottom-container {
     flex-direction: column;
