@@ -106,7 +106,26 @@
   transition: max-height 0.3s ease;
 }
 .bc-fbody.open {
-  max-height: 720px;
+  max-height: 200px;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-color) transparent;
+}
+.bc-fbody.open::-webkit-scrollbar {
+  width: 6px;
+}
+.bc-fbody.open::-webkit-scrollbar-track {
+  background: transparent;
+}
+.bc-fbody.open::-webkit-scrollbar-thumb {
+  background-color: var(--border-color);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.bc-fbody.open::-webkit-scrollbar-thumb:hover {
+  background-color: var(--border-color);
 }
 .bc-check {
   display: flex;
@@ -489,7 +508,7 @@
     gap: 19px;
   }
   .bc-fbody.open {
-    max-height: 350px;
+    max-height: 145px;
   }
 }
 
