@@ -1,7 +1,9 @@
 <?php
 
 function reviewmvp_add_review_form() {
-    ob_start(); ?>
+    ob_start();
+    $uid = is_user_logged_in() ? get_current_user_id() : 0;
+?>
 <form method="post" class="add-review" id="addReviewForm">
     <?php wp_nonce_field('reviewmvp_add_review_action', 'reviewmvp_add_review_nonce'); ?>
 
@@ -682,7 +684,7 @@ jQuery(document).ready(function($) {
 });
 
 (function() {
-    var DRAFT_KEY = 'reviewFormDraft';
+    var DRAFT_KEY = 'reviewFormDraft_<?php echo $uid; ?>';
     var form = document.getElementById('addReviewForm');
     if (!form) return;
 
@@ -784,6 +786,16 @@ jQuery(document).ready(function($) {
             localStorage.removeItem(DRAFT_KEY);
         } catch (e) {}
     };
+})();
+(function() {
+    var currentKey = 'reviewFormDraft_<?php echo is_user_logged_in() ? get_current_user_id() : 0; ?>';
+
+    // Clear all other keys that don’t belong to current user
+    Object.keys(localStorage).forEach(function(k) {
+        if (k.startsWith('reviewFormDraft_') && k !== currentKey) {
+            localStorage.removeItem(k);
+        }
+    });
 })();
 
 (function() {
