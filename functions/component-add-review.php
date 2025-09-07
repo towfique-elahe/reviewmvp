@@ -684,9 +684,24 @@ jQuery(document).ready(function($) {
 });
 
 (function() {
-    var DRAFT_KEY = 'reviewFormDraft_<?php echo $uid; ?>';
+    var USER_ID = <?php echo (int) $uid; ?>; // 0 for guest, >0 for logged-in
+    var USER_KEY = 'reviewFormDraft_' + USER_ID; // e.g., reviewFormDraft_123
+    var GUEST_KEY = 'reviewFormDraft_0'; // guest bucket
     var form = document.getElementById('addReviewForm');
     if (!form) return;
+
+    // --- MIGRATION: if logged in, and no user draft yet, but guest draft exists -> migrate it ---
+    if (USER_ID > 0) {
+        try {
+            var userRaw = localStorage.getItem(USER_KEY);
+            var guestRaw = localStorage.getItem(GUEST_KEY);
+            if (!userRaw && guestRaw) {
+                // Copy guest → user key, then remove guest key
+                localStorage.setItem(USER_KEY, guestRaw);
+                localStorage.removeItem(GUEST_KEY);
+            }
+        } catch (e) {}
+    }
 
     function isSkippable(el) {
         return !el.name || el.type === 'file' || /nonce/i.test(el.name);
@@ -707,18 +722,22 @@ jQuery(document).ready(function($) {
                 data[el.name] = el.value;
             }
         });
+
         var onPageTwo = document.getElementById('pageTwo').classList.contains('active');
         data.__page = onPageTwo ? 2 : 1;
+        data.__ts = Date.now(); // optional: timestamp to resolve conflicts
 
         try {
-            localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+            localStorage.setItem(USER_KEY, JSON.stringify(data));
         } catch (e) {}
     }
 
     function restoreForm() {
         var raw = null;
+
+        // Prefer user key; if guest, that *is* the user key
         try {
-            raw = localStorage.getItem(DRAFT_KEY);
+            raw = localStorage.getItem(USER_KEY);
         } catch (e) {}
         if (!raw) return;
 
@@ -780,24 +799,24 @@ jQuery(document).ready(function($) {
     restoreForm();
 
     window.__saveReviewDraft = serializeForm;
-
     window.__clearReviewDraft = function() {
         try {
-            localStorage.removeItem(DRAFT_KEY);
+            localStorage.removeItem(USER_KEY);
         } catch (e) {}
     };
 })();
 (function() {
     var currentKey = 'reviewFormDraft_<?php echo is_user_logged_in() ? get_current_user_id() : 0; ?>';
+    var guestKey = 'reviewFormDraft_0';
 
-    // Clear all other keys that don’t belong to current user
+    // Do NOT delete the guest key here; let the migration logic handle it on load.
     Object.keys(localStorage).forEach(function(k) {
-        if (k.startsWith('reviewFormDraft_') && k !== currentKey) {
-            localStorage.removeItem(k);
-        }
+        if (!k.startsWith('reviewFormDraft_')) return;
+        if (k === currentKey) return;
+        if (k === guestKey) return; // keep guest draft so it can be migrated after login
+        localStorage.removeItem(k);
     });
 })();
-
 (function() {
     function openPopup(url, title, w, h) {
         var dl = window.screenLeft !== undefined ? window.screenLeft : window.screenX;
@@ -921,6 +940,33 @@ function reviewmvp_handle_review_submission() {
         $reviewer_name = $current_user->display_name;
     }
 
+    // prevent duplicate review (one user → one course)
+    if ($reviewer_id > 0) {
+        $dupe = get_posts([
+            'post_type'   => 'course_review',
+            'post_status' => ['pending','publish','draft','future','private'],
+            'numberposts' => 1,
+            'fields'      => 'ids',
+            'meta_query'  => [
+                'relation' => 'AND',
+                [
+                    'key'   => '_review_course',
+                    'value' => $course_id,
+                    'compare' => '=',
+                ],
+                [
+                    'key'   => '_reviewer',
+                    'value' => $reviewer_id,
+                    'compare' => '=',
+                ],
+            ],
+        ]);
+
+        if (!empty($dupe)) {
+            wp_send_json_error('You’ve already submitted a review for this course.');
+        }
+    }
+
     $course_title = get_the_title($course_id);
 
     if ($reviewer_id) {
@@ -959,6 +1005,32 @@ function reviewmvp_handle_review_submission() {
             if ($li_url) {
                 update_post_meta($post_id, '_review_linkedin', esc_url_raw($li_url));
             }
+        }
+
+        // Count published reviews for this reviewer (by meta only)
+        $ids_by_meta = get_posts([
+            'post_type'        => 'course_review',
+            'post_status'      => 'publish',
+            'fields'           => 'ids',
+            'posts_per_page'   => -1,
+            'no_found_rows'    => true,
+            'suppress_filters' => true,
+            'meta_query'       => [
+                [
+                    'key'     => '_reviewer',
+                    'value'   => $reviewer_id,
+                    'compare' => '=',
+                ],
+            ],
+        ]);
+
+        $published_reviews_count = is_array($ids_by_meta) ? count($ids_by_meta) : 0;
+
+        if ($published_reviews_count >= 5) {
+            $statuses[] = 'rising_voice';
+            $statuses[] = 'top_voice';
+        } elseif ($published_reviews_count >= 2) {
+            $statuses[] = 'rising_voice';
         }
     }
 
@@ -1153,12 +1225,17 @@ add_action('init', function () {
             $finish('success', 'LinkedIn connected');
         }
 
-        // Rule 2: LinkedIn email belongs to some other WP account (B) -> error (do not switch/link)
+        // Rule 2: This LinkedIn profile (sub) is already connected to another WP account -> error
+        if ($existing_user_with_sub && (int) $existing_user_with_sub->ID !== (int) $user_a->ID) {
+            $finish('error', 'This LinkedIn profile is already connected to another account. Please sign in as that account.');
+        }
+
+        // Rule 3: LinkedIn email belongs to some other WP account (B) -> error
         if ($existing_user_with_email && (int)$existing_user_with_email->ID !== (int)$user_a->ID) {
             $finish('error', 'This LinkedIn email is already connected to a different account. Please sign in as that account or use a different LinkedIn profile.');
         }
 
-        // Rule 3: LinkedIn email not used in WP -> link to A anyway
+        // Rule 4: LinkedIn email not used in WP -> link to A anyway
         update_user_meta($user_a->ID, '_linkedin_profile', esc_url_raw('https://www.linkedin.com/openid/id/' . rawurlencode($sub)));
         update_user_meta($user_a->ID, '_linkedin_connected', 'yes');
         if ($name) update_user_meta($user_a->ID, '_linkedin_name', $name);

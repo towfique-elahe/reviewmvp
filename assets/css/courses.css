@@ -132,14 +132,22 @@
   align-items: center;
   gap: 8px;
   margin: 6px 0;
+  padding: 3px 0;
   color: var(--dark-text-color) !important;
   font-family: var(--text-font-family) !important;
   font-weight: 400;
   font-size: 14px;
 }
-.bc-check input {
+.bc-check input[type="checkbox"] {
   width: 16px;
   height: 16px;
+  border: var(--border);
+  border-radius: 3px;
+  display: inline-grid;
+  place-content: center;
+  margin: 0;
+  flex: 0 0 auto;
+  cursor: pointer;
 }
 .bc-muted {
   display: flex;
@@ -506,9 +514,6 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 19px;
-  }
-  .bc-fbody.open {
-    max-height: 145px;
   }
 }
 

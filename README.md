@@ -4,13 +4,17 @@
 - Author: Towfique Elahe
 - Author URI: https://towfique-elahe.framer.website/
 - Description: A custom WordPress theme for course review system, compatible with Elementor and WooCommerce.
-- Version: 1.2.6
+- Version: 1.2.7
 - License: GNU General Public License v3 or later
 - License URI: http://www.gnu.org/licenses/gpl-3.0.html
 - Text Domain: review-mvp
 - Tags: review, course review, review system, course rating, course review theme, review theme,
 
 ## Version History
+
+## V1.2.7
+
+- Updated: Add review page, preserves guest drafts (even after LinkedIn sign-in), enforces one review per user per course, awards badges based on approved review count, and restricts each LinkedIn profile to a single account.
 
 ## V1.2.6
 
