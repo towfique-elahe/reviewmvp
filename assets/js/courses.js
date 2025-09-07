@@ -315,6 +315,7 @@
       }
     });
     root.addEventListener("click", function (e) {
+      // pagination
       const btn = e.target.closest(".bc-pagebtn");
       if (btn && btn.dataset.page) {
         const p = parseInt(btn.dataset.page, 10);
@@ -322,12 +323,32 @@
           state.page = Math.min(Math.max(1, p), state.pages);
           render();
         }
+        return;
       }
-      if (e.target.matches('[data-action="clear"]')) {
+
+      // clear filters (+ clear search and taxonomy)
+      const clearBtn = e.target.closest('[data-action="clear"]');
+      if (clearBtn) {
         Array.from(
           sidebar.querySelectorAll('input[type="checkbox"]:checked')
         ).forEach((i) => (i.checked = false));
         state.page = 1;
+
+        const url = new URL(window.location.href);
+        const archiveUrl =
+          root.dataset.archiveUrl ||
+          window.courseSearchData?.archiveUrl ||
+          window.location.origin + url.pathname;
+
+        const onTaxonomy = !!(
+          root.dataset.currentCategoryName || root.dataset.currentCategorySlug
+        );
+
+        if (url.searchParams.has("c") || onTaxonomy) {
+          window.location.href = archiveUrl; // go to /courses/
+          return;
+        }
+
         render();
       }
     });
@@ -425,6 +446,21 @@
             )
             .join("");
         }
+        // Preselect category when on taxonomy page
+        const currentCatName = root.dataset.currentCategoryName
+          ?.trim()
+          .toLowerCase();
+        if (currentCatName) {
+          const inputs = catContainer.querySelectorAll(
+            'input[name="category"]'
+          );
+          for (const i of inputs) {
+            if (i.value.trim().toLowerCase() === currentCatName) {
+              i.checked = true;
+              break;
+            }
+          }
+        }
         render();
       } catch (err) {
         console.error("Error fetching courses:", err);
@@ -451,16 +487,22 @@
 document.addEventListener("DOMContentLoaded", function () {
   const form = document.querySelector("#bcSearchForm");
   const input = document.querySelector("#bcSearchInput");
-
   if (!form || !input) return;
+
+  const wrap = document.querySelector(".bc-wrap");
+  const urlNow = new URL(window.location.href);
+  const archiveUrl =
+    wrap?.dataset.archiveUrl ||
+    window.courseSearchData?.archiveUrl ||
+    window.location.origin + urlNow.pathname;
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const term = input.value.trim();
     if (term) {
-      window.location.href = `${
-        window.location.origin
-      }/courses/?c=${encodeURIComponent(term)}`;
+      window.location.href = `${archiveUrl}?c=${encodeURIComponent(term)}`;
+    } else {
+      window.location.href = archiveUrl; // empty search → archive root
     }
   });
 });

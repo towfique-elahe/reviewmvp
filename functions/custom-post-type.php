@@ -1,6 +1,10 @@
 <?php
 
 function reviewmvp_register_course_post_type() {
+
+    $base = get_option('course_permalink_base', 'course');
+    $archive_slug = 'courses';
+    
     $labels = array(
         'name'                  => _x('Courses', 'Post Type General Name', 'reviewmvp'),
         'singular_name'         => _x('Course', 'Post Type Singular Name', 'reviewmvp'),
@@ -31,13 +35,13 @@ function reviewmvp_register_course_post_type() {
         'show_in_admin_bar'     => true,
         'show_in_nav_menus'     => true,
         'can_export'            => true,
-        'has_archive'           => true,
+        'has_archive'           => $archive_slug,
         'exclude_from_search'   => false,
         'publicly_queryable'    => true,
         'show_in_rest'          => true,
         'capability_type'       => 'post',
         'rewrite'               => array(
-            'slug' => 'course',
+            'slug' => $base,
             'with_front' => false
         ),
     );

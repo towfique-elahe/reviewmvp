@@ -4,6 +4,7 @@ function course_search_box_shortcode() {
     wp_localize_script('reviewmvp-course-search', 'courseSearchData', [
         'ajaxUrl'       => admin_url('admin-ajax.php'),
         'nonce'         => wp_create_nonce('reviewmvp_course_search'),
+        'archiveUrl'  => get_post_type_archive_link('course'),
         'addMissingUrl' => site_url('/add-missing-course/'),
         'labels'        => [
             'course'   => __('Course', 'textdomain'),
@@ -81,7 +82,7 @@ function reviewmvp_course_search_ajax() {
     }
 
     $cats = get_terms([
-        'taxonomy'   => 'category',
+        'taxonomy'   => 'course_category',
         'name__like' => $term,
         'number'     => 10,
     ]);

@@ -1,6 +1,11 @@
 .bc-container {
+  box-sizing: border-box;
+  width: 100%;
   max-width: 1200px;
-  margin: 50px auto;
+  margin: 0 auto;
+  margin-top: 130px;
+  margin-bottom: 50px;
+  padding: 20px 15px;
 }
 .bc-container img {
   border-radius: 0 !important;
@@ -27,27 +32,7 @@
 .bc-searchbar {
   position: relative;
   width: 100%;
-  max-width: 320px;
-}
-.bc-searchbar input {
-  width: 100%;
-  outline: none;
-  border-radius: 12px !important;
-}
-.bc-searchbar input:focus {
-  border-color: var(--accent-color) !important;
-}
-.bc-searchbar button {
-  font-size: 24px !important;
-  padding: 5px !important;
-  border-radius: 7px !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: absolute;
-  right: 10px;
-  top: 8px;
-  cursor: pointer;
+  max-width: 380px;
 }
 .bc-sidebar-heading {
   color: var(--secondary-color) !important;
@@ -121,7 +106,7 @@
   transition: max-height 0.3s ease;
 }
 .bc-fbody.open {
-  max-height: 200px;
+  max-height: 720px;
 }
 .bc-check {
   display: flex;
@@ -291,6 +276,7 @@
   gap: 3px;
 }
 .bc-title {
+  text-decoration: none;
   color: var(--secondary-color) !important;
   font-family: var(--text-font-family) !important;
   font-weight: 600;
