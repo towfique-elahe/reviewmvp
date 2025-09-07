@@ -361,13 +361,15 @@ function reviewmvp_register_review_post_type() {
     );
 
     $args = array(
-        'labels'             => $labels,
-        'public'             => false,
-        'show_ui'            => true,
-        'show_in_menu'       => 'edit.php?post_type=course',
-        'supports'           => array('title', 'editor', 'author'),
-        'capability_type'    => 'post',
-        'has_archive'        => false,
+        'labels'          => $labels,
+        'public'          => false,
+        'show_ui'         => true,
+        'show_in_menu'    => true, 
+        'menu_position'   => 6,
+        'menu_icon'       => 'dashicons-star-filled',
+        'supports'        => array('title', 'editor', 'author'),
+        'capability_type' => 'post',
+        'has_archive'     => false,
     );
 
     register_post_type('course_review', $args);
@@ -572,3 +574,262 @@ function reviewmvp_save_review_meta($post_id) {
     }
 }
 add_action('save_post_course_review', 'reviewmvp_save_review_meta');
+
+/**
+ * Register a global "rejected" post status and wire it up for Course + Review CPTs.
+ */
+add_action('init', function () {
+    register_post_status('rejected', array(
+        'label'                     => _x('Rejected', 'post status', 'reviewmvp'),
+        'public'                    => false,
+        'exclude_from_search'       => true,
+        'show_in_admin_all_list'    => true, // show count on All list
+        'show_in_admin_status_list' => true, // show "Rejected (N)" filter when N>0
+        'label_count'               => _n_noop(
+            'Rejected <span class="count">(%s)</span>',
+            'Rejected <span class="count">(%s)</span>',
+            'reviewmvp'
+        ),
+    ));
+});
+
+/**
+ * Show "Rejected" badge in the list table next to post titles.
+ */
+add_filter('display_post_states', function ($states, $post) {
+    if ($post->post_status === 'rejected') {
+        $states['rejected'] = __('Rejected', 'reviewmvp');
+    }
+    return $states;
+}, 10, 2);
+
+/**
+ * Row actions: Reject / Restore for course + course_review.
+ */
+add_filter('post_row_actions', function ($actions, $post) {
+    if (!in_array($post->post_type, array('course','course_review'), true)) {
+        return $actions;
+    }
+    if (!current_user_can('edit_post', $post->ID)) {
+        return $actions;
+    }
+
+    if ($post->post_status !== 'rejected') {
+        $url = wp_nonce_url(
+            add_query_arg(array(
+                'action'    => 'mark_rejected',
+                'post'      => $post->ID,
+                'post_type' => $post->post_type,
+            ), admin_url('edit.php')),
+            'mark_rejected_' . $post->ID
+        );
+        $actions['mark_rejected'] = '<a href="' . esc_url($url) . '">' . esc_html__('Reject', 'reviewmvp') . '</a>';
+    } else {
+        $url = wp_nonce_url(
+            add_query_arg(array(
+                'action'    => 'unreject',
+                'post'      => $post->ID,
+                'post_type' => $post->post_type,
+            ), admin_url('edit.php')),
+            'unreject_' . $post->ID
+        );
+        $actions['unreject'] = '<a href="' . esc_url($url) . '">' . esc_html__('Restore', 'reviewmvp') . '</a>';
+    }
+    return $actions;
+}, 10, 2);
+
+/**
+ * Handle row actions.
+ */
+add_action('load-edit.php', function () {
+    $screen = get_current_screen();
+    if (!$screen || !in_array($screen->post_type, array('course','course_review'), true)) {
+        return;
+    }
+
+    if (empty($_GET['action']) || empty($_GET['post'])) {
+        return;
+    }
+    $post_id = (int) $_GET['post'];
+    if (!current_user_can('edit_post', $post_id)) {
+        return;
+    }
+
+    if ($_GET['action'] === 'mark_rejected' && wp_verify_nonce($_GET['_wpnonce'] ?? '', 'mark_rejected_' . $post_id)) {
+        wp_update_post(array('ID' => $post_id, 'post_status' => 'rejected'));
+        wp_redirect(add_query_arg(array('updated' => 1, 'marked_rejected' => 1), remove_query_arg(array('action','post','_wpnonce'))));
+        exit;
+    }
+    if ($_GET['action'] === 'unreject' && wp_verify_nonce($_GET['_wpnonce'] ?? '', 'unreject_' . $post_id)) {
+        // Restore to Pending (change to 'draft' if you prefer)
+        wp_update_post(array('ID' => $post_id, 'post_status' => 'pending'));
+        wp_redirect(add_query_arg(array('updated' => 1, 'unrejected' => 1), remove_query_arg(array('action','post','_wpnonce'))));
+        exit;
+    }
+});
+
+/**
+ * Bulk actions for both CPTs.
+ */
+function reviewmvp_register_bulk_reject($actions) {
+    $actions['mark_rejected'] = __('Mark as Rejected', 'reviewmvp');
+    $actions['unreject']      = __('Restore from Rejected', 'reviewmvp');
+    return $actions;
+}
+add_filter('bulk_actions-edit-course', 'reviewmvp_register_bulk_reject');
+add_filter('bulk_actions-edit-course_review', 'reviewmvp_register_bulk_reject');
+
+function reviewmvp_handle_bulk_reject($redirect_to, $doaction, $post_ids) {
+    if ($doaction === 'mark_rejected') {
+        $count = 0;
+        foreach ($post_ids as $id) {
+            if (current_user_can('edit_post', $id)) {
+                wp_update_post(array('ID' => $id, 'post_status' => 'rejected'));
+                $count++;
+            }
+        }
+        return add_query_arg('bulk_marked_rejected', $count, $redirect_to);
+    }
+    if ($doaction === 'unreject') {
+        $count = 0;
+        foreach ($post_ids as $id) {
+            if (current_user_can('edit_post', $id)) {
+                wp_update_post(array('ID' => $id, 'post_status' => 'pending')); // or 'draft'
+                $count++;
+            }
+        }
+        return add_query_arg('bulk_unrejected', $count, $redirect_to);
+    }
+    return $redirect_to;
+}
+add_filter('handle_bulk_actions-edit-course', 'reviewmvp_handle_bulk_reject', 10, 3);
+add_filter('handle_bulk_actions-edit-course_review', 'reviewmvp_handle_bulk_reject', 10, 3);
+
+/**
+ * Admin notices for actions.
+ */
+add_action('admin_notices', function () {
+    if (!empty($_REQUEST['marked_rejected'])) {
+        echo '<div class="updated notice is-dismissible"><p>' . esc_html__('Item rejected.', 'reviewmvp') . '</p></div>';
+    }
+    if (!empty($_REQUEST['unrejected'])) {
+        echo '<div class="updated notice is-dismissible"><p>' . esc_html__('Item restored from Rejected.', 'reviewmvp') . '</p></div>';
+    }
+    if (!empty($_REQUEST['bulk_marked_rejected'])) {
+        $n = (int) $_REQUEST['bulk_marked_rejected'];
+        printf('<div class="updated notice is-dismissible"><p>' . esc_html(_n('%s item rejected.', '%s items rejected.', $n, 'reviewmvp')) . '</p></div>', number_format_i18n($n));
+    }
+    if (!empty($_REQUEST['bulk_unrejected'])) {
+        $n = (int) $_REQUEST['bulk_unrejected'];
+        printf('<div class="updated notice is-dismissible"><p>' . esc_html(_n('%s item restored from Rejected.', '%s items restored from Rejected.', $n, 'reviewmvp')) . '</p></div>', number_format_i18n($n));
+    }
+});
+
+/**
+ * Classic editor: add "Rejected" to the status dropdown in submit box for our CPTs.
+ * (Gutenberg doesn’t expose a simple PHP hook for this; if you need block editor UI, we can add a small JS plugin.)
+ */
+function reviewmvp_status_dropdown_js() {
+    global $post, $typenow;
+    $pt = $typenow ?: ($post->post_type ?? '');
+    if (!in_array($pt, array('course', 'course_review'), true)) return;
+    ?>
+<script>
+jQuery(function($) {
+    var $st = $('#post_status');
+    if ($st.length && !$st.find('option[value="rejected"]').length) {
+        $st.append('<option value="rejected"><?php echo esc_js(__('Rejected', 'reviewmvp')); ?></option>');
+    }
+    <?php if (!empty($post) && $post->post_status === 'rejected') : ?>
+    $('#post-status-display').text('<?php echo esc_js(__('Rejected', 'reviewmvp')); ?>');
+    <?php endif; ?>
+});
+</script>
+<?php
+}
+add_action('admin_footer-post.php', 'reviewmvp_status_dropdown_js');
+add_action('admin_footer-post-new.php', 'reviewmvp_status_dropdown_js');
+
+/**
+ * Add pending-count bubbles to Courses and Reviews admin menus.
+ */
+add_action('admin_menu', function () {
+    if (!is_admin()) return;
+
+    global $menu, $submenu;
+
+    // Helper to get pending count safely
+    $get_pending = function (string $post_type): int {
+        $counts = wp_count_posts($post_type);
+        return $counts && isset($counts->pending) ? (int) $counts->pending : 0;
+    };
+
+    // Helper to render WP-style bubble
+    $bubble = function (int $count): string {
+        if ($count <= 0) return '';
+        $num = number_format_i18n($count);
+        // 'awaiting-mod' uses the red comment-style badge; works nicely for "pending"
+        return ' <span class="awaiting-mod count-' . esc_attr($num) . '"><span class="pending-count">' . esc_html($num) . '</span></span>';
+    };
+
+    // Target menus for your CPTs
+    $targets = [
+        'course'        => 'edit.php?post_type=course',
+        'course_review' => 'edit.php?post_type=course_review',
+    ];
+
+    foreach ($targets as $pt => $slug) {
+        // Only show if the current user can see/edit this post type
+        $pto = get_post_type_object($pt);
+        if (!$pto || empty($pto->cap->edit_posts) || !current_user_can($pto->cap->edit_posts)) {
+            continue;
+        }
+
+        $pending = $get_pending($pt);
+        if ($pending <= 0) continue;
+
+        $badge = $bubble($pending);
+
+        // Add bubble on the top-level menu item
+        foreach ($menu as $i => $m) {
+            if (isset($m[2]) && $m[2] === $slug) {
+                // $m[0] is the menu title label
+                $menu[$i][0] .= $badge;
+                break;
+            }
+        }
+
+        // Also add to the "All {post_type}s" submenu item if present
+        if (!empty($submenu[$slug])) {
+            foreach ($submenu[$slug] as $j => $sub) {
+                // Submenu slug for the list table equals the top-level slug
+                if (isset($sub[2]) && $sub[2] === $slug) {
+                    $submenu[$slug][$j][0] .= $badge;
+                    break;
+                }
+            }
+        }
+    }
+}, 999); // run late so the menu already exists
+
+// Color the "Reject" row action link red on the list tables
+add_action('admin_head-edit.php', function () { ?>
+<style>
+/* Row action link */
+.row-actions a[href*="action=mark_rejected"] {
+    color: #d63638 !important;
+    /* WP danger red */
+    font-weight: 600;
+}
+
+.row-actions a[href*="action=mark_rejected"]:hover {
+    color: #b32d2e !important;
+}
+
+/* (Optional) Make the Rejected filter tab red too */
+.subsubsub a[href*="post_status=rejected"],
+.subsubsub .current[href*="post_status=rejected"] {
+    color: #d63638 !important;
+}
+</style>
+<?php });
