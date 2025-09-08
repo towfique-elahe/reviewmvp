@@ -4,13 +4,17 @@
 - Author: Towfique Elahe
 - Author URI: https://towfique-elahe.framer.website/
 - Description: A custom WordPress theme for course review system, compatible with Elementor and WooCommerce.
-- Version: 1.2.7
+- Version: 1.2.8
 - License: GNU General Public License v3 or later
 - License URI: http://www.gnu.org/licenses/gpl-3.0.html
 - Text Domain: review-mvp
 - Tags: review, course review, review system, course rating, course review theme, review theme,
 
 ## Version History
+
+## V1.2.8
+
+- Fixed: When a guest added a course and began a review, then connected LinkedIn to sign in, the guest-added pending course disappeared from the selector. The flow now automatically assigns that course to the newly logged-in reviewer, so it appears (and the draft re-selects it) as expected.
 
 ## V1.2.7
 

@@ -1150,13 +1150,24 @@ function reviewmvp_linkedin_connect_start(){
         wp_send_json_error(['message' => 'Invalid request (nonce).'], 400);
     }
 
+    // NEW: read guest pending course from the session
+    if (!session_id()) { session_start(); }
+    $guest_course_id = isset($_SESSION['guest_last_course_id']) ? intval($_SESSION['guest_last_course_id']) : 0;
+
     $client_id = trim((string) get_option('linkedin_client_id', ''));
     if (!$client_id) {
         wp_send_json_error(['message' => 'LinkedIn client ID is missing.'], 500);
     }
 
     $state = wp_generate_password(20, false, false);
-    set_transient('li_connect_state_' . $state, get_current_user_id(), 10 * MINUTE_IN_SECONDS);
+
+    // CHANGED: store a payload array instead of just the user id
+    $payload = [
+        'initiator'        => get_current_user_id(), // 0 for guest
+        'guest_course_id'  => $guest_course_id,
+        'ts'               => time(),
+    ];
+    set_transient('li_connect_state_' . $state, $payload, 10 * MINUTE_IN_SECONDS);
 
     $redirect_uri = site_url('/linkedin-callback/');
     $scope = 'openid profile email';
@@ -1170,6 +1181,32 @@ function reviewmvp_linkedin_connect_start(){
     ], 'https://www.linkedin.com/oauth/v2/authorization');
 
     wp_send_json_success(['url' => $url]);
+}
+
+// Helper to convert a guest's pending course to the logged-in reviewer
+function reviewmvp_claim_guest_course_for_user( int $user_id, int $course_id ) : void {
+    if ($user_id <= 0 || $course_id <= 0) return;
+
+    $post = get_post($course_id);
+    if (!$post || $post->post_type !== 'course') return;
+
+    // Only touch pending courses that were marked as 'guest'
+    $current_reviewer = get_post_meta($course_id, '_course_reviewer', true);
+    if ($post->post_status !== 'pending' || $current_reviewer !== 'guest') return;
+
+    // Assign to this reviewer
+    update_post_meta($course_id, '_course_reviewer', $user_id);
+
+    // (Optional) mark a flag so your reviewer query branch with '_course_status_flag' also matches, if you rely on it elsewhere
+    if (!metadata_exists('post', $course_id, '_course_status_flag')) {
+        update_post_meta($course_id, '_course_status_flag', '1');
+    }
+
+    // Clear the guest session pointer if it exists
+    if (!session_id()) { @session_start(); }
+    if (isset($_SESSION['guest_last_course_id']) && intval($_SESSION['guest_last_course_id']) === $course_id) {
+        unset($_SESSION['guest_last_course_id']);
+    }
 }
 
 add_action('init', function () {
@@ -1208,10 +1245,12 @@ add_action('init', function () {
     $state = isset($_GET['state']) ? sanitize_text_field($_GET['state']) : '';
     if (!$code || !$state) { $finish('error', 'Missing code/state'); }
 
-    // Retrieve and clear initiator
-    $initiator   = get_transient('li_connect_state_' . $state);
+    // CHANGED: retrieve the payload array (initiator + guest course)
+    $payload = get_transient('li_connect_state_' . $state);
     delete_transient('li_connect_state_' . $state);
-    $initiator_id = is_numeric($initiator) ? (int) $initiator : 0;
+
+    $initiator_id    = (is_array($payload) && isset($payload['initiator']))       ? (int) $payload['initiator']      : 0;
+    $guest_course_id = (is_array($payload) && isset($payload['guest_course_id'])) ? (int) $payload['guest_course_id']: 0;
 
     $client_id     = trim((string) get_option('linkedin_client_id', ''));
     $client_secret = trim((string) get_option('linkedin_client_secret', ''));
@@ -1282,6 +1321,7 @@ add_action('init', function () {
             update_user_meta($user_a->ID, '_linkedin_connected', 'yes');
             if ($name) update_user_meta($user_a->ID, '_linkedin_name', $name);
             update_user_meta($user_a->ID, '_linkedin_email', $email);
+            reviewmvp_claim_guest_course_for_user($user_a->ID, $guest_course_id);
             $finish('success', 'LinkedIn connected');
         }
 
@@ -1300,6 +1340,7 @@ add_action('init', function () {
         update_user_meta($user_a->ID, '_linkedin_connected', 'yes');
         if ($name) update_user_meta($user_a->ID, '_linkedin_name', $name);
         update_user_meta($user_a->ID, '_linkedin_email', $email);
+        reviewmvp_claim_guest_course_for_user($initiator_id, $guest_course_id);
         $finish('success', 'LinkedIn connected');
     }
 
@@ -1316,6 +1357,7 @@ add_action('init', function () {
         if ($name) update_user_meta($existing_user_with_sub->ID, '_linkedin_name', $name);
         if ($email) update_user_meta($existing_user_with_sub->ID, '_linkedin_email', $email);
 
+        reviewmvp_claim_guest_course_for_user($existing_user_with_sub->ID, $guest_course_id);
         $finish('success', 'Signed in');
     }
 
@@ -1329,6 +1371,7 @@ add_action('init', function () {
         if ($name) update_user_meta($existing_user_with_email->ID, '_linkedin_name', $name);
         if ($email) update_user_meta($existing_user_with_email->ID, '_linkedin_email', $email);
 
+        reviewmvp_claim_guest_course_for_user($existing_user_with_email->ID, $guest_course_id);
         $finish('success', 'Signed in');
     }
 
@@ -1353,6 +1396,7 @@ add_action('init', function () {
     if ($name) update_user_meta($user_id, '_linkedin_name', $name);
     if ($email) update_user_meta($user_id, '_linkedin_email', $email);
 
+    reviewmvp_claim_guest_course_for_user($user_id, $guest_course_id);
     $finish('success', 'Signed in');
 });
 
