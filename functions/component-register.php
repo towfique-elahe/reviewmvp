@@ -2,45 +2,56 @@
 
 add_action('init', function() {
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['custom_register_nonce'])) {
-        if (wp_verify_nonce($_POST['custom_register_nonce'], 'custom_register_action')) {
-            $name     = sanitize_text_field($_POST['name']);
-            $email    = sanitize_email($_POST['email']);
-            $password = sanitize_text_field($_POST['password']);
-            $remember = !empty($_POST['remember']);
+        // If nonce fails, bounce back with a generic error too
+        if (!wp_verify_nonce($_POST['custom_register_nonce'], 'custom_register_action')) {
+            set_transient('custom_register_error', 'Something went wrong. Please try again.', 30);
+            wp_safe_redirect( wp_get_referer() ?: site_url('/sign-up/') );
+            exit;
+        }
 
-            if (empty($name) || empty($email) || empty($password)) {
-                set_transient('custom_register_error', 'All fields are required.', 30);
-                return;
-            }
-            if (email_exists($email)) {
-                set_transient('custom_register_error', 'Email already registered. Please login.', 30);
-                return;
-            }
+        $name     = sanitize_text_field($_POST['name'] ?? '');
+        $email    = sanitize_email($_POST['email'] ?? '');
+        $password = sanitize_text_field($_POST['password'] ?? '');
+        $remember = !empty($_POST['remember']); // kept if you later want to use it on login
 
-            $username = sanitize_user(current(explode('@', $email)), true);
-            if (username_exists($username)) {
-                $username .= '_' . wp_generate_password(4, false);
-            }
+        if (empty($name) || empty($email) || empty($password)) {
+            set_transient('custom_register_error', 'All fields are required.', 30);
+            wp_safe_redirect( wp_get_referer() ?: site_url('/sign-up/') );
+            exit;
+        }
 
-            $user_id = wp_create_user($username, $password, $email);
-            if (!is_wp_error($user_id)) {
-                $user = new WP_User($user_id);
-                $user->set_role('reviewer');
+        if (email_exists($email)) {
+            set_transient('custom_register_error', 'Email already registered. Please login.', 30);
+            wp_safe_redirect( wp_get_referer() ?: site_url('/sign-up/') );
+            exit;
+        }
 
-                wp_update_user([
-                    'ID' => $user_id,
-                    'display_name' => $name
-                ]);
+        $username = sanitize_user( strtok($email, '@'), true );
+        if (username_exists($username)) {
+            $username .= '_' . wp_generate_password(4, false);
+        }
 
-                wp_set_current_user($user_id);
-                wp_set_auth_cookie($user_id, $remember);
+        $user_id = wp_create_user($username, $password, $email);
+        if (!is_wp_error($user_id)) {
+            $user = new WP_User($user_id);
+            $user->set_role('reviewer');
 
-                wp_redirect(site_url('/reviewer-dashboard/')); 
-                exit;
-            } else {
-                set_transient('custom_register_error', 'Registration failed. Try again.', 30);
-                return;
-            }
+            wp_update_user([
+                'ID'           => $user_id,
+                'display_name' => $name
+            ]);
+
+            // IMPORTANT: Do NOT log the user in here. Show success then redirect to login.
+            // wp_set_current_user($user_id);
+            // wp_set_auth_cookie($user_id, $remember);
+
+            set_transient('custom_register_success', 'Your account was created successfully. Redirecting you to the login page…', 30);
+            wp_safe_redirect( site_url('/sign-up/?registered=1') );
+            exit;
+        } else {
+            set_transient('custom_register_error', 'Registration failed. Try again.', 30);
+            wp_safe_redirect( wp_get_referer() ?: site_url('/sign-up/') );
+            exit;
         }
     }
 });
@@ -50,10 +61,33 @@ function reviewmvp_custom_register_form() {
         return '<p style="text-align:center;">You are already registered and logged in.</p>';
     }
 
-    $message = get_transient('custom_register_error');
-    if ($message) {
+    $message = '';
+    $success_html = '';
+
+    // Error message (if any)
+    $error = get_transient('custom_register_error');
+    if ($error) {
         delete_transient('custom_register_error');
-        $message = '<p style="color:crimson;">' . esc_html($message) . '</p>';
+        $message = '<p style="color:crimson; margin-top:8px;">' . esc_html($error) . '</p>';
+    }
+
+    // Success message (if redirected after registration)
+    if (isset($_GET['registered']) && $_GET['registered'] === '1') {
+        $success = get_transient('custom_register_success');
+        if ($success) {
+            delete_transient('custom_register_success');
+            $login_url = esc_url( site_url('/login/') );
+            // Green success box + auto-redirect after 4s
+            $success_html = '
+                <div class="notice-success" style="background:#e8f7ee;border:1px solid #b7e2c3;color:#175d2b;padding:12px 14px;border-radius:6px;margin:10px 0;">
+                    ' . esc_html($success) . '
+                    <br><small>You can also <a href="'.$login_url.'">click here to log in now</a>.</small>
+                </div>
+                <script>
+                    setTimeout(function(){ window.location.href = "'.$login_url.'"; }, 4000);
+                </script>
+            ';
+        }
     }
 
     ob_start(); ?>
@@ -79,7 +113,11 @@ function reviewmvp_custom_register_form() {
 
         <p class="divider-text">Or, sign up with email</p>
 
-        <?php if (!empty($message)) echo $message; ?>
+        <?php
+            // Success first (if present), then error
+            if (!empty($success_html)) echo $success_html;
+            if (!empty($message)) echo $message;
+        ?>
 
         <form method="post">
             <?php wp_nonce_field('custom_register_action', 'custom_register_nonce'); ?>
@@ -178,6 +216,8 @@ function googleRegister() {
     return ob_get_clean();
 }
 add_shortcode('custom_register_form', 'reviewmvp_custom_register_form');
+
+/* --- Social callbacks remain the same below --- */
 
 add_action('init', function() {
     if (

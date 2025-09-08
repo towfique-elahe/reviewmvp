@@ -12,17 +12,17 @@ add_action('template_redirect', function() {
 
             if (!is_wp_error($user)) {
                 if (in_array('reviewer', (array) $user->roles)) {
-                    wp_redirect(site_url('/reviewer-dashboard/'));
+                    wp_safe_redirect(site_url('/reviewer-dashboard/'));
                     exit;
                 } else {
                     wp_logout();
                     set_transient('custom_login_error', 'You are not allowed to login here.', 30);
-                    wp_redirect(site_url('/login/'));
+                    wp_safe_redirect(site_url('/login/'));
                     exit;
                 }
             } else {
                 set_transient('custom_login_error', $user->get_error_message(), 30);
-                wp_redirect(site_url('/login/'));
+                wp_safe_redirect(site_url('/login/'));
                 exit;
             }
         }
@@ -53,12 +53,12 @@ function reviewmvp_custom_login_form() {
         <p class="divider-text">Or, sign in with email</p>
 
         <?php
-        $message = get_transient('custom_login_error');
-        if ($message) {
-            delete_transient('custom_login_error');
-            echo '<div class="login-error" style="color:crimson; text-align:center; margin-bottom:10px;">' . esc_html($message) . '</div>';
-        }
-    ?>
+            $message = get_transient('custom_login_error');
+            if ($message) {
+                delete_transient('custom_login_error');
+                echo '<div class="login-error" style="color:crimson; text-align:center; margin-bottom:10px;">' . esc_html($message) . '</div>';
+            }
+        ?>
 
         <form method="post" action="">
             <?php wp_nonce_field('custom_login_action', 'custom_login_nonce'); ?>
@@ -157,7 +157,7 @@ add_action('init', function() {
         $linkedin_client_secret = trim((string) get_option('linkedin_client_secret', ''));
 
         if (empty($linkedin_client_id) || empty($linkedin_client_secret)) {
-            wp_redirect(site_url('/login/?error=missing-creds'));
+            wp_safe_redirect(site_url('/login/?error=missing-creds'));
             exit;
         }
 
@@ -225,12 +225,12 @@ add_action('init', function() {
                     }
                 }
 
-                wp_redirect(site_url('/reviewer-dashboard/'));
+                wp_safe_redirect(site_url('/reviewer-dashboard/'));
                 exit;
             }
         }
 
-        wp_redirect(site_url('/login/?error=linkedin-failed'));
+        wp_safe_redirect(site_url('/login/?error=linkedin-failed'));
         exit;
     }
 });
@@ -287,11 +287,11 @@ add_action('init', function() {
                         wp_set_auth_cookie($user_id, true);
                     }
                 }
-                wp_redirect(site_url('/reviewer-dashboard/'));
+                wp_safe_redirect(site_url('/reviewer-dashboard/'));
                 exit;
             }
         }
-        wp_redirect(site_url('/login/?google=error'));
+        wp_safe_redirect(site_url('/login/?google=error'));
         exit;
     }
 });
