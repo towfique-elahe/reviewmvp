@@ -414,14 +414,6 @@ jQuery(document).ready(function($) {
     $('#reviewCourse').select2({
         placeholder: "— Select Course —",
         allowClear: true,
-        width: '100%'
-    });
-});
-
-jQuery(document).ready(function($) {
-    $('#reviewCourse').select2({
-        placeholder: "— Select Course —",
-        allowClear: true,
         width: '100%',
         templateResult: function(state) {
             if (!state.id) return state.text;
@@ -469,6 +461,9 @@ jQuery(document).ready(function($) {
     $('#reviewCourse').on('select2:select', function(e) {
         var data = e.params.data;
         if ($(data.element).data('custom')) {
+            try {
+                if (window.__clearReviewDraft) window.__clearReviewDraft();
+            } catch (e) {}
             window.location.href = "<?php echo site_url('/add-missing-course'); ?>";
         }
     });
@@ -806,6 +801,53 @@ jQuery(document).ready(function($) {
     };
 })();
 (function() {
+    var CURRENT_KEY = 'reviewFormDraft_<?php echo is_user_logged_in() ? get_current_user_id() : 0; ?>';
+    var GUEST_KEY = 'reviewFormDraft_0';
+
+    function clearDraft() {
+        try {
+            localStorage.removeItem(CURRENT_KEY);
+            // Also clear guest bucket in case of recent login migration
+            localStorage.removeItem(GUEST_KEY);
+        } catch (e) {}
+    }
+
+    // A) Clear on user-initiated reload (F5/Ctrl-R), *unless* we set a skip flag for LinkedIn
+    try {
+        var nav = (performance.getEntriesByType && performance.getEntriesByType('navigation') || [])[0];
+        var isReload = nav ? (nav.type === 'reload') : (performance.navigation && performance.navigation.type ===
+            1);
+        var skip = false;
+        try {
+            skip = sessionStorage.getItem('skipDraftClearOnReload') === '1';
+        } catch (e) {}
+
+        if (isReload && !skip) {
+            clearDraft();
+        }
+        // always clean the flag after load
+        try {
+            sessionStorage.removeItem('skipDraftClearOnReload');
+        } catch (e) {}
+    } catch (e) {}
+
+    // B) Clear on same-tab navigations via link clicks (intentional leave)
+    document.addEventListener('click', function(e) {
+        var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+        if (!a) return;
+
+        // ignore LinkedIn connect button; its flow handles draft preservation
+        if (a.id === 'connectLinkedin') return;
+
+        var href = a.getAttribute('href') || '';
+        if (!href || href.charAt(0) === '#') return;
+        if (/^javascript:/i.test(href)) return;
+        if (a.target && a.target.toLowerCase() === '_blank') return; // new tab → keep draft
+
+        clearDraft(); // user is leaving this page intentionally in the same tab
+    }, true);
+})();
+(function() {
     var currentKey = 'reviewFormDraft_<?php echo is_user_logged_in() ? get_current_user_id() : 0; ?>';
     var guestKey = 'reviewFormDraft_0';
 
@@ -849,6 +891,10 @@ jQuery(document).ready(function($) {
             } catch (e) {}
         }
 
+        try {
+            sessionStorage.setItem('skipDraftClearOnReload', '1');
+        } catch (e) {}
+
         var nonce = document.getElementById('linkedinConnectNonce').value;
 
         var popup = openPopup('about:blank', 'LinkedIn', 600, 720);
@@ -870,12 +916,18 @@ jQuery(document).ready(function($) {
                 if (resp && resp.success && resp.data && resp.data.url) {
                     popup.location.assign(resp.data.url);
                 } else {
+                    try {
+                        sessionStorage.removeItem('skipDraftClearOnReload');
+                    } catch (e) {}
                     popup.close();
                     alert((resp && resp.data && resp.data.message) ? resp.data.message :
                         'Could not start LinkedIn connect.');
                 }
             })
             .fail(function(jqXHR, textStatus, errorThrown) {
+                try {
+                    sessionStorage.removeItem('skipDraftClearOnReload');
+                } catch (e) {}
                 popup.close();
                 alert('AJAX failed (' + jqXHR.status + '): ' + (errorThrown || textStatus));
             });
@@ -890,8 +942,16 @@ jQuery(document).ready(function($) {
         if (data.type !== 'linkedin_connect') return;
 
         if (data.status === 'success') {
+            // ensure the reload keeps the draft
+            try {
+                sessionStorage.setItem('skipDraftClearOnReload', '1');
+            } catch (e) {}
             window.location.reload();
         } else {
+            // cleanup flag on failure
+            try {
+                sessionStorage.removeItem('skipDraftClearOnReload');
+            } catch (e) {}
             alert('LinkedIn connect failed: ' + (data.message || 'Unknown error'));
         }
     }, false);
