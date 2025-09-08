@@ -56,7 +56,7 @@ function reviewmvp_custom_login_form() {
             $message = get_transient('custom_login_error');
             if ($message) {
                 delete_transient('custom_login_error');
-                echo '<div class="login-error" style="color:crimson; text-align:center; margin-bottom:10px;">' . esc_html($message) . '</div>';
+                echo '<div class="login-error" style="color:crimson; text-align:center; margin-bottom:10px;">' . $message . '</div>';
             }
         ?>
 
