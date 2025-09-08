@@ -95,12 +95,12 @@
     const addMissingItem = document.createElement("li");
     addMissingItem.className = "result-item add-missing-item";
     addMissingItem.innerHTML = `
-    <button class="add-missing" type="button">
+    <a class="add-missing" href="${addMissingUrl}">
       <span class="plus">
         <ion-icon name="add-outline"></ion-icon>
       </span>
       <span class="add-missing-text">${labels.noMatch}</span>
-    </button>
+    </a>
   `;
     list.appendChild(addMissingItem);
   }

@@ -71,6 +71,11 @@
   cursor: pointer;
 }
 
+#searchCourse .result-item a.add-missing {
+  box-sizing: border-box;
+  justify-content: flex-start;
+}
+
 #searchCourse .result-item[aria-selected="true"] a,
 #searchCourse .result-item a:hover {
   background: var(--gray-background-color);
