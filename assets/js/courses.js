@@ -435,24 +435,58 @@
         const catContainer = root.querySelector(
           '[data-role="category-options"]'
         );
+
+        // small HTML escaper for safe attribute/text insertion
+        const escapeHtml = (s = "") =>
+          String(s).replace(
+            /[&<>"']/g,
+            (m) =>
+              ({
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "&#39;",
+              }[m])
+          );
+
         if (catContainer) {
-          catContainer.innerHTML = Array.from(allCategories)
-            .sort()
-            .map(
-              (cat) =>
-                `<label class="bc-check">
-          <input type="checkbox" name="category" value="${cat}"> ${cat}
-        </label>`
-            )
+          const cats = Array.from(allCategories).sort((a, b) =>
+            String(a).localeCompare(String(b), undefined, {
+              sensitivity: "base",
+            })
+          );
+
+          catContainer.innerHTML = cats
+            .map((cat, idx) => {
+              const label = escapeHtml(cat);
+              // build a stable, unique id for a11y (not strictly required since input is inside label)
+              const slug = String(cat)
+                .toLowerCase()
+                .replace(/[^\w\-]+/g, "-")
+                .replace(/-+/g, "-");
+              const id = `${root.id || "bc"}_cat_${slug}_${idx}`;
+              return `
+<label class="bc-check">
+  <input class="cb-input" type="checkbox" id="${id}" name="category" value="${label}">
+  <span class="cb-box" aria-hidden="true">
+    <svg class="cb-icon" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 8l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </span>
+  <span class="cb-label">${label}</span>
+</label>`;
+            })
             .join("");
         }
+
         // Preselect category when on taxonomy page
         const currentCatName = root.dataset.currentCategoryName
           ?.trim()
           .toLowerCase();
-        if (currentCatName) {
+        if (currentCatName && catContainer) {
           const inputs = catContainer.querySelectorAll(
-            'input[name="category"]'
+            '.cb-input[name="category"]'
           );
           for (const i of inputs) {
             if (i.value.trim().toLowerCase() === currentCatName) {

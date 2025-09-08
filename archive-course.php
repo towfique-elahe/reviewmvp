@@ -39,24 +39,65 @@ $uid = uniqid('bc_'); // optional, but keeps your JS selectors unique
                                 <ion-icon name="chevron-down-outline" class="open"></ion-icon>
                             </span></div>
                         <div class="bc-fbody open">
-                            <label class="bc-check"><input type="checkbox" name="rating" value="4.5"><img
-                                    src="<?php echo get_theme_icon_url('filter-star-icon.svg'); ?>" alt="Filter icon" />
-                                4.5
-                                &amp;
-                                up</label>
-                            <label class="bc-check"><input type="checkbox" name="rating" value="4"><img
-                                    src="<?php echo get_theme_icon_url('filter-star-icon.svg'); ?>" alt="Filter icon" />
-                                4.0
-                                &amp; up</label>
-                            <label class="bc-check"><input type="checkbox" name="rating" value="3.5"><img
-                                    src="<?php echo get_theme_icon_url('filter-star-icon.svg'); ?>" alt="Filter icon" />
-                                3.5
-                                &amp;
-                                up</label>
-                            <label class="bc-check"><input type="checkbox" name="rating" value="3"><img
-                                    src="<?php echo get_theme_icon_url('filter-star-icon.svg'); ?>" alt="Filter icon" />
-                                3.0
-                                &amp; up</label>
+                            <label class="bc-check">
+                                <input class="cb-input" type="checkbox" name="rating" value="4.5">
+                                <span class="cb-box" aria-hidden="true">
+                                    <svg class="cb-icon" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M2 8l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </span>
+                                <span class="cb-label">
+                                    <img src="<?php echo get_theme_icon_url('filter-star-icon.svg'); ?>" alt=""
+                                        aria-hidden="true" />
+                                    4.5 &amp; up
+                                </span>
+                            </label>
+
+                            <label class="bc-check">
+                                <input class="cb-input" type="checkbox" name="rating" value="4">
+                                <span class="cb-box" aria-hidden="true">
+                                    <svg class="cb-icon" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M2 8l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </span>
+                                <span class="cb-label">
+                                    <img src="<?php echo get_theme_icon_url('filter-star-icon.svg'); ?>" alt=""
+                                        aria-hidden="true" />
+                                    4.0 &amp; up
+                                </span>
+                            </label>
+
+                            <label class="bc-check">
+                                <input class="cb-input" type="checkbox" name="rating" value="3.5">
+                                <span class="cb-box" aria-hidden="true">
+                                    <svg class="cb-icon" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M2 8l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </span>
+                                <span class="cb-label">
+                                    <img src="<?php echo get_theme_icon_url('filter-star-icon.svg'); ?>" alt=""
+                                        aria-hidden="true" />
+                                    3.5 &amp; up
+                                </span>
+                            </label>
+
+                            <label class="bc-check">
+                                <input class="cb-input" type="checkbox" name="rating" value="3">
+                                <span class="cb-box" aria-hidden="true">
+                                    <svg class="cb-icon" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M2 8l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </span>
+                                <span class="cb-label">
+                                    <img src="<?php echo get_theme_icon_url('filter-star-icon.svg'); ?>" alt=""
+                                        aria-hidden="true" />
+                                    3.0 &amp; up
+                                </span>
+                            </label>
                         </div>
                     </div>
 
@@ -74,20 +115,29 @@ $uid = uniqid('bc_'); // optional, but keeps your JS selectors unique
                                 <ion-icon name="chevron-down-outline" class="open"></ion-icon>
                             </span></div>
                         <div class="bc-fbody open">
-                            <label class="bc-check"><input type="checkbox" name="outcomes" value="Improved Skill">
-                                Improved
-                                skill</label>
-                            <label class="bc-check"><input type="checkbox" name="outcomes" value="Built Project"> Built
-                                project</label>
-                            <label class="bc-check"><input type="checkbox" name="outcomes" value="Career Boost"> Career
-                                boost</label>
-                            <label class="bc-check"><input type="checkbox" name="outcomes" value="Gained Confidence">
-                                Gained
-                                confidence</label>
-                            <label class="bc-check"><input type="checkbox" name="outcomes" value="Earned Income"> Earned
-                                income</label>
-                            <label class="bc-check"><input type="checkbox" name="outcomes" value="No Impact"> No
-                                impact</label>
+                            <?php
+                                $outcomes = [
+                                "Improved Skill" => "Improved skill",
+                                "Built Project"  => "Built project",
+                                "Career Boost"   => "Career boost",
+                                "Gained Confidence" => "Gained confidence",
+                                "Earned Income"  => "Earned income",
+                                "No Impact"      => "No impact",
+                                ];
+                                foreach ($outcomes as $val => $label) :
+                            ?>
+                            <label class="bc-check">
+                                <input class="cb-input" type="checkbox" name="outcomes"
+                                    value="<?php echo esc_attr($val); ?>">
+                                <span class="cb-box" aria-hidden="true">
+                                    <svg class="cb-icon" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M2 8l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </span>
+                                <span class="cb-label"><?php echo esc_html($label); ?></span>
+                            </label>
+                            <?php endforeach; ?>
                         </div>
                     </div>
 
@@ -96,12 +146,19 @@ $uid = uniqid('bc_'); // optional, but keeps your JS selectors unique
                                 <ion-icon name="chevron-down-outline" class="open"></ion-icon>
                             </span></div>
                         <div class="bc-fbody open">
-                            <label class="bc-check"><input type="checkbox" name="level" value="Beginner">
-                                Beginner</label>
-                            <label class="bc-check"><input type="checkbox" name="level" value="Intermediate">
-                                Intermediate</label>
-                            <label class="bc-check"><input type="checkbox" name="level" value="Advanced">
-                                Advanced</label>
+                            <?php foreach (['Beginner','Intermediate','Advanced'] as $lvl) : ?>
+                            <label class="bc-check">
+                                <input class="cb-input" type="checkbox" name="level"
+                                    value="<?php echo esc_attr($lvl); ?>">
+                                <span class="cb-box" aria-hidden="true">
+                                    <svg class="cb-icon" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M2 8l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </span>
+                                <span class="cb-label"><?php echo esc_html($lvl); ?></span>
+                            </label>
+                            <?php endforeach; ?>
                         </div>
                     </div>
 
@@ -110,8 +167,19 @@ $uid = uniqid('bc_'); // optional, but keeps your JS selectors unique
                                 <ion-icon name="chevron-down-outline" class="open"></ion-icon>
                             </span></div>
                         <div class="bc-fbody open">
-                            <label class="bc-check"><input type="checkbox" name="price" value="Paid"> Paid</label>
-                            <label class="bc-check"><input type="checkbox" name="price" value="Free"> Free</label>
+                            <?php foreach (['Paid','Free'] as $price) : ?>
+                            <label class="bc-check">
+                                <input class="cb-input" type="checkbox" name="price"
+                                    value="<?php echo esc_attr($price); ?>">
+                                <span class="cb-box" aria-hidden="true">
+                                    <svg class="cb-icon" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M2 8l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </span>
+                                <span class="cb-label"><?php echo esc_html($price); ?></span>
+                            </label>
+                            <?php endforeach; ?>
                         </div>
                     </div>
 
@@ -120,15 +188,28 @@ $uid = uniqid('bc_'); // optional, but keeps your JS selectors unique
                                 <ion-icon name="chevron-down-outline" class="open"></ion-icon>
                             </span></div>
                         <div class="bc-fbody open">
-                            <label class="bc-check"><input type="checkbox" name="duration" value="0-1"> 0–1 Hour</label>
-                            <label class="bc-check"><input type="checkbox" name="duration" value="1-3"> 1–3
-                                Hours</label>
-                            <label class="bc-check"><input type="checkbox" name="duration" value="3-6"> 3–6
-                                Hours</label>
-                            <label class="bc-check"><input type="checkbox" name="duration" value="6-17"> 6–17
-                                Hours</label>
-                            <label class="bc-check"><input type="checkbox" name="duration" value="17+"> 17+
-                                Hours</label>
+                            <?php
+                                $durations = [
+                                '0-1'  => '0–1 Hour',
+                                '1-3'  => '1–3 Hours',
+                                '3-6'  => '3–6 Hours',
+                                '6-17' => '6–17 Hours',
+                                '17+'  => '17+ Hours',
+                                ];
+                                foreach ($durations as $val => $label) :
+                            ?>
+                            <label class="bc-check">
+                                <input class="cb-input" type="checkbox" name="duration"
+                                    value="<?php echo esc_attr($val); ?>">
+                                <span class="cb-box" aria-hidden="true">
+                                    <svg class="cb-icon" viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M2 8l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </span>
+                                <span class="cb-label"><?php echo esc_html($label); ?></span>
+                            </label>
+                            <?php endforeach; ?>
                         </div>
                     </div>
                 </div>
