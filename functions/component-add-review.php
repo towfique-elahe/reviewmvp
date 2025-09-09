@@ -40,92 +40,127 @@ function reviewmvp_add_review_form() {
                     <?php 
                         $selected_course_id = isset($_GET['course_id']) ? intval($_GET['course_id']) : 0;
 
-                        $args = [
+                        // -------- Base args (published list stays alphabetical) --------
+                        $published_args = [
                             'post_type'   => 'course',
                             'numberposts' => -1,
+                            'post_status' => 'publish',
                             'orderby'     => 'title',
                             'order'       => 'ASC',
-                            'post_status' => 'publish',
                         ];
 
-                        if (is_user_logged_in()) {
-                            $user = wp_get_current_user();
-                            if (in_array('reviewer', (array) $user->roles)) {
-                                $args['post_status'] = ['publish','pending'];
-                                $args['meta_query'] = [
-                                    'relation' => 'OR',
-                                    [
-                                        'relation' => 'AND',
-                                        [
-                                            'key'     => '_course_reviewer',
-                                            'value'   => $user->ID,
-                                            'compare' => '='
-                                        ],
-                                        [
-                                            'key'     => '_course_status_flag',
-                                            'compare' => 'EXISTS'
-                                        ]
-                                    ],
-                                    [
-                                        'key'     => '_course_reviewer',
-                                        'compare' => 'NOT EXISTS'
-                                    ],
-                                    [
-                                        'key'     => '_course_reviewer',
-                                        'compare' => 'EXISTS'
-                                    ]
-                                ];
-                            }
-                        }
-
-                        if (!is_user_logged_in() && $guest_pending_course) {
-                            $args['post_status'] = ['publish', 'pending'];
-                        }
-
-                        $courses = get_posts($args);
+                        // -------- Figure out who we are (reviewer/guest) --------
+                        $current_user_id = 0;
+                        $is_reviewer     = false;
 
                         if (is_user_logged_in()) {
-                            $user = wp_get_current_user();
-                            if (in_array('reviewer', (array) $user->roles) && !$selected_course_id) {
-                                $pending_courses = array_filter($courses, function($c) use ($user) {
-                                    return $c->post_status === 'pending' && get_post_meta($c->ID, '_course_reviewer', true) == $user->ID;
-                                });
-                                if (count($pending_courses) === 1) {
-                                    $selected_course_id = reset($pending_courses)->ID;
-                                }
-                            }
+                            $u = wp_get_current_user();
+                            $current_user_id = (int) $u->ID;
+                            $is_reviewer     = in_array('reviewer', (array) $u->roles, true);
                         }
 
-                        if ($guest_pending_course && !$selected_course_id) {
-                            $selected_course_id = $guest_pending_course;
-                        }
+                        // -------- Collect PENDING courses first (owned only) --------
+                        $pending_courses = [];
 
-                        foreach ($courses as $course) {
-                            if ($course->post_status === 'pending') {
-                                $course_reviewer = get_post_meta($course->ID, '_course_reviewer', true);
+                        if ($is_reviewer) {
+                            // Pending courses ONLY for this reviewer
+                            $pending_courses = get_posts([
+                                'post_type'      => 'course',
+                                'post_status'    => 'pending',
+                                'posts_per_page' => -1,
+                                'orderby'        => 'date',   // newest pending first
+                                'order'          => 'DESC',
+                                'meta_query'     => [
+                                    [
+                                        'key'     => '_course_reviewer',
+                                        'value'   => $current_user_id,
+                                        'compare' => '=',
+                                    ],
+                                ],
+                            ]);
+                        } else {
+                            // Guest: show only their last pending course (if any)
+                            if (!is_user_logged_in()) {
+                                if (!session_id()) { session_start(); }
+                                $guest_pending_course = isset($_SESSION['guest_last_course_id']) ? (int) $_SESSION['guest_last_course_id'] : 0;
 
-                                if (is_user_logged_in()) {
-                                    if ($course_reviewer != get_current_user_id()) {
-                                        continue;
-                                    }
-                                } else {
-                                    if ($course->ID != $guest_pending_course) {
-                                        continue;
+                                if ($guest_pending_course > 0) {
+                                    $maybe = get_post($guest_pending_course);
+                                    if ($maybe && $maybe->post_type === 'course' && $maybe->post_status === 'pending') {
+                                        $pending_courses = [$maybe];
                                     }
                                 }
                             }
+                        }
 
-                            $platform = get_post_meta($course->ID, '_course_provider', true); 
-                            $selected = $selected_course_id === $course->ID ? 'selected' : '';
+                        // -------- Published courses (alphabetical) --------
+                        $published_courses = get_posts($published_args);
 
-                            $label = $course->post_title;
-                            if ($course->post_status === 'pending') {
-                                $label .= ' (Pending)';
+                        // -------- OPTIONAL: auto-select the latest reviewer course if not set --------
+                        if ($is_reviewer && !$selected_course_id) {
+                            $latest = get_posts([
+                                'post_type'      => 'course',
+                                'post_status'    => ['pending','publish'],
+                                'posts_per_page' => 1,
+                                'orderby'        => 'date',
+                                'order'          => 'DESC',
+                                'fields'         => 'ids',
+                                'meta_query'     => [
+                                    [
+                                        'key'     => '_course_reviewer',
+                                        'value'   => $current_user_id,
+                                        'compare' => '=',
+                                    ],
+                                ],
+                            ]);
+                            if (!empty($latest)) {
+                                $selected_course_id = (int) $latest[0];
+                            }
+                        }
+
+                        // Guest: if they have a pending course and nothing selected yet, preselect it
+                        if (!is_user_logged_in() && empty($selected_course_id)) {
+                            if (!session_id()) { session_start(); }
+                            $guest_pending_course = isset($_SESSION['guest_last_course_id']) ? (int) $_SESSION['guest_last_course_id'] : 0;
+                            if ($guest_pending_course > 0) {
+                                $selected_course_id = $guest_pending_course;
+                            }
+                        }
+
+                        // -------- Render: pending first, then published --------
+
+                        // Pending group (only if we actually have any)
+                        if (!empty($pending_courses)) {
+                            echo '<optgroup label="Pending (yours)">';
+
+                            foreach ($pending_courses as $course) {
+                                $platform = get_post_meta($course->ID, '_course_provider', true);
+                                $selected = ($selected_course_id === (int) $course->ID) ? 'selected' : '';
+                                $label    = $course->post_title . ' (Pending)';
+
+                                echo '<option value="' . (int) $course->ID . '" data-platform="' . esc_attr($platform) . '" ' . $selected . '>'
+                                    . esc_html($label) .
+                                    '</option>';
                             }
 
-                            echo '<option value="'.$course->ID.'" data-platform="'.esc_attr($platform).'" '.$selected.'>'
-                                .esc_html($label).
-                                '</option>';
+                            echo '</optgroup>';
+                        }
+
+                        // Published group
+                        if (!empty($published_courses)) {
+                            echo '<optgroup label="Published courses">';
+
+                            foreach ($published_courses as $course) {
+                                $platform = get_post_meta($course->ID, '_course_provider', true);
+                                $selected = ($selected_course_id === (int) $course->ID) ? 'selected' : '';
+                                $label    = $course->post_title;
+
+                                echo '<option value="' . (int) $course->ID . '" data-platform="' . esc_attr($platform) . '" ' . $selected . '>'
+                                    . esc_html($label) .
+                                    '</option>';
+                            }
+
+                            echo '</optgroup>';
                         }
                     ?>
                     <option value="custom_add_course" data-custom="true">Can’t find your course? click here</option>

@@ -563,6 +563,11 @@
 }
 
 @media (max-width: 425px) {
+  .select2-course {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
   #addReviewForm .form-section-heading {
     font-size: 20px;
   }
