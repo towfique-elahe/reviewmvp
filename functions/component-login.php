@@ -11,7 +11,7 @@ add_action('template_redirect', function() {
             $user = wp_signon($creds, false);
 
             if (!is_wp_error($user)) {
-                if (in_array('reviewer', (array) $user->roles)) {
+                if (in_array('reviewer', (array) $user->roles, true)) {
                     wp_safe_redirect(site_url('/reviewer-dashboard/'));
                     exit;
                 } else {
@@ -21,7 +21,28 @@ add_action('template_redirect', function() {
                     exit;
                 }
             } else {
-                set_transient('custom_login_error', $user->get_error_message(), 30);
+                // Build a custom error for wrong password, and fix the reset link
+                $lost_url = site_url('/forget-password/');
+                $message  = '';
+
+                if (in_array('incorrect_password', (array) $user->get_error_codes(), true)) {
+                    $email   = sanitize_email($_POST['email']);
+                    $message = sprintf(
+                        'Error: The password you entered for the email address %s is incorrect. <a href="%s">Lost your password?</a>',
+                        esc_html($email),
+                        esc_url($lost_url)
+                    );
+                } else {
+                    // Fall back to WP's message but replace the default lost-password link if present
+                    $message = $user->get_error_message();
+                    $message = preg_replace(
+                        '#href=[\'"][^\'"]*wp-login\.php\?action=lostpassword[\'"]#i',
+                        'href="' . esc_url($lost_url) . '"',
+                        $message
+                    );
+                }
+
+                set_transient('custom_login_error', $message, 30);
                 wp_safe_redirect(site_url('/login/'));
                 exit;
             }
@@ -56,7 +77,7 @@ function reviewmvp_custom_login_form() {
             $message = get_transient('custom_login_error');
             if ($message) {
                 delete_transient('custom_login_error');
-                echo '<div class="login-error" style="color:crimson; text-align:center; margin-bottom:10px;">' . $message . '</div>';
+                echo '<div class="login-error" style="color:crimson; text-align:center; margin-bottom:10px;">' . wp_kses_post($message) . '</div>';
             }
         ?>
 
@@ -79,8 +100,17 @@ function reviewmvp_custom_login_form() {
             </div>
 
             <div class="form-group remember-me">
-                <input type="checkbox" name="remember" id="remember">
-                <label for="remember">Remember me</label>
+                <label class="bc-check" for="remember">
+                    <input type="checkbox" name="remember" id="remember" class="cb-input">
+                    <span class="cb-box">
+                        <!-- checkmark icon -->
+                        <svg class="cb-icon" viewBox="0 0 16 16" fill="none">
+                            <path d="M4 8.5L7 11.5L12 5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                    </span>
+                    <span class="cb-label">Remember me</span>
+                </label>
             </div>
 
             <button type="submit" class="btn-submit">Login</button>

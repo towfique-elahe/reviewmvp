@@ -195,16 +195,25 @@ function reviewmvp_add_review_form() {
             <p class="form-tip">Select all that apply</p>
             <div class="form-options-group">
                 <?php foreach ($outcomes as $outcomeText => $data): ?>
-                <label for="<?= esc_attr($data['id']) ?>" class="form-option">
+                <label class="bc-check form-option" for="<?= esc_attr($data['id']) ?>">
                     <input type="checkbox" name="review_outcome[]" value="<?= esc_attr($outcomeText) ?>"
-                        id="<?= esc_attr($data['id']) ?>">
-                    <img src="<?= get_theme_icon_url($data['icon']) ?>" alt="<?= esc_attr($outcomeText) ?> Icon"
-                        class="option-icon">
-                    <?php echo esc_html($outcomeText); ?>
-                    <span class="tooltip-wrapper">
-                        <ion-icon name="information-circle-outline"></ion-icon>
-                        <span class="tooltip-text">
-                            <?= esc_html($data['info']); ?>
+                        id="<?= esc_attr($data['id']) ?>" class="cb-input">
+                    <span class="cb-box">
+                        <!-- checkmark icon -->
+                        <svg class="cb-icon" viewBox="0 0 16 16" fill="none">
+                            <path d="M4 8.5L7 11.5L12 5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </svg>
+                    </span>
+                    <span class="cb-label">
+                        <img src="<?= get_theme_icon_url($data['icon']) ?>" alt="<?= esc_attr($outcomeText) ?> Icon"
+                            class="option-icon">
+                        <?= esc_html($outcomeText); ?>
+                        <span class="tooltip-wrapper">
+                            <ion-icon name="information-circle-outline"></ion-icon>
+                            <span class="tooltip-text">
+                                <?= esc_html($data['info']); ?>
+                            </span>
                         </span>
                     </span>
                 </label>
@@ -383,17 +392,35 @@ function reviewmvp_add_review_form() {
 
         <div class="form-group">
             <?php if (is_user_logged_in()): ?>
-            <label for="reviewAnonymously" class="form-label anonymous">
-                <input type="checkbox" name="review_anonymously" id="reviewAnonymously">
-                <span><strong>Review anonymously</strong> (your name will not be shown publicly)</span>
+            <label class="bc-check form-label anonymous" for="reviewAnonymously">
+                <input type="checkbox" name="review_anonymously" id="reviewAnonymously" class="cb-input">
+                <span class="cb-box">
+                    <!-- checkmark icon -->
+                    <svg class="cb-icon" viewBox="0 0 16 16" fill="none">
+                        <path d="M4 8.5L7 11.5L12 5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                </span>
+                <span class="cb-label">
+                    <strong>Review anonymously</strong> (your name will not be shown publicly)
+                </span>
             </label>
             <?php endif; ?>
-            <label for="reviewConsent" class="form-label consent">
-                <input type="checkbox" name="review_consent" id="reviewConsent">
-                I certify this review is based on my own experience and is my genuine opinion of this course, and that I
-                have no personal or business relationship with this establishment. I understand that Spill the course
-                has a
-                zero-tolerance policy on fake reviews and reviews that do not comply with guidelines.
+            <label class="bc-check form-label consent" for="reviewConsent">
+                <input type="checkbox" name="review_consent" id="reviewConsent" class="cb-input">
+                <span class="cb-box">
+                    <!-- checkmark icon -->
+                    <svg class="cb-icon" viewBox="0 0 16 16" fill="none">
+                        <path d="M4 8.5L7 11.5L12 5.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                    </svg>
+                </span>
+                <span class="cb-label">
+                    I certify this review is based on my own experience and is my genuine opinion of this course,
+                    and that I have no personal or business relationship with this establishment.
+                    I understand that Spill the course has a zero-tolerance policy on fake reviews
+                    and reviews that do not comply with guidelines.
+                </span>
             </label>
             <div class="error-message"></div>
         </div>

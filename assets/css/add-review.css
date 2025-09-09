@@ -186,6 +186,10 @@
   align-items: center;
   gap: 10px;
 }
+#addReviewForm .form-label .cb-label {
+  flex-wrap: wrap;
+  color: var(--secondary-color);
+}
 #addReviewForm .form-label .required {
   color: crimson;
 }
@@ -210,9 +214,9 @@
   font-weight: 400;
   align-items: flex-start;
 }
-#addReviewForm .form-label.anonymous input,
-#addReviewForm .form-label.consent input {
-  margin-top: 5px;
+#addReviewForm .form-label.anonymous .cb-label,
+#addReviewForm .form-label.consent .cb-label {
+  margin-top: -2px;
 }
 #addReviewForm .form-para {
   margin: 0;
@@ -435,18 +439,29 @@
   margin-top: 20px;
 }
 #addReviewForm .form-option {
-  border: var(--border);
-  border-radius: 8px;
-  display: flex;
+  border: var(--border) !important;
+  border-radius: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 5px 13px !important;
+  color: var(--secondary-color) !important;
+  font-family: var(--text-font-family) !important;
+  font-weight: 400 !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+  transition: ease 0.3s !important;
+}
+#addReviewForm .form-option .cb-label {
+  color: var(--secondary-color) !important;
+  font-family: var(--text-font-family) !important;
+  font-weight: 400 !important;
+  font-size: 14px !important;
+  display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 13px;
-  color: var(--secondary-color);
-  font-family: var(--text-font-family);
-  font-weight: 400;
-  font-size: 14px;
-  cursor: pointer;
-  transition: ease 0.3s;
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
 }
 #addReviewForm .form-option:hover {
   background-color: var(--gray-background-color);

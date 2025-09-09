@@ -12,7 +12,6 @@ add_action('init', function() {
         $name     = sanitize_text_field($_POST['name'] ?? '');
         $email    = sanitize_email($_POST['email'] ?? '');
         $password = sanitize_text_field($_POST['password'] ?? '');
-        $remember = !empty($_POST['remember']); // kept if you later want to use it on login
 
         if (empty($name) || empty($email) || empty($password)) {
             set_transient('custom_register_error', 'All fields are required.', 30);
@@ -40,10 +39,6 @@ add_action('init', function() {
                 'ID'           => $user_id,
                 'display_name' => $name
             ]);
-
-            // IMPORTANT: Do NOT log the user in here. Show success then redirect to login.
-            // wp_set_current_user($user_id);
-            // wp_set_auth_cookie($user_id, $remember);
 
             set_transient('custom_register_success', 'Your account was created successfully. Redirecting you to the login page…', 30);
             wp_safe_redirect( site_url('/sign-up/?registered=1') );
@@ -140,11 +135,6 @@ function reviewmvp_custom_register_form() {
                         <ion-icon id="passwordToggleIcon" name="eye-outline"></ion-icon>
                     </span>
                 </div>
-            </div>
-
-            <div class="form-group remember-me">
-                <input type="checkbox" name="remember" id="remember">
-                <label for="remember">Remember me</label>
             </div>
 
             <button type="submit" class="btn-submit">Sign up</button>
